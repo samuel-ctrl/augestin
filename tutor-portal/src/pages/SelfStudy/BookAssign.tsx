@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { LoadingSpinner, standardOptions } from "@shared";
+import { LoadingSpinner, EmptyState, standardOptions } from "@shared";
 import type { Book, Student, Assignment } from "@shared";
 import api from "../../api/client";
 
@@ -13,11 +13,13 @@ export default function BookAssign() {
   const [originalAssignedIds, setOriginalAssignedIds] = useState<Set<string>>(new Set());
   const [assignmentMap, setAssignmentMap] = useState<Map<string, string>>(new Map());
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [standardFilter, setStandardFilter] = useState("");
 
   const fetchData = useCallback(async () => {
+    setError(null);
     try {
       const [bookRes, studentsRes, assignmentsRes] = await Promise.all([
         api.get(`/books/${bookId}`),
@@ -40,8 +42,13 @@ export default function BookAssign() {
       setAssignedIds(assigned);
       setOriginalAssignedIds(new Set(assigned));
       setAssignmentMap(aMap);
-    } catch {
-      navigate("/self-study");
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 404) {
+        navigate("/self-study");
+      } else {
+        setError("Failed to load assignment data. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -110,6 +117,16 @@ export default function BookAssign() {
   });
 
   if (loading) return <LoadingSpinner fullPage />;
+  if (error) {
+    return (
+      <EmptyState
+        icon={<span>⚠️</span>}
+        title="Something went wrong"
+        description={error}
+        action={{ label: "Try Again", onClick: () => { setLoading(true); fetchData(); } }}
+      />
+    );
+  }
   if (!book) return null;
 
   return (

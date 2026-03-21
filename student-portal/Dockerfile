@@ -5,17 +5,17 @@ WORKDIR /app
 COPY shared-ui/ ./shared-ui/
 
 # Copy portal package files and install
-COPY tutor-portal/package.json tutor-portal/package-lock.json ./
+COPY student-portal/package.json student-portal/package-lock.json ./
 RUN npm install
 
 # Copy portal source (shared-ui already in place for @shared alias)
-COPY tutor-portal/src/ ./src/
-COPY tutor-portal/index.html tutor-portal/vite.config.ts tutor-portal/tsconfig.json ./
-COPY tutor-portal/tailwind.config.js tutor-portal/postcss.config.js ./
+COPY student-portal/src/ ./src/
+COPY student-portal/index.html student-portal/vite.config.ts student-portal/tsconfig.json ./
+COPY student-portal/tailwind.config.js student-portal/postcss.config.js ./
 
 RUN npm run build
 
 FROM nginx:alpine
 COPY --from=build /app/dist /usr/share/nginx/html
-COPY tutor-portal/nginx.conf /etc/nginx/conf.d/default.conf
+COPY student-portal/nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80

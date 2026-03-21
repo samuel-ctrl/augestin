@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { DataTable, LoadingSpinner, ConfirmDialog } from "@shared";
+import { DataTable, LoadingSpinner, ConfirmDialog, EmptyState } from "@shared";
 import type {
   Student,
   BookProgress,
@@ -55,6 +55,7 @@ export default function StudentDetail() {
   const navigate = useNavigate();
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [newPassword, setNewPassword] = useState<string | null>(null);
 
@@ -62,7 +63,14 @@ export default function StudentDetail() {
     api
       .get(`/students/${id}`)
       .then((res) => setStudent(res.data))
-      .catch(() => navigate("/students"))
+      .catch((err: unknown) => {
+        const status = (err as { response?: { status?: number } })?.response?.status;
+        if (status === 404) {
+          navigate("/students");
+        } else {
+          setError("Failed to load student details. Please try again.");
+        }
+      })
       .finally(() => setLoading(false));
   }, [id, navigate]);
 
@@ -80,6 +88,16 @@ export default function StudentDetail() {
   };
 
   if (loading) return <LoadingSpinner fullPage />;
+  if (error) {
+    return (
+      <EmptyState
+        icon={<span>⚠️</span>}
+        title="Something went wrong"
+        description={error}
+        action={{ label: "Back to Students", onClick: () => navigate("/students") }}
+      />
+    );
+  }
   if (!student) return null;
 
   return (

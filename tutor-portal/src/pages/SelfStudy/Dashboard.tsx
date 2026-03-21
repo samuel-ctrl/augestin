@@ -9,19 +9,21 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editTarget, setEditTarget] = useState<Subject | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Subject | null>(null);
   const [formLoading, setFormLoading] = useState(false);
 
   const fetchSubjects = useCallback(async () => {
+    setError(null);
     try {
       const res = await api.get("/subjects", {
         params: { page: 1, page_size: 100, sort_by: "name", sort_order: "asc" },
       });
       setSubjects(res.data.items);
     } catch {
-      // handled by interceptor
+      setError("Failed to load subjects. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -62,6 +64,16 @@ export default function Dashboard() {
   };
 
   if (loading) return <LoadingSpinner fullPage />;
+  if (error) {
+    return (
+      <EmptyState
+        icon={<span>⚠️</span>}
+        title="Something went wrong"
+        description={error}
+        action={{ label: "Try Again", onClick: () => { setLoading(true); fetchSubjects(); } }}
+      />
+    );
+  }
 
   return (
     <div>

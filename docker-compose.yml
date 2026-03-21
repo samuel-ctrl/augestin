@@ -32,5 +32,23 @@ services:
       postgres:
         condition: service_healthy
 
+  student-portal:
+    build:
+      context: .
+      dockerfile: student-portal/Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+  tutor-portal:
+    build:
+      context: .
+      dockerfile: tutor-portal/Dockerfile
+    ports:
+      - "3001:80"
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:

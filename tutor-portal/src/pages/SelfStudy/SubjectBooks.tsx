@@ -10,9 +10,11 @@ export default function SubjectBooks() {
   const [subject, setSubject] = useState<Subject | null>(null);
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Book | null>(null);
 
   const fetchData = useCallback(async () => {
+    setError(null);
     try {
       const [subjectRes, booksRes] = await Promise.all([
         api.get(`/subjects/${subjectId}`),
@@ -22,8 +24,13 @@ export default function SubjectBooks() {
       ]);
       setSubject(subjectRes.data);
       setBooks(booksRes.data.items);
-    } catch {
-      navigate("/self-study");
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 404) {
+        navigate("/self-study");
+      } else {
+        setError("Failed to load subject data. Please try again.");
+      }
     } finally {
       setLoading(false);
     }
@@ -41,6 +48,16 @@ export default function SubjectBooks() {
   };
 
   if (loading) return <LoadingSpinner fullPage />;
+  if (error) {
+    return (
+      <EmptyState
+        icon={<span>⚠️</span>}
+        title="Something went wrong"
+        description={error}
+        action={{ label: "Try Again", onClick: () => { setLoading(true); fetchData(); } }}
+      />
+    );
+  }
   if (!subject) return null;
 
   return (
