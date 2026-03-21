@@ -1,0 +1,12 @@
+node_modules/
+__pycache__/
+.env
+uploads/videos/*
+uploads/thumbnails/*
+dist/
+*.pyc
+.venv/
+student-portal/shared-ui/
+tutor-portal/shared-ui/
+!uploads/videos/.gitkeep
+!uploads/thumbnails/.gitkeep
