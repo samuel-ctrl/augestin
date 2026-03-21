@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { FileUpload, LoadingSpinner, standardOptions } from "@shared";
+import { FileUpload, LoadingSpinner, Toast, useToast, standardOptions } from "@shared";
 import api from "../../api/client";
 
 interface BookData {
@@ -31,7 +31,7 @@ export default function BookForm() {
   const [existingData, setExistingData] = useState<BookData | null>(null);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const { toast, showApiError, dismiss } = useToast();
 
   useEffect(() => {
     if (isEdit) {
@@ -46,17 +46,19 @@ export default function BookForm() {
           setSubjectId(book.subject_id);
           setExistingData(book);
         })
-        .catch(() => navigate("/self-study"))
+        .catch((err) => {
+          showApiError(err, "Failed to load book details.");
+          navigate("/self-study");
+        })
         .finally(() => setLoading(false));
     }
   }, [id, isEdit, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
 
     if (!isEdit && !videoFile) {
-      setError("Video file is required");
+      showApiError(null, "Video file is required");
       return;
     }
 
@@ -90,10 +92,7 @@ export default function BookForm() {
 
       navigate(`/self-study/subjects/${subjectId}`);
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data
-          ?.detail || "Failed to save book";
-      setError(msg);
+      showApiError(err, "Failed to save book. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -103,6 +102,7 @@ export default function BookForm() {
 
   return (
     <div className="max-w-lg mx-auto">
+      {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <button
         onClick={() =>
           navigate(
@@ -113,7 +113,7 @@ export default function BookForm() {
         }
         className="text-sm text-gray-500 hover:text-gray-700 mb-4 inline-flex items-center gap-1"
       >
-        ← Back
+        &larr; Back
       </button>
 
       <h1 className="text-xl font-semibold text-gray-800 mb-6">
@@ -199,8 +199,6 @@ export default function BookForm() {
           currentUrl={existingData?.thumbnail_url}
           onChange={setThumbnailFile}
         />
-
-        {error && <p className="text-sm text-red-500">{error}</p>}
 
         <div className="flex gap-3 pt-2">
           <button

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { SubjectCard, EmptyState, LoadingSpinner, ConfirmDialog } from "@shared";
+import { SubjectCard, EmptyState, LoadingSpinner, ConfirmDialog, Toast, useToast } from "@shared";
 import type { Subject } from "@shared";
 import api from "../../api/client";
 import SubjectForm from "../../components/SubjectForm";
@@ -14,6 +14,7 @@ export default function Dashboard() {
   const [editTarget, setEditTarget] = useState<Subject | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Subject | null>(null);
   const [formLoading, setFormLoading] = useState(false);
+  const { toast, showApiError, showSuccess, dismiss } = useToast();
 
   const fetchSubjects = useCallback(async () => {
     setError(null);
@@ -38,7 +39,10 @@ export default function Dashboard() {
     try {
       await api.post("/subjects", data);
       setShowCreateForm(false);
+      showSuccess("Subject created successfully.");
       fetchSubjects();
+    } catch (err) {
+      showApiError(err, "Failed to create subject. Please try again.");
     } finally {
       setFormLoading(false);
     }
@@ -50,7 +54,10 @@ export default function Dashboard() {
     try {
       await api.put(`/subjects/${editTarget.id}`, data);
       setEditTarget(null);
+      showSuccess("Subject updated successfully.");
       fetchSubjects();
+    } catch (err) {
+      showApiError(err, "Failed to update subject. Please try again.");
     } finally {
       setFormLoading(false);
     }
@@ -58,16 +65,22 @@ export default function Dashboard() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    await api.delete(`/subjects/${deleteTarget.id}`);
-    setDeleteTarget(null);
-    fetchSubjects();
+    try {
+      await api.delete(`/subjects/${deleteTarget.id}`);
+      showSuccess(`Subject "${deleteTarget.name}" deleted successfully.`);
+      setDeleteTarget(null);
+      fetchSubjects();
+    } catch (err) {
+      setDeleteTarget(null);
+      showApiError(err, "Failed to delete subject. Please try again.");
+    }
   };
 
   if (loading) return <LoadingSpinner fullPage />;
   if (error) {
     return (
       <EmptyState
-        icon={<span>⚠️</span>}
+        icon={<span>!</span>}
         title="Something went wrong"
         description={error}
         action={{ label: "Try Again", onClick: () => { setLoading(true); fetchSubjects(); } }}
@@ -77,6 +90,7 @@ export default function Dashboard() {
 
   return (
     <div>
+      {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold text-gray-800">Self-Study</h1>
         <button
@@ -89,7 +103,7 @@ export default function Dashboard() {
 
       {subjects.length === 0 ? (
         <EmptyState
-          icon={<span>📚</span>}
+          icon={<span>Books</span>}
           title="No subjects yet"
           description="Create your first subject to start organizing content."
           action={{ label: "Create Subject", onClick: () => setShowCreateForm(true) }}

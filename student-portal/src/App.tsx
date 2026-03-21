@@ -5,6 +5,7 @@ import { sidebarItems } from "./config/sidebar";
 import Login from "./pages/Login";
 import ChangePassword from "./pages/ChangePassword";
 import NotFound from "./pages/NotFound";
+import DevComponents from "./pages/DevComponents";
 import Dashboard from "./pages/SelfStudy/Dashboard";
 import SubjectView from "./pages/SelfStudy/SubjectView";
 import BookView from "./pages/SelfStudy/BookView";
@@ -60,6 +61,7 @@ export default function App() {
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/change-password" element={<ChangePasswordGuard />} />
+        <Route path="/dev/components" element={<DevComponents />} />
         <Route path="/*" element={<AuthenticatedApp />} />
       </Routes>
     </AuthProvider>

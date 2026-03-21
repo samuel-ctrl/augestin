@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { LoadingSpinner, EmptyState, standardOptions } from "@shared";
+import { LoadingSpinner, EmptyState, Toast, useToast, standardOptions } from "@shared";
 import type { Book, Student, Assignment } from "@shared";
 import api from "../../api/client";
 
@@ -17,6 +17,7 @@ export default function BookAssign() {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [standardFilter, setStandardFilter] = useState("");
+  const { toast, showApiError, showSuccess, dismiss } = useToast();
 
   const fetchData = useCallback(async () => {
     setError(null);
@@ -98,9 +99,10 @@ export default function BookAssign() {
         }
       }
 
+      showSuccess("Assignments updated successfully.");
       navigate(`/self-study/subjects/${book?.subject_id}`);
-    } catch {
-      // error handled by interceptor
+    } catch (err) {
+      showApiError(err, "Failed to save assignments. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -120,7 +122,7 @@ export default function BookAssign() {
   if (error) {
     return (
       <EmptyState
-        icon={<span>⚠️</span>}
+        icon={<span>!</span>}
         title="Something went wrong"
         description={error}
         action={{ label: "Try Again", onClick: () => { setLoading(true); fetchData(); } }}
@@ -131,11 +133,12 @@ export default function BookAssign() {
 
   return (
     <div className="max-w-2xl mx-auto">
+      {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <button
         onClick={() => navigate(`/self-study/subjects/${book.subject_id}`)}
         className="text-sm text-gray-500 hover:text-gray-700 mb-4 inline-flex items-center gap-1"
       >
-        ← Back
+        &larr; Back
       </button>
 
       <h1 className="text-xl font-semibold text-gray-800 mb-1">

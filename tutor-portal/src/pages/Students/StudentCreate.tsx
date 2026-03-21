@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CredentialCard, standardOptions } from "@shared";
+import { CredentialCard, Toast, useToast, standardOptions } from "@shared";
 import api from "../../api/client";
 
 interface Credentials {
@@ -15,12 +15,11 @@ export default function StudentCreate() {
   const [phone, setPhone] = useState("");
   const [standard, setStandard] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [credentials, setCredentials] = useState<Credentials | null>(null);
+  const { toast, showApiError, dismiss } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     setLoading(true);
     try {
       const payload: Record<string, string> = { name };
@@ -31,10 +30,7 @@ export default function StudentCreate() {
       const res = await api.post("/students", payload);
       setCredentials(res.data);
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data
-          ?.detail || "Failed to create student";
-      setError(msg);
+      showApiError(err, "Failed to create student. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -76,6 +72,7 @@ export default function StudentCreate() {
 
   return (
     <div className="max-w-md mx-auto">
+      {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <h1 className="text-xl font-semibold text-gray-800 mb-6">
         Add New Student
       </h1>
@@ -136,7 +133,6 @@ export default function StudentCreate() {
             ))}
           </select>
         </div>
-        {error && <p className="text-sm text-red-500">{error}</p>}
         <div className="flex gap-3">
           <button
             type="button"

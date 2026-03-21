@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { DataTable, LoadingSpinner, ConfirmDialog, EmptyState } from "@shared";
+import { DataTable, LoadingSpinner, ConfirmDialog, EmptyState, Toast, useToast } from "@shared";
 import type {
   Student,
   BookProgress,
@@ -46,7 +46,7 @@ const progressColumns: ColumnDef<BookProgress>[] = [
     key: "last_watched_at",
     label: "Last Watched",
     render: (v) =>
-      v ? new Date(v as string).toLocaleDateString() : "—",
+      v ? new Date(v as string).toLocaleDateString() : "\u2014",
   },
 ];
 
@@ -58,6 +58,7 @@ export default function StudentDetail() {
   const [error, setError] = useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [newPassword, setNewPassword] = useState<string | null>(null);
+  const { toast, showApiError, showSuccess, dismiss } = useToast();
 
   useEffect(() => {
     api
@@ -82,16 +83,22 @@ export default function StudentDetail() {
   };
 
   const handleResetPassword = async () => {
-    const res = await api.post(`/students/${id}/reset-password`);
-    setNewPassword(res.data.password);
-    setShowResetConfirm(false);
+    try {
+      const res = await api.post(`/students/${id}/reset-password`);
+      setNewPassword(res.data.password);
+      setShowResetConfirm(false);
+      showSuccess("Password reset successfully.");
+    } catch (err) {
+      setShowResetConfirm(false);
+      showApiError(err, "Failed to reset password. Please try again.");
+    }
   };
 
   if (loading) return <LoadingSpinner fullPage />;
   if (error) {
     return (
       <EmptyState
-        icon={<span>⚠️</span>}
+        icon={<span>!</span>}
         title="Something went wrong"
         description={error}
         action={{ label: "Back to Students", onClick: () => navigate("/students") }}
@@ -102,11 +109,12 @@ export default function StudentDetail() {
 
   return (
     <div>
+      {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <button
         onClick={() => navigate("/students")}
         className="text-sm text-gray-500 hover:text-gray-700 mb-4 inline-flex items-center gap-1"
       >
-        ← Back to Students
+        &larr; Back to Students
       </button>
 
       {/* Student Info */}

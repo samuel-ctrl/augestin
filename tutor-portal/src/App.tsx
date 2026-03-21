@@ -11,6 +11,7 @@ import BookAssign from "./pages/SelfStudy/BookAssign";
 import StudentList from "./pages/Students/StudentList";
 import StudentCreate from "./pages/Students/StudentCreate";
 import StudentDetail from "./pages/Students/StudentDetail";
+import DevComponents from "./pages/DevComponents";
 
 function AuthenticatedApp() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -49,6 +50,7 @@ export default function App() {
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/dev/components" element={<DevComponents />} />
         <Route path="/*" element={<AuthenticatedApp />} />
       </Routes>
     </AuthProvider>

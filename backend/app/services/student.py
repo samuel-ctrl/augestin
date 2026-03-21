@@ -47,6 +47,16 @@ async def create_student(
     login_id = await _generate_unique_login_id(db, email, phone)
     plain_password = generate_password()
 
+    # Check for existing email/phone before creating
+    if email:
+        existing = await db.execute(select(User).where(User.email == email))
+        if existing.scalar_one_or_none() is not None:
+            raise ValueError(f"A student with email '{email}' already exists")
+    if phone:
+        existing = await db.execute(select(User).where(User.phone == phone))
+        if existing.scalar_one_or_none() is not None:
+            raise ValueError(f"A student with phone '{phone}' already exists")
+
     student = User(
         login_id=login_id,
         name=name,
@@ -134,8 +144,20 @@ async def update_student(
     if name is not None:
         student.name = name
     if email is not None:
+        if email:
+            existing = await db.execute(
+                select(User).where(User.email == email, User.id != student.id)
+            )
+            if existing.scalar_one_or_none() is not None:
+                raise ValueError(f"A student with email '{email}' already exists")
         student.email = email if email else None
     if phone is not None:
+        if phone:
+            existing = await db.execute(
+                select(User).where(User.phone == phone, User.id != student.id)
+            )
+            if existing.scalar_one_or_none() is not None:
+                raise ValueError(f"A student with phone '{phone}' already exists")
         student.phone = phone if phone else None
     if standard is not None:
         student.standard = _validate_standard(standard) if standard else None

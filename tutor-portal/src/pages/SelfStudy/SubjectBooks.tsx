@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { BookCard, EmptyState, LoadingSpinner, ConfirmDialog } from "@shared";
+import { BookCard, EmptyState, LoadingSpinner, ConfirmDialog, Toast, useToast } from "@shared";
 import type { Subject, Book } from "@shared";
 import api from "../../api/client";
 
@@ -12,6 +12,7 @@ export default function SubjectBooks() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Book | null>(null);
+  const { toast, showApiError, showSuccess, dismiss } = useToast();
 
   const fetchData = useCallback(async () => {
     setError(null);
@@ -42,16 +43,22 @@ export default function SubjectBooks() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    await api.delete(`/books/${deleteTarget.id}`);
-    setDeleteTarget(null);
-    fetchData();
+    try {
+      await api.delete(`/books/${deleteTarget.id}`);
+      showSuccess(`Book "${deleteTarget.title}" deleted successfully.`);
+      setDeleteTarget(null);
+      fetchData();
+    } catch (err) {
+      setDeleteTarget(null);
+      showApiError(err, "Failed to delete book. Please try again.");
+    }
   };
 
   if (loading) return <LoadingSpinner fullPage />;
   if (error) {
     return (
       <EmptyState
-        icon={<span>⚠️</span>}
+        icon={<span>!</span>}
         title="Something went wrong"
         description={error}
         action={{ label: "Try Again", onClick: () => { setLoading(true); fetchData(); } }}
@@ -62,13 +69,14 @@ export default function SubjectBooks() {
 
   return (
     <div>
+      {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <div className="flex items-center justify-between mb-6">
         <div>
           <button
             onClick={() => navigate("/self-study")}
             className="text-sm text-gray-500 hover:text-gray-700 mb-1 inline-flex items-center gap-1"
           >
-            ← Self-Study
+            &larr; Self-Study
           </button>
           <h1 className="text-xl font-semibold text-gray-800">
             {subject.name}
@@ -86,7 +94,7 @@ export default function SubjectBooks() {
 
       {books.length === 0 ? (
         <EmptyState
-          icon={<span>📖</span>}
+          icon={<span>Book</span>}
           title="No books yet"
           description="Add books with videos to this subject."
           action={{

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { extractErrorMessage } from "@shared";
 import api from "../api/client";
 
 export default function ChangePassword() {
@@ -34,10 +35,7 @@ export default function ChangePassword() {
       await refreshUser();
       navigate("/self-study");
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data
-          ?.detail || "Failed to change password";
-      setError(msg);
+      setError(extractErrorMessage(err, "Failed to change password. Please try again."));
     } finally {
       setLoading(false);
     }

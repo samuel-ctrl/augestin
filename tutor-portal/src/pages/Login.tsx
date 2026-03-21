@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { extractErrorMessage } from "@shared";
 
 export default function Login() {
   const [loginId, setLoginId] = useState("");
@@ -18,10 +19,7 @@ export default function Login() {
       await login(loginId, password);
       navigate("/self-study");
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data
-          ?.detail || "Login failed";
-      setError(msg);
+      setError(extractErrorMessage(err, "Login failed. Please check your credentials and try again."));
     } finally {
       setLoading(false);
     }

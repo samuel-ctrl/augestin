@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { DataTable, ConfirmDialog, standardOptions } from "@shared";
+import { DataTable, ConfirmDialog, Toast, useToast, extractErrorMessage, standardOptions } from "@shared";
 import type { Student, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
 
@@ -10,7 +10,7 @@ const columns: ColumnDef<Student>[] = [
   {
     key: "standard",
     label: "Standard",
-    render: (v) => (v ? `${v}th` : "—"),
+    render: (v) => (v ? `${v}th` : "\u2014"),
   },
   {
     key: "assignment_count",
@@ -21,7 +21,7 @@ const columns: ColumnDef<Student>[] = [
     key: "created_at",
     label: "Created",
     render: (v) =>
-      v ? new Date(v as string).toLocaleDateString() : "—",
+      v ? new Date(v as string).toLocaleDateString() : "\u2014",
   },
 ];
 
@@ -33,6 +33,7 @@ export default function StudentList() {
   const navigate = useNavigate();
   const [deleteTarget, setDeleteTarget] = useState<Student | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const { toast, showApiError, showSuccess, dismiss } = useToast();
 
   const fetchStudents = async (
     params: TableQueryParams
@@ -43,13 +44,20 @@ export default function StudentList() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    await api.delete(`/students/${deleteTarget.id}`);
-    setDeleteTarget(null);
-    setRefreshKey((k) => k + 1);
+    try {
+      await api.delete(`/students/${deleteTarget.id}`);
+      setDeleteTarget(null);
+      showSuccess(`Student "${deleteTarget.name}" deleted successfully.`);
+      setRefreshKey((k) => k + 1);
+    } catch (err) {
+      setDeleteTarget(null);
+      showApiError(err, "Failed to delete student. Please try again.");
+    }
   };
 
   return (
     <div>
+      {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold text-gray-800">Students</h1>
         <button

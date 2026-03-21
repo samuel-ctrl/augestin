@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { extractErrorMessage, Toast, useToast } from "@shared";
 import api from "../api/client";
 
 export default function Profile() {
@@ -8,13 +9,12 @@ export default function Profile() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const { toast, showSuccess, dismiss } = useToast();
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
 
     if (newPassword !== confirmPassword) {
       setError("Passwords do not match");
@@ -35,12 +35,9 @@ export default function Profile() {
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      setSuccess("Password changed successfully");
+      showSuccess("Password changed successfully.");
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data
-          ?.detail || "Failed to change password";
-      setError(msg);
+      setError(extractErrorMessage(err, "Failed to change password. Please try again."));
     } finally {
       setLoading(false);
     }
@@ -48,6 +45,7 @@ export default function Profile() {
 
   return (
     <div className="max-w-md mx-auto">
+      {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <h1 className="text-xl font-semibold text-gray-800 mb-6">Profile</h1>
 
       {/* Info Card */}
@@ -127,7 +125,6 @@ export default function Profile() {
           />
         </div>
         {error && <p className="text-sm text-red-500">{error}</p>}
-        {success && <p className="text-sm text-green-600">{success}</p>}
         <button
           type="submit"
           disabled={loading}
