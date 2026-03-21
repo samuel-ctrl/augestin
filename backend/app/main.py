@@ -6,6 +6,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import async_session
+from app.routers import assignments, auth, books, progress, students, subjects
 from app.seed import seed_super_user
 
 
@@ -27,6 +28,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Routers
+app.include_router(auth.router)
+app.include_router(students.router)
+app.include_router(subjects.router)
+app.include_router(books.router)
+app.include_router(assignments.router)
+app.include_router(progress.router)
 
 # Mount uploads
 app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")

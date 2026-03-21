@@ -6,7 +6,6 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
-from app.models.user import Standard
 
 
 class Book(Base):
@@ -18,7 +17,7 @@ class Book(Base):
     thumbnail_url: Mapped[str | None] = mapped_column(String, nullable=True)
     video_url: Mapped[str] = mapped_column(String, nullable=False)
     video_duration_seconds: Mapped[float | None] = mapped_column(Float, nullable=True)
-    standard: Mapped[Standard] = mapped_column(nullable=False)
+    standard: Mapped[str] = mapped_column(String(10), nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     subject_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False

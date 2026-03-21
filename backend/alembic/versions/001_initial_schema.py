@@ -19,16 +19,11 @@ depends_on: Union[str, Sequence[str], None] = None
 
 # Enum types
 usertype_enum = postgresql.ENUM("student", "tutor", name="usertype", create_type=False)
-standard_enum = postgresql.ENUM(
-    "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12",
-    name="standard", create_type=False,
-)
 
 
 def upgrade() -> None:
     # Create enum types
     usertype_enum.create(op.get_bind(), checkfirst=True)
-    standard_enum.create(op.get_bind(), checkfirst=True)
 
     # Users table
     op.create_table(
@@ -40,7 +35,7 @@ def upgrade() -> None:
         sa.Column("phone", sa.String(20), nullable=True),
         sa.Column("password_hash", sa.String(), nullable=False),
         sa.Column("user_type", usertype_enum, nullable=False),
-        sa.Column("standard", standard_enum, nullable=True),
+        sa.Column("standard", sa.String(10), nullable=True),
         sa.Column("must_change_password", sa.Boolean(), nullable=False, server_default=sa.text("true")),
         sa.Column("created_by", sa.UUID(), nullable=True),
         sa.Column("created_at", sa.DateTime(), server_default=sa.func.now(), nullable=False),
@@ -74,7 +69,7 @@ def upgrade() -> None:
         sa.Column("thumbnail_url", sa.String(), nullable=True),
         sa.Column("video_url", sa.String(), nullable=False),
         sa.Column("video_duration_seconds", sa.Float(), nullable=True),
-        sa.Column("standard", standard_enum, nullable=False),
+        sa.Column("standard", sa.String(10), nullable=False),
         sa.Column("sort_order", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("subject_id", sa.UUID(), nullable=False),
         sa.Column("created_by", sa.UUID(), nullable=False),
@@ -131,5 +126,4 @@ def downgrade() -> None:
     op.drop_table("books")
     op.drop_table("subjects")
     op.drop_table("users")
-    standard_enum.drop(op.get_bind(), checkfirst=True)
     usertype_enum.drop(op.get_bind(), checkfirst=True)

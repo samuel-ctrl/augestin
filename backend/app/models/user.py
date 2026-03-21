@@ -14,19 +14,7 @@ class UserType(str, enum.Enum):
     tutor = "tutor"
 
 
-class Standard(str, enum.Enum):
-    _1 = "1"
-    _2 = "2"
-    _3 = "3"
-    _4 = "4"
-    _5 = "5"
-    _6 = "6"
-    _7 = "7"
-    _8 = "8"
-    _9 = "9"
-    _10 = "10"
-    _11 = "11"
-    _12 = "12"
+VALID_STANDARDS = [str(i) for i in range(1, 13)]
 
 
 class User(Base):
@@ -39,7 +27,7 @@ class User(Base):
     phone: Mapped[str | None] = mapped_column(String(20), unique=True, nullable=True)
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
     user_type: Mapped[UserType] = mapped_column(Enum(UserType), nullable=False)
-    standard: Mapped[Standard | None] = mapped_column(Enum(Standard), nullable=True)
+    standard: Mapped[str | None] = mapped_column(String(10), nullable=True)
     must_change_password: Mapped[bool] = mapped_column(Boolean, default=True)
     created_by: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True
