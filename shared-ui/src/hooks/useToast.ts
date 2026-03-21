@@ -64,9 +64,12 @@ export function extractErrorMessage(err: unknown, fallback: string): string {
   if (status === 413) return "The file you're trying to upload is too large.";
   if (status && status >= 500) return "Something went wrong on our end. Please try again later.";
 
-  // Network error (no response)
+  // Network error (no response) — server unreachable
+  const serverUnreachable = (err as { serverUnreachable?: boolean })?.serverUnreachable;
   const message = (err as { message?: string })?.message;
-  if (message === "Network Error") return "Unable to connect to the server. Please check your internet connection.";
+  if (serverUnreachable || message === "Network Error") {
+    return "Server is currently unreachable. Please try again later or contact the help desk for assistance.";
+  }
 
   return fallback;
 }

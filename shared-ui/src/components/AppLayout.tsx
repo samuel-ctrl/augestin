@@ -23,6 +23,7 @@ export function AppLayout({
   logo,
 }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -36,13 +37,15 @@ export function AppLayout({
 
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-30 w-64 transform transition-transform lg:relative lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-30 transform transition-all duration-300 ease-in-out lg:relative lg:translate-x-0 ${
+          sidebarCollapsed ? "w-16" : "w-64"
+        } ${sidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         <Sidebar
           navItems={navItems}
           logo={logo}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)}
           onClose={() => setSidebarOpen(false)}
         />
       </div>
