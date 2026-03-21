@@ -17,7 +17,7 @@ export function Sidebar({ navItems, logo, onClose }: SidebarProps) {
       <div className="px-4 py-5 flex items-center justify-between border-b border-gray-200">
         <div className="flex items-center gap-2">
           {logo || (
-            <span className="text-xl font-bold text-primary-600">Augestin</span>
+            <span className="text-xl font-bold text-primary-600">EduTrack</span>
           )}
         </div>
         {onClose && (

@@ -424,7 +424,7 @@ Both portals share an `iconMap` that maps these keys to SVG/emoji/icon component
 ## Folder Structure
 
 ```
-augestin/
+edutrack/
 ├── docker-compose.yml
 ├── .env
 ├── .env.example
@@ -489,7 +489,7 @@ augestin/
 │           └── id_generator.py         # generate_student_id, generate_password
 │
 ├── shared-ui/                              # Shared component library (local npm package)
-│   ├── package.json                        # name: "@augestin/shared-ui", main: dist/index.js
+│   ├── package.json                        # name: "@edutrack/shared-ui", main: dist/index.js
 │   ├── tsconfig.json
 │   ├── vite.config.ts                      # Library mode build
 │   ├── tailwind.config.js
@@ -610,7 +610,7 @@ Both portals use the same components (AppLayout, Sidebar, DataTable, BookCard, e
 
 **Local dev flow:**
 ```
-augestin/
+edutrack/
 ├── shared-ui/                  ← SOURCE OF TRUTH (git tracked)
 ├── student-portal/
 │   └── shared-ui/              ← LOCAL COPY (gitignored)
@@ -754,7 +754,7 @@ const { data, loading, error, pagination, handlers } = useServerTable({
 
 **Usage in tutor portal (StudentList.tsx):**
 ```tsx
-import { DataTable } from "@augestin/shared-ui";
+import { DataTable } from "@edutrack/shared-ui";
 
 const columns = [
   { key: "name", label: "Name" },
@@ -807,7 +807,7 @@ const filters = [
 **Goal:** Docker with postgres running, FastAPI connected, tables created, tutor seeded.
 
 - [ ] Create `docker-compose.yml` — services: `postgres` (image: postgres:15-alpine, port 5432, volume for data, healthcheck) + `backend` (build ./backend, port 8080, depends_on postgres healthy, mounts ./uploads)
-- [ ] Create `.env` — `POSTGRES_USER=augestin`, `POSTGRES_PASSWORD=augestin123`, `POSTGRES_DB=augestin_db`, `JWT_SECRET=<random>`, `UPLOAD_DIR=/app/uploads`
+- [ ] Create `.env` — `POSTGRES_USER=edutrack`, `POSTGRES_PASSWORD=edutrack123`, `POSTGRES_DB=edutrack_db`, `JWT_SECRET=<random>`, `UPLOAD_DIR=/app/uploads`
 - [ ] Create `.env.example` — same keys, placeholder values
 - [ ] Create `.gitignore` — `node_modules/`, `__pycache__/`, `.env`, `uploads/videos/*`, `uploads/thumbnails/*`, `dist/`, `*.pyc`, `.venv/`
 - [ ] Create `backend/requirements.txt` — fastapi, uvicorn[standard], sqlalchemy[asyncio], asyncpg, alembic, python-jose[cryptography], passlib[bcrypt], python-multipart, pydantic-settings
@@ -950,10 +950,10 @@ const filters = [
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `POSTGRES_USER` | `augestin` | DB user |
-| `POSTGRES_PASSWORD` | `augestin123` | DB password |
-| `POSTGRES_DB` | `augestin_db` | DB name |
-| `DATABASE_URL` | `postgresql+asyncpg://augestin:augestin123@postgres:5432/augestin_db` | Full connection string |
+| `POSTGRES_USER` | `edutrack` | DB user |
+| `POSTGRES_PASSWORD` | `edutrack123` | DB password |
+| `POSTGRES_DB` | `edutrack_db` | DB name |
+| `DATABASE_URL` | `postgresql+asyncpg://edutrack:edutrack123@postgres:5432/edutrack_db` | Full connection string |
 | `JWT_SECRET` | (generate random) | JWT signing key |
 | `JWT_EXPIRY_HOURS` | `24` | Token lifetime |
 | `UPLOAD_DIR` | `/app/uploads` | File upload directory |

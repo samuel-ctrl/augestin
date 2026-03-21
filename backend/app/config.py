@@ -2,7 +2,7 @@ from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql+asyncpg://augestin:augestin123@postgres:5432/augestin_db"
+    DATABASE_URL: str = "postgresql+asyncpg://edutrack:edutrack123@postgres:5432/edutrack_db"
     JWT_SECRET: str = "change_me"
     JWT_EXPIRY_HOURS: int = 24
     UPLOAD_DIR: str = "/app/uploads"

@@ -18,7 +18,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Augestin Self-Study Platform", lifespan=lifespan)
+app = FastAPI(title="EduTrack Self-Study Platform", lifespan=lifespan)
 
 # CORS
 app.add_middleware(

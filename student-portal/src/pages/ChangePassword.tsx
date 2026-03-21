@@ -45,7 +45,7 @@ export default function ChangePassword() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-sm w-full">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-primary-600">Augestin</h1>
+          <h1 className="text-2xl font-bold text-primary-600">EduTrack</h1>
           <p className="text-sm text-gray-500 mt-1">Change Your Password</p>
           <p className="text-xs text-gray-400 mt-2">
             You must set a new password before continuing.
