@@ -55,7 +55,7 @@ export function DataTable<T>({
   });
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-lg border border-gray-200">
       {/* Toolbar */}
       <div className="flex items-center gap-3 p-4 border-b border-gray-200">
         <div className="flex-1 max-w-sm">
@@ -75,7 +75,7 @@ export function DataTable<T>({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
+      <div className="overflow-visible">
         <table className="w-full">
           <thead className="bg-gray-50">
             <tr>
