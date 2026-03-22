@@ -20,7 +20,7 @@ export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, o
         {!collapsed && (
           <div className="flex items-center gap-2">
             {logo || (
-              <span className="text-xl font-bold text-primary-600">EduTrack</span>
+              <span className="text-xl font-bold text-primary-600">A.J EduTrack</span>
             )}
           </div>
         )}
