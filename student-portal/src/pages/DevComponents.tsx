@@ -253,14 +253,11 @@ export default function DevComponents() {
             <BookCard
               title="Trigonometry"
               standard="10"
-              watchPercentage={65}
               onClick={() => {}}
             />
             <BookCard
               title="Calculus"
               standard="12"
-              watchPercentage={95}
-              completed
               onClick={() => {}}
             />
           </div>
