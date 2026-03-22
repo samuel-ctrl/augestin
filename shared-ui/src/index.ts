@@ -55,6 +55,7 @@ export { ProgressBar } from "./components/ProgressBar";
 
 // Content Components
 export { SubjectCard } from "./components/SubjectCard";
+export { SubjectTile } from "./components/SubjectTile";
 export { BookCard } from "./components/BookCard";
 export { VideoPlayer } from "./components/VideoPlayer";
 export { IconPicker } from "./components/IconPicker";

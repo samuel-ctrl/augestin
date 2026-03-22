@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { SubjectCard, EmptyState, LoadingSpinner, extractErrorMessage } from "@shared";
+import { SubjectTile, EmptyState, LoadingSpinner, extractErrorMessage } from "@shared";
 import type { Subject } from "@shared";
 import api from "../../api/client";
 
@@ -56,13 +56,14 @@ export default function Dashboard() {
           <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
             Select a subject to start learning
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {subjects.map((subject) => (
-              <SubjectCard
+          <div className="flex flex-wrap gap-8">
+            {subjects.map((subject, index) => (
+              <SubjectTile
                 key={subject.id}
                 name={subject.name}
                 icon={subject.icon}
                 bookCount={subject.book_count}
+                colorIndex={index}
                 onClick={() =>
                   navigate(`/self-study/subjects/${subject.id}`)
                 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { SubjectCard, EmptyState, LoadingSpinner, ConfirmDialog, Toast, useToast, extractErrorMessage } from "@shared";
+import { SubjectTile, EmptyState, LoadingSpinner, ConfirmDialog, Toast, useToast, extractErrorMessage } from "@shared";
 import type { Subject } from "@shared";
 import api from "../../api/client";
 import SubjectForm from "../../components/SubjectForm";
@@ -132,13 +132,14 @@ export default function Dashboard() {
           action={{ label: "Create Subject", onClick: () => setShowCreateForm(true) }}
         />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {subjects.map((subject) => (
-            <SubjectCard
+        <div className="flex flex-wrap gap-8">
+          {subjects.map((subject, index) => (
+            <SubjectTile
               key={subject.id}
               name={subject.name}
               icon={subject.icon}
               bookCount={subject.book_count}
+              colorIndex={index}
               onClick={() => navigate(`/self-study/subjects/${subject.id}`)}
               actions={
                 <div className="flex gap-1">
