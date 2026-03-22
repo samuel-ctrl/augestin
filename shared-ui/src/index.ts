@@ -6,7 +6,6 @@ export type {
   Book,
   Assignment,
   BookProgress,
-  ResumeBook,
   PaginatedResponse,
   TableQueryParams,
   ColumnDef,
@@ -22,6 +21,9 @@ export type {
 
 // Constants
 export { iconMap, iconKeys, standardOptions } from "./constants/icons";
+
+// Utils
+export { extractFileId, isGoogleDriveUrl, toEmbedUrl, toDirectImageUrl } from "./utils/googleDrive";
 
 // Hooks
 export { useDebounce } from "./hooks/useDebounce";

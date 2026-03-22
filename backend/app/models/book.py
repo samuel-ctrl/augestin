@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Float, ForeignKey, Integer, String, Text
+from sqlalchemy import ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -14,7 +14,6 @@ class Book(AuditBase):
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     thumbnail_url: Mapped[str | None] = mapped_column(String, nullable=True)
     video_url: Mapped[str] = mapped_column(String, nullable=False)
-    video_duration_seconds: Mapped[float | None] = mapped_column(Float, nullable=True)
     standard: Mapped[str] = mapped_column(String(10), nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0)
     subject_id: Mapped[uuid.UUID] = mapped_column(

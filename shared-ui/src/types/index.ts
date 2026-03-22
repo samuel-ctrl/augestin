@@ -38,7 +38,6 @@ export interface Book {
   description?: string;
   thumbnail_url?: string;
   video_url: string;
-  video_duration_seconds?: number;
   standard: string;
   sort_order: number;
   subject_id: string;
@@ -46,9 +45,6 @@ export interface Book {
   created_at: string;
   updated_at: string;
   question_count?: number;
-  watch_percentage?: number;
-  last_position_seconds?: number;
-  completed?: boolean;
 }
 
 export interface Assignment {
@@ -69,16 +65,6 @@ export interface BookProgress {
   last_position_seconds: number;
   completed: boolean;
   last_watched_at?: string;
-}
-
-export interface ResumeBook {
-  book_id: string;
-  book_title: string;
-  subject_id: string;
-  subject_name: string;
-  thumbnail_url?: string;
-  watch_percentage: number;
-  last_position_seconds: number;
 }
 
 export interface PaginatedResponse<T> {

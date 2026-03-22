@@ -1,4 +1,3 @@
-import io
 import uuid
 
 import pytest
@@ -10,16 +9,8 @@ from app.models.user import User
 from tests.conftest import student_headers, tutor_headers
 
 
-def make_video_file():
-    """Create a minimal fake video file."""
-    content = b"\x00" * 1024  # 1KB fake video
-    return ("video", ("test.mp4", io.BytesIO(content), "video/mp4"))
-
-
-def make_thumbnail_file():
-    """Create a minimal fake thumbnail file."""
-    content = b"\x00" * 512
-    return ("thumbnail", ("test.jpg", io.BytesIO(content), "image/jpeg"))
+DRIVE_VIDEO_URL = "https://drive.google.com/file/d/abc123test/view"
+DRIVE_THUMBNAIL_URL = "https://example.com/thumb.jpg"
 
 
 @pytest.mark.asyncio
@@ -29,85 +20,115 @@ class TestCreateBook:
     async def test_create_book_success(self, client: AsyncClient, tutor: User, subject: Subject):
         resp = await client.post(
             f"/api/subjects/{subject.id}/books",
-            data={
+            json={
                 "title": "New Book",
                 "standard": "5",
-                "sort_order": "1",
-                "video_duration_seconds": "120",
+                "sort_order": 1,
                 "description": "A test book",
+                "video_url": DRIVE_VIDEO_URL,
             },
-            files=[make_video_file()],
             headers=tutor_headers(tutor),
         )
         assert resp.status_code == 201
         data = resp.json()
         assert data["title"] == "New Book"
         assert data["standard"] == "5"
-        assert data["video_url"].startswith("/uploads/videos/")
+        assert data["video_url"] == DRIVE_VIDEO_URL
 
     async def test_create_book_with_thumbnail(self, client: AsyncClient, tutor: User, subject: Subject):
         resp = await client.post(
             f"/api/subjects/{subject.id}/books",
-            data={
+            json={
                 "title": "Book With Thumb",
                 "standard": "3",
+                "video_url": DRIVE_VIDEO_URL,
+                "thumbnail_url": DRIVE_THUMBNAIL_URL,
             },
-            files=[make_video_file(), make_thumbnail_file()],
             headers=tutor_headers(tutor),
         )
         assert resp.status_code == 201
         data = resp.json()
-        assert data["thumbnail_url"] is not None
+        assert data["thumbnail_url"] == DRIVE_THUMBNAIL_URL
 
     async def test_create_book_invalid_standard(self, client: AsyncClient, tutor: User, subject: Subject):
         resp = await client.post(
             f"/api/subjects/{subject.id}/books",
-            data={
+            json={
                 "title": "Bad Standard",
                 "standard": "99",
+                "video_url": DRIVE_VIDEO_URL,
             },
-            files=[make_video_file()],
             headers=tutor_headers(tutor),
         )
         assert resp.status_code == 400
 
-    async def test_create_book_invalid_video_format(self, client: AsyncClient, tutor: User, subject: Subject):
-        content = b"\x00" * 100
+    async def test_create_book_invalid_url_scheme(self, client: AsyncClient, tutor: User, subject: Subject):
         resp = await client.post(
             f"/api/subjects/{subject.id}/books",
-            data={
-                "title": "Bad Video",
+            json={
+                "title": "Bad URL",
                 "standard": "5",
+                "video_url": "javascript:alert(1)",
             },
-            files=[("video", ("test.txt", io.BytesIO(content), "text/plain"))],
             headers=tutor_headers(tutor),
         )
         assert resp.status_code == 400
-        assert "Invalid video format" in resp.json()["detail"]
 
-    async def test_create_book_invalid_thumbnail_format(self, client: AsyncClient, tutor: User, subject: Subject):
-        content = b"\x00" * 100
+    async def test_create_book_private_ip_url(self, client: AsyncClient, tutor: User, subject: Subject):
         resp = await client.post(
             f"/api/subjects/{subject.id}/books",
-            data={
+            json={
+                "title": "Private IP",
+                "standard": "5",
+                "video_url": "https://127.0.0.1/video.mp4",
+            },
+            headers=tutor_headers(tutor),
+        )
+        assert resp.status_code == 400
+        assert "private" in resp.json()["detail"].lower() or "internal" in resp.json()["detail"].lower()
+
+    async def test_create_book_loopback_ipv6_url(self, client: AsyncClient, tutor: User, subject: Subject):
+        resp = await client.post(
+            f"/api/subjects/{subject.id}/books",
+            json={
+                "title": "IPv6 Loopback",
+                "standard": "5",
+                "video_url": "https://[::1]/video.mp4",
+            },
+            headers=tutor_headers(tutor),
+        )
+        assert resp.status_code == 400
+
+    async def test_create_book_data_url(self, client: AsyncClient, tutor: User, subject: Subject):
+        resp = await client.post(
+            f"/api/subjects/{subject.id}/books",
+            json={
+                "title": "Data URL",
+                "standard": "5",
+                "video_url": "data:text/html,<h1>XSS</h1>",
+            },
+            headers=tutor_headers(tutor),
+        )
+        assert resp.status_code == 400
+
+    async def test_create_book_invalid_thumbnail_url(self, client: AsyncClient, tutor: User, subject: Subject):
+        resp = await client.post(
+            f"/api/subjects/{subject.id}/books",
+            json={
                 "title": "Bad Thumb",
                 "standard": "5",
+                "video_url": DRIVE_VIDEO_URL,
+                "thumbnail_url": "javascript:alert(1)",
             },
-            files=[
-                make_video_file(),
-                ("thumbnail", ("test.txt", io.BytesIO(content), "text/plain")),
-            ],
             headers=tutor_headers(tutor),
         )
         assert resp.status_code == 400
-        assert "Invalid thumbnail format" in resp.json()["detail"]
 
     async def test_create_book_subject_not_found(self, client: AsyncClient, tutor: User):
         fake_id = uuid.uuid4()
         resp = await client.post(
             f"/api/subjects/{fake_id}/books",
-            data={"title": "Ghost", "standard": "5"},
-            files=[make_video_file()],
+            json={"title": "Ghost", "standard": "5", "video_url": DRIVE_VIDEO_URL},
             headers=tutor_headers(tutor),
         )
         assert resp.status_code == 404
@@ -116,8 +137,7 @@ class TestCreateBook:
     async def test_create_book_as_student(self, client: AsyncClient, student: User, subject: Subject):
         resp = await client.post(
             f"/api/subjects/{subject.id}/books",
-            data={"title": "Unauthorized", "standard": "5"},
-            files=[make_video_file()],
+            json={"title": "Unauthorized", "standard": "5", "video_url": DRIVE_VIDEO_URL},
             headers=student_headers(student),
         )
         assert resp.status_code == 403
@@ -125,24 +145,22 @@ class TestCreateBook:
     async def test_create_book_no_auth(self, client: AsyncClient, subject: Subject):
         resp = await client.post(
             f"/api/subjects/{subject.id}/books",
-            data={"title": "No Auth", "standard": "5"},
-            files=[make_video_file()],
+            json={"title": "No Auth", "standard": "5", "video_url": DRIVE_VIDEO_URL},
         )
         assert resp.status_code in (401, 403)
 
     async def test_create_book_missing_title(self, client: AsyncClient, tutor: User, subject: Subject):
         resp = await client.post(
             f"/api/subjects/{subject.id}/books",
-            data={"standard": "5"},
-            files=[make_video_file()],
+            json={"standard": "5", "video_url": DRIVE_VIDEO_URL},
             headers=tutor_headers(tutor),
         )
         assert resp.status_code == 422
 
-    async def test_create_book_missing_video(self, client: AsyncClient, tutor: User, subject: Subject):
+    async def test_create_book_missing_video_url(self, client: AsyncClient, tutor: User, subject: Subject):
         resp = await client.post(
             f"/api/subjects/{subject.id}/books",
-            data={"title": "No Video", "standard": "5"},
+            json={"title": "No Video", "standard": "5"},
             headers=tutor_headers(tutor),
         )
         assert resp.status_code == 422
@@ -223,12 +241,16 @@ class TestGetBook:
                                 headers=tutor_headers(tutor))
         assert resp.status_code == 404
 
-    async def test_get_book_with_progress(self, client: AsyncClient, student: User, book: Book, assignment, watch_progress):
+    async def test_get_book_no_progress_fields(self, client: AsyncClient, tutor: User, book: Book):
+        """Verify progress fields are no longer in the response."""
         resp = await client.get(f"/api/books/{book.id}",
-                                headers=student_headers(student))
+                                headers=tutor_headers(tutor))
         assert resp.status_code == 200
         data = resp.json()
-        assert data["watch_percentage"] == 50.0
+        assert "watch_percentage" not in data
+        assert "last_position_seconds" not in data
+        assert "completed" not in data
+        assert "video_duration_seconds" not in data
 
 
 @pytest.mark.asyncio
@@ -238,16 +260,42 @@ class TestUpdateBook:
     async def test_update_book_title(self, client: AsyncClient, tutor: User, book: Book):
         resp = await client.put(
             f"/api/books/{book.id}",
-            data={"title": "Updated Title"},
+            json={"title": "Updated Title"},
             headers=tutor_headers(tutor),
         )
         assert resp.status_code == 200
         assert resp.json()["title"] == "Updated Title"
 
+    async def test_update_book_video_url(self, client: AsyncClient, tutor: User, book: Book):
+        new_url = "https://drive.google.com/file/d/newvideo/view"
+        resp = await client.put(
+            f"/api/books/{book.id}",
+            json={"video_url": new_url},
+            headers=tutor_headers(tutor),
+        )
+        assert resp.status_code == 200
+        assert resp.json()["video_url"] == new_url
+
+    async def test_update_book_invalid_video_url(self, client: AsyncClient, tutor: User, book: Book):
+        resp = await client.put(
+            f"/api/books/{book.id}",
+            json={"video_url": "ftp://evil.com/video.mp4"},
+            headers=tutor_headers(tutor),
+        )
+        assert resp.status_code == 400
+
+    async def test_update_book_invalid_thumbnail_url(self, client: AsyncClient, tutor: User, book: Book):
+        resp = await client.put(
+            f"/api/books/{book.id}",
+            json={"thumbnail_url": "javascript:void(0)"},
+            headers=tutor_headers(tutor),
+        )
+        assert resp.status_code == 400
+
     async def test_update_book_invalid_standard(self, client: AsyncClient, tutor: User, book: Book):
         resp = await client.put(
             f"/api/books/{book.id}",
-            data={"standard": "99"},
+            json={"standard": "99"},
             headers=tutor_headers(tutor),
         )
         assert resp.status_code == 400
@@ -256,7 +304,7 @@ class TestUpdateBook:
         fake_id = uuid.uuid4()
         resp = await client.put(
             f"/api/books/{fake_id}",
-            data={"title": "Ghost"},
+            json={"title": "Ghost"},
             headers=tutor_headers(tutor),
         )
         assert resp.status_code == 404
@@ -264,7 +312,7 @@ class TestUpdateBook:
     async def test_update_book_as_student(self, client: AsyncClient, student: User, book: Book):
         resp = await client.put(
             f"/api/books/{book.id}",
-            data={"title": "Hacked"},
+            json={"title": "Hacked"},
             headers=student_headers(student),
         )
         assert resp.status_code == 403

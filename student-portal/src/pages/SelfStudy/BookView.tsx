@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { VideoPlayer, ProgressBar, Breadcrumb, LoadingSpinner, EmptyState, extractErrorMessage } from "@shared";
+import { VideoPlayer, Breadcrumb, LoadingSpinner, EmptyState, extractErrorMessage } from "@shared";
 import type { Book, Subject, BreadcrumbSegment } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
@@ -16,14 +16,12 @@ export default function BookView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("record");
-  const [watchPercentage, setWatchPercentage] = useState(0);
 
   const fetchData = useCallback(async () => {
     try {
       const bookRes = await api.get(`/books/${bookId}`);
       const bookData = bookRes.data;
       setBook(bookData);
-      setWatchPercentage(bookData.watch_percentage || 0);
 
       const subjectRes = await api.get(`/subjects/${bookData.subject_id}`);
       setSubject(subjectRes.data);
@@ -42,21 +40,6 @@ export default function BookView() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  const handleProgress = useCallback(
-    async (data: { watchPercentage: number; lastPositionSeconds: number }) => {
-      setWatchPercentage(data.watchPercentage);
-      try {
-        await api.put(`/progress/${bookId}`, {
-          watch_percentage: data.watchPercentage,
-          last_position_seconds: data.lastPositionSeconds,
-        });
-      } catch {
-        // silently fail — progress save is best-effort
-      }
-    },
-    [bookId]
-  );
 
   if (loading) return <LoadingSpinner fullPage />;
   if (error) {
@@ -131,16 +114,7 @@ export default function BookView() {
       {activeTab === "record" ? (
         <div>
           {/* Video Player */}
-          <VideoPlayer
-            src={assetUrl(book.video_url)}
-            startPosition={book.last_position_seconds || 0}
-            onProgress={handleProgress}
-          />
-
-          {/* Progress Bar */}
-          <div className="mt-4">
-            <ProgressBar percentage={watchPercentage} />
-          </div>
+          <VideoPlayer src={assetUrl(book.video_url)} />
 
           {/* Book Details */}
           <div className="mt-6">

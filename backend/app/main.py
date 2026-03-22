@@ -1,9 +1,8 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
-
 import app.audit  # noqa: F401 — registers SQLAlchemy audit event listener
 from app.config import settings
 from app.database import async_session
@@ -11,10 +10,43 @@ from app.middleware.auth import AuthMiddleware
 from app.routers import assignments, auth, books, progress, quiz, students, subjects
 from app.seed import seed_super_user
 
+logger = logging.getLogger(__name__)
+
+
+async def run_migrations():
+    import asyncio
+    from sqlalchemy import create_engine, text
+    from alembic.config import Config
+    from alembic import command
+
+    def _migrate():
+        alembic_cfg = Config("alembic.ini")
+        # Use a PostgreSQL advisory lock to prevent concurrent migration runs
+        # across multiple replicas. Lock key 1 is arbitrary but consistent.
+        db_url = settings.DATABASE_URL.replace("+asyncpg", "+psycopg2", 1)
+        try:
+            sync_engine = create_engine(db_url)
+            with sync_engine.connect() as conn:
+                conn.execute(text("SELECT pg_advisory_lock(1)"))
+                try:
+                    command.upgrade(alembic_cfg, "head")
+                finally:
+                    conn.execute(text("SELECT pg_advisory_unlock(1)"))
+                    conn.commit()
+            sync_engine.dispose()
+        except Exception:
+            # Fallback for non-PostgreSQL (e.g., SQLite in tests)
+            logger.debug("Advisory lock unavailable, running migrations directly")
+            command.upgrade(alembic_cfg, "head")
+
+    await asyncio.to_thread(_migrate)
+    logger.info("Database migrations applied successfully")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: seed super user
+    # Startup: run migrations, then seed
+    await run_migrations()
     async with async_session() as db:
         await seed_super_user(db)
     yield
@@ -40,9 +72,6 @@ app.include_router(books.router)
 app.include_router(assignments.router)
 app.include_router(progress.router)
 app.include_router(quiz.router)
-
-# Mount uploads
-app.mount("/uploads", StaticFiles(directory=settings.UPLOAD_DIR), name="uploads")
 
 
 @app.get("/")

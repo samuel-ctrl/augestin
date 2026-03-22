@@ -4,12 +4,7 @@ import uuid
 from typing import AsyncGenerator
 
 # Set env vars BEFORE importing app modules
-_test_upload_dir = os.path.join(os.path.dirname(__file__), "test_uploads")
-os.environ["UPLOAD_DIR"] = _test_upload_dir
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
-os.makedirs(_test_upload_dir, exist_ok=True)
-os.makedirs(os.path.join(_test_upload_dir, "videos"), exist_ok=True)
-os.makedirs(os.path.join(_test_upload_dir, "thumbnails"), exist_ok=True)
 
 import pytest
 import pytest_asyncio
@@ -157,8 +152,7 @@ async def book(db: AsyncSession, subject: Subject, tutor: User) -> Book:
         id=uuid.uuid4(),
         title="Algebra Basics",
         description="Introduction to algebra",
-        video_url="/uploads/videos/test.mp4",
-        video_duration_seconds=120.0,
+        video_url="https://drive.google.com/file/d/abc123/view",
         standard="5",
         sort_order=1,
         subject_id=subject.id,

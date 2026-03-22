@@ -34,9 +34,7 @@ PUBLIC_PATHS: set[str] = {
 }
 
 # Prefixes that don't require authentication
-PUBLIC_PREFIXES: tuple[str, ...] = (
-    "/uploads/",
-)
+PUBLIC_PREFIXES: tuple[str, ...] = ()
 
 
 class AuthMiddleware(BaseHTTPMiddleware):

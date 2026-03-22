@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { FileUpload, LoadingSpinner, Toast, useToast, standardOptions } from "@shared";
+import { LoadingSpinner, Toast, useToast, standardOptions } from "@shared";
 import api from "../../api/client";
-import { assetUrl } from "../../api/config";
 
 interface BookData {
   title: string;
@@ -27,8 +26,8 @@ export default function BookForm() {
   const [subjectId, setSubjectId] = useState(
     searchParams.get("subject_id") || ""
   );
-  const [videoFile, setVideoFile] = useState<File | null>(null);
-  const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
+  const [videoUrl, setVideoUrl] = useState("");
+  const [thumbnailUrl, setThumbnailUrl] = useState("");
   const [existingData, setExistingData] = useState<BookData | null>(null);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
@@ -45,6 +44,8 @@ export default function BookForm() {
           setStandard(book.standard);
           setSortOrder(book.sort_order);
           setSubjectId(book.subject_id);
+          setVideoUrl(book.video_url || "");
+          setThumbnailUrl(book.thumbnail_url || "");
           setExistingData(book);
         })
         .catch((err) => {
@@ -58,37 +59,37 @@ export default function BookForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!isEdit && !videoFile) {
-      showApiError(null, "Video file is required");
+    if (!isEdit && !videoUrl.trim()) {
+      showApiError(null, "Video URL is required");
       return;
     }
 
     setSaving(true);
     try {
-      const formData = new FormData();
-      formData.append("title", title);
-      formData.append("description", description);
-      formData.append("standard", standard);
-      formData.append("sort_order", String(sortOrder));
+      const payload: Record<string, unknown> = {
+        title,
+        description: description || null,
+        standard,
+        sort_order: sortOrder,
+      };
 
       if (!isEdit) {
-        formData.append("subject_id", subjectId);
-      }
-      if (videoFile) {
-        formData.append("video", videoFile);
-      }
-      if (thumbnailFile) {
-        formData.append("thumbnail", thumbnailFile);
+        payload.video_url = videoUrl;
+      } else {
+        if (videoUrl.trim()) payload.video_url = videoUrl;
       }
 
       if (isEdit) {
-        await api.put(`/books/${id}`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        // Send empty string to clear, or the URL to update
+        payload.thumbnail_url = thumbnailUrl.trim();
+      } else if (thumbnailUrl.trim()) {
+        payload.thumbnail_url = thumbnailUrl;
+      }
+
+      if (isEdit) {
+        await api.put(`/books/${id}`, payload);
       } else {
-        await api.post(`/subjects/${subjectId}/books`, formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+        await api.post(`/subjects/${subjectId}/books`, payload);
       }
 
       navigate(`/self-study/subjects/${subjectId}`);
@@ -183,23 +184,48 @@ export default function BookForm() {
           </div>
         </div>
 
-        <FileUpload
-          label={isEdit ? "Video (leave empty to keep current)" : "Video *"}
-          accept=".mp4,.webm,.mov"
-          maxSizeMB={500}
-          value={videoFile}
-          currentUrl={assetUrl(existingData?.video_url)}
-          onChange={setVideoFile}
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            {isEdit ? "Video URL (leave empty to keep current)" : "Video URL *"}
+          </label>
+          <input
+            type="url"
+            value={videoUrl}
+            onChange={(e) => setVideoUrl(e.target.value)}
+            placeholder="https://drive.google.com/file/d/.../view"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            Paste a Google Drive sharing link. The file must be shared as "Anyone with the link can view".
+          </p>
+        </div>
 
-        <FileUpload
-          label="Thumbnail (optional)"
-          accept=".jpg,.jpeg,.png,.webp"
-          maxSizeMB={5}
-          value={thumbnailFile}
-          currentUrl={assetUrl(existingData?.thumbnail_url)}
-          onChange={setThumbnailFile}
-        />
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Thumbnail URL (optional)
+          </label>
+          <div className="flex gap-2">
+            <input
+              type="url"
+              value={thumbnailUrl}
+              onChange={(e) => setThumbnailUrl(e.target.value)}
+              placeholder="https://example.com/image.jpg"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
+            {isEdit && thumbnailUrl && (
+              <button
+                type="button"
+                onClick={() => setThumbnailUrl("")}
+                className="px-3 py-2 text-xs text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+          <p className="mt-1 text-xs text-gray-400">
+            Paste a direct image URL (Google Drive image link or any public image URL).
+          </p>
+        </div>
 
         <div className="flex gap-3 pt-2">
           <button

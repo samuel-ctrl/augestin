@@ -80,8 +80,6 @@ export default function SubjectView() {
               title={book.title}
               standard={book.standard}
               thumbnailUrl={assetUrl(book.thumbnail_url)}
-              watchPercentage={book.watch_percentage}
-              completed={book.completed}
               questionCount={book.question_count}
               onClick={() => navigate(`/self-study/books/${book.id}`)}
             />

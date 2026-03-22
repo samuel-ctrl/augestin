@@ -1,12 +1,10 @@
 import React from "react";
-import { ProgressBar } from "./ProgressBar";
+import { isGoogleDriveUrl, toDirectImageUrl } from "../utils/googleDrive";
 
 interface BookCardProps {
   title: string;
   standard: string;
   thumbnailUrl?: string;
-  watchPercentage?: number;
-  completed?: boolean;
   questionCount?: number;
   onClick?: () => void;
   actions?: React.ReactNode;
@@ -18,43 +16,29 @@ export function BookCard({
   title,
   standard,
   thumbnailUrl,
-  watchPercentage,
-  completed,
   questionCount,
   onClick,
   actions,
 }: BookCardProps) {
   return (
     <div
-      className={`bg-white rounded-lg border border-gray-200 overflow-hidden transition-shadow hover:shadow-md ${
+      className={`bg-white rounded-lg border border-gray-200 transition-shadow hover:shadow-md ${
         onClick ? "cursor-pointer" : ""
       }`}
       onClick={onClick}
     >
-      <div className="relative aspect-video bg-gray-100">
+      <div className="relative aspect-video bg-gray-100 rounded-t-lg overflow-hidden">
         <img
-          src={thumbnailUrl || DEFAULT_THUMBNAIL}
+          src={thumbnailUrl && isGoogleDriveUrl(thumbnailUrl) ? toDirectImageUrl(thumbnailUrl) : (thumbnailUrl || DEFAULT_THUMBNAIL)}
           alt={title}
           className="w-full h-full object-cover"
           onError={(e) => {
             (e.target as HTMLImageElement).src = DEFAULT_THUMBNAIL;
           }}
         />
-        {completed && (
-          <div className="absolute top-2 right-2 bg-green-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs">
-            ✓
-          </div>
-        )}
       </div>
       <div className="p-3">
-        <div className="flex items-start justify-between gap-2">
-          <h4 className="font-medium text-gray-800 text-sm truncate flex-1">{title}</h4>
-          {actions && (
-            <div onClick={(e) => e.stopPropagation()} className="shrink-0">
-              {actions}
-            </div>
-          )}
-        </div>
+        <h4 className="font-medium text-gray-800 text-sm truncate">{title}</h4>
         <div className="flex items-center gap-1.5 mt-1">
           <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded">
             Std: {standard}
@@ -65,9 +49,9 @@ export function BookCard({
             </span>
           )}
         </div>
-        {watchPercentage !== undefined && (
-          <div className="mt-2">
-            <ProgressBar percentage={watchPercentage} size="sm" />
+        {actions && (
+          <div onClick={(e) => e.stopPropagation()} className="flex items-center justify-end mt-2">
+            {actions}
           </div>
         )}
       </div>

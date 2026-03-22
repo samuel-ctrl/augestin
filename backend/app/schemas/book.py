@@ -3,13 +3,30 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
+class BookCreateRequest(BaseModel):
+    title: str
+    standard: str
+    video_url: str
+    description: str | None = None
+    sort_order: int = 0
+    thumbnail_url: str | None = None
+
+
+class BookUpdateRequest(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    standard: str | None = None
+    sort_order: int | None = None
+    video_url: str | None = None
+    thumbnail_url: str | None = None  # empty string clears the thumbnail
+
+
 class BookOut(BaseModel):
     id: str
     title: str
     description: str | None = None
     thumbnail_url: str | None = None
     video_url: str
-    video_duration_seconds: float | None = None
     standard: str
     sort_order: int = 0
     subject_id: str
@@ -17,9 +34,5 @@ class BookOut(BaseModel):
     created_at: datetime
     updated_at: datetime | None = None
     question_count: int = 0
-    # Student-specific fields (populated when student requests)
-    watch_percentage: float | None = None
-    last_position_seconds: float | None = None
-    completed: bool | None = None
 
     model_config = {"from_attributes": True}

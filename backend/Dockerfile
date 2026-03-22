@@ -9,6 +9,4 @@ COPY alembic.ini .
 COPY alembic/ ./alembic/
 COPY app/ ./app/
 
-RUN mkdir -p /app/uploads/videos /app/uploads/thumbnails
-
-CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8080"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]

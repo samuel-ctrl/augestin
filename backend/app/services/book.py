@@ -1,56 +1,57 @@
 import math
-import os
+import socket
 import uuid
+from ipaddress import ip_address
+from urllib.parse import unquote, urlparse
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.config import settings
 from app.models.book import Book
 from app.models.book_assignment import BookAssignment
 from app.models.user import VALID_STANDARDS, User, UserType
-from app.models.watch_progress import WatchProgress
-
-ALLOWED_VIDEO_EXTENSIONS = {".mp4", ".webm", ".mov"}
-ALLOWED_THUMBNAIL_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 
 
-def validate_video_file(filename: str, size: int) -> str:
-    ext = os.path.splitext(filename)[1].lower()
-    if ext not in ALLOWED_VIDEO_EXTENSIONS:
-        raise ValueError(f"Invalid video format. Allowed: {', '.join(ALLOWED_VIDEO_EXTENSIONS)}")
-    max_bytes = settings.MAX_VIDEO_SIZE_MB * 1024 * 1024
-    if size > max_bytes:
-        raise ValueError(f"Video exceeds {settings.MAX_VIDEO_SIZE_MB}MB limit")
-    return ext
+def validate_url(url: str) -> str:
+    """Validate that the URL is a safe HTTPS/HTTP URL."""
+    try:
+        parsed = urlparse(url)
+    except Exception:
+        raise ValueError("Invalid URL")
 
+    if parsed.scheme not in ("http", "https"):
+        raise ValueError(f"URL scheme '{parsed.scheme}' is not allowed. Use http or https.")
 
-def validate_thumbnail_file(filename: str, size: int) -> str:
-    ext = os.path.splitext(filename)[1].lower()
-    if ext not in ALLOWED_THUMBNAIL_EXTENSIONS:
-        raise ValueError(f"Invalid thumbnail format. Allowed: {', '.join(ALLOWED_THUMBNAIL_EXTENSIONS)}")
-    max_bytes = settings.MAX_THUMBNAIL_SIZE_MB * 1024 * 1024
-    if size > max_bytes:
-        raise ValueError(f"Thumbnail exceeds {settings.MAX_THUMBNAIL_SIZE_MB}MB limit")
-    return ext
+    hostname = parsed.hostname
+    if not hostname:
+        raise ValueError("URL must have a valid hostname")
 
+    # Decode percent-encoded hostnames before checking
+    decoded_hostname = unquote(hostname)
 
-async def save_upload(content: bytes, directory: str, ext: str) -> str:
-    filename = f"{uuid.uuid4()}{ext}"
-    filepath = os.path.join(settings.UPLOAD_DIR, directory, filename)
-    os.makedirs(os.path.dirname(filepath), exist_ok=True)
-    with open(filepath, "wb") as f:
-        f.write(content)
-    return f"/uploads/{directory}/{filename}"
+    # Block private/internal IPs (check both raw and decoded hostname)
+    for name in (hostname, decoded_hostname):
+        try:
+            addr = ip_address(name)
+            if addr.is_private or addr.is_loopback or addr.is_reserved:
+                raise ValueError("URLs pointing to private or internal addresses are not allowed")
+        except ValueError as e:
+            if "not allowed" in str(e):
+                raise
+            # Not an IP address — that's fine, it's a domain name
 
+    # Resolve hostname and block private IPs behind DNS
+    try:
+        resolved = socket.getaddrinfo(decoded_hostname, None, socket.AF_UNSPEC, socket.SOCK_STREAM)
+        for family, _, _, _, sockaddr in resolved:
+            addr = ip_address(sockaddr[0])
+            if addr.is_private or addr.is_loopback or addr.is_reserved:
+                raise ValueError("URLs pointing to private or internal addresses are not allowed")
+    except socket.gaierror:
+        # Cannot resolve — allow it (may be valid but not resolvable from this host)
+        pass
 
-def delete_file(url: str) -> None:
-    if not url:
-        return
-    # url is like /uploads/videos/xxx.mp4
-    filepath = os.path.join(settings.UPLOAD_DIR, url.replace("/uploads/", "", 1))
-    if os.path.exists(filepath):
-        os.remove(filepath)
+    return url
 
 
 async def create_book(
@@ -61,17 +62,18 @@ async def create_book(
     standard: str,
     description: str | None = None,
     thumbnail_url: str | None = None,
-    video_duration_seconds: float | None = None,
     sort_order: int = 0,
 ) -> Book:
     if standard not in VALID_STANDARDS:
         raise ValueError(f"Invalid standard '{standard}'")
+    validate_url(video_url)
+    if thumbnail_url:
+        validate_url(thumbnail_url)
     book = Book(
         title=title,
         description=description,
         thumbnail_url=thumbnail_url,
         video_url=video_url,
-        video_duration_seconds=video_duration_seconds,
         standard=standard,
         sort_order=sort_order,
         subject_id=subject_id,
@@ -96,7 +98,6 @@ async def update_book(
     sort_order: int | None = None,
     video_url: str | None = None,
     thumbnail_url: str | None = None,
-    video_duration_seconds: float | None = None,
 ) -> Book:
     if title is not None:
         book.title = title
@@ -109,25 +110,20 @@ async def update_book(
     if sort_order is not None:
         book.sort_order = sort_order
     if video_url is not None:
-        # Delete old video
-        delete_file(book.video_url)
+        validate_url(video_url)
         book.video_url = video_url
     if thumbnail_url is not None:
-        # Delete old thumbnail
-        if book.thumbnail_url:
-            delete_file(book.thumbnail_url)
-        book.thumbnail_url = thumbnail_url
-    if video_duration_seconds is not None:
-        book.video_duration_seconds = video_duration_seconds
+        if thumbnail_url == "":
+            book.thumbnail_url = None  # clear thumbnail
+        else:
+            validate_url(thumbnail_url)
+            book.thumbnail_url = thumbnail_url
     await db.commit()
     await db.refresh(book)
     return book
 
 
 async def delete_book(db: AsyncSession, book: Book) -> None:
-    delete_file(book.video_url)
-    if book.thumbnail_url:
-        delete_file(book.thumbnail_url)
     await db.delete(book)
     await db.commit()
 
@@ -142,7 +138,7 @@ async def list_books(
     sort_by: str = "sort_order",
     sort_order: str = "asc",
     standard: str | None = None,
-) -> tuple[list[dict], int, int, int, int]:
+) -> tuple[list[Book], int, int, int, int]:
     if user.user_type == UserType.tutor:
         query = select(Book).where(Book.subject_id == subject_id)
     else:
@@ -182,18 +178,4 @@ async def list_books(
 
     total_pages = math.ceil(total / page_size) if page_size > 0 else 0
 
-    # For students, attach watch progress
-    items = []
-    for book in books:
-        item = {"book": book, "progress": None}
-        if user.user_type == UserType.student:
-            wp_result = await db.execute(
-                select(WatchProgress).where(
-                    WatchProgress.student_id == user.id,
-                    WatchProgress.book_id == book.id,
-                )
-            )
-            item["progress"] = wp_result.scalar_one_or_none()
-        items.append(item)
-
-    return items, total, page, page_size, total_pages
+    return books, total, page, page_size, total_pages

@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(curl -s http://localhost:8080/)",
-      "Bash(docker-compose logs:*)"
+      "Bash(docker-compose logs:*)",
+      "Bash(rm -rf tutor-portal/shared-ui)",
+      "Bash(cp -r shared-ui tutor-portal/shared-ui)",
+      "Bash(rm -rf student-portal/shared-ui)",
+      "Bash(cp -r shared-ui student-portal/shared-ui)",
+      "Bash(python -c \":*)"
     ]
   }
 }
