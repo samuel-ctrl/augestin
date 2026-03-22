@@ -27,7 +27,7 @@ class StudentOut(BaseModel):
     must_change_password: bool
     assignment_count: int = 0
     created_at: datetime
-    updated_at: datetime
+    updated_at: datetime | None = None
 
     model_config = {"from_attributes": True}
 

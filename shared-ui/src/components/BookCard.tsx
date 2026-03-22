@@ -7,6 +7,7 @@ interface BookCardProps {
   thumbnailUrl?: string;
   watchPercentage?: number;
   completed?: boolean;
+  questionCount?: number;
   onClick?: () => void;
   actions?: React.ReactNode;
 }
@@ -19,6 +20,7 @@ export function BookCard({
   thumbnailUrl,
   watchPercentage,
   completed,
+  questionCount,
   onClick,
   actions,
 }: BookCardProps) {
@@ -53,9 +55,16 @@ export function BookCard({
             </div>
           )}
         </div>
-        <span className="inline-block mt-1 px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded">
-          Std: {standard}
-        </span>
+        <div className="flex items-center gap-1.5 mt-1">
+          <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded">
+            Std: {standard}
+          </span>
+          {questionCount !== undefined && questionCount > 0 && (
+            <span className="inline-block px-2 py-0.5 bg-primary-50 text-primary-600 text-xs rounded">
+              {questionCount} Q{questionCount !== 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
         {watchPercentage !== undefined && (
           <div className="mt-2">
             <ProgressBar percentage={watchPercentage} size="sm" />

@@ -15,6 +15,6 @@ class AssignmentOut(BaseModel):
     student_name: str
     student_login_id: str
     assigned_by: str
-    assigned_at: datetime
+    created_at: datetime | None = None
 
     model_config = {"from_attributes": True}

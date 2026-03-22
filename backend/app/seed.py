@@ -18,7 +18,6 @@ async def seed_super_user(db: AsyncSession):
         password_hash=hash_password("Tutor@123"),
         user_type=UserType.tutor,
         must_change_password=False,
-        created_by=None,
     )
     db.add(tutor)
     await db.commit()

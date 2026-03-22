@@ -5,17 +5,16 @@ from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, UniqueConstr
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.database import Base
+from app.models.audit import AuditBase
 
 
-class WatchProgress(Base):
+class WatchProgress(AuditBase):
     __tablename__ = "watch_progress"
     __table_args__ = (
         UniqueConstraint("student_id", "book_id", name="uq_student_book_progress"),
         Index("ix_watch_progress_student_last_watched", "student_id", "last_watched_at"),
     )
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     student_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )

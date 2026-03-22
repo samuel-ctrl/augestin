@@ -1,8 +1,10 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { VideoPlayer, ProgressBar, Breadcrumb, LoadingSpinner, EmptyState } from "@shared";
+import { VideoPlayer, ProgressBar, Breadcrumb, LoadingSpinner, EmptyState, extractErrorMessage } from "@shared";
 import type { Book, Subject, BreadcrumbSegment } from "@shared";
 import api from "../../api/client";
+import { assetUrl } from "../../api/config";
+import QuizPanel from "./QuizPanel";
 
 type Tab = "record" | "quiz";
 
@@ -30,7 +32,7 @@ export default function BookView() {
       if (status === 404 || status === 403) {
         navigate("/self-study");
       } else {
-        setError("Failed to load book. Please try again.");
+        setError(extractErrorMessage(err, "Failed to load book. Please try again."));
       }
     } finally {
       setLoading(false);
@@ -60,7 +62,7 @@ export default function BookView() {
   if (error) {
     return (
       <EmptyState
-        icon={<span>⚠️</span>}
+        icon={<span>!</span>}
         title="Something went wrong"
         description={error}
         action={{ label: "Try Again", onClick: () => { setError(null); setLoading(true); fetchData(); } }}
@@ -68,6 +70,8 @@ export default function BookView() {
     );
   }
   if (!book || !subject) return null;
+
+  const hasQuestions = (book.question_count ?? 0) > 0;
 
   const breadcrumbs: BreadcrumbSegment[] = [
     { label: "Self-Study", path: "/self-study" },
@@ -93,23 +97,42 @@ export default function BookView() {
         >
           Record
         </button>
-        <button
-          onClick={() => setActiveTab("quiz")}
-          className="px-4 py-2 text-sm rounded-lg font-medium bg-gray-100 text-gray-400 cursor-not-allowed flex items-center gap-1"
-          disabled
-        >
-          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-          Quiz
-        </button>
+        {hasQuestions ? (
+          <button
+            onClick={() => setActiveTab("quiz")}
+            className={`px-4 py-2 text-sm rounded-lg font-medium transition-colors flex items-center gap-1.5 ${
+              activeTab === "quiz"
+                ? "bg-primary-600 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            Quiz
+            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+              activeTab === "quiz"
+                ? "bg-white/20 text-white"
+                : "bg-primary-100 text-primary-600"
+            }`}>
+              {book.question_count}
+            </span>
+          </button>
+        ) : (
+          <button
+            className="px-4 py-2 text-sm rounded-lg font-medium bg-gray-100 text-gray-400 cursor-not-allowed flex items-center gap-1"
+            disabled
+          >
+            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            Quiz
+          </button>
+        )}
       </div>
 
       {activeTab === "record" ? (
         <div>
           {/* Video Player */}
           <VideoPlayer
-            src={book.video_url}
+            src={assetUrl(book.video_url)}
             startPosition={book.last_position_seconds || 0}
             onProgress={handleProgress}
           />
@@ -135,15 +158,7 @@ export default function BookView() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <svg className="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-          </svg>
-          <h3 className="text-lg font-medium text-gray-500">Coming Soon</h3>
-          <p className="text-sm text-gray-400 mt-1">
-            Quizzes will be available in a future update.
-          </p>
-        </div>
+        <QuizPanel bookId={bookId!} />
       )}
     </div>
   );

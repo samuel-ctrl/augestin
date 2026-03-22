@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_current_user, get_db
+from app.dependencies import get_current_user, get_current_user_db, get_db
 from app.models.user import User
 from app.schemas.auth import ChangePasswordRequest, LoginRequest, LoginResponse, UserOut
 from app.services.auth import authenticate_user, change_password
@@ -31,7 +31,8 @@ async def login(body: LoginRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.get("/me", response_model=UserOut)
-async def me(current_user: User = Depends(get_current_user)):
+async def me(request: Request):
+    current_user: User = get_current_user(request)
     return UserOut(
         id=str(current_user.id),
         login_id=current_user.login_id,
@@ -47,9 +48,10 @@ async def me(current_user: User = Depends(get_current_user)):
 @router.put("/change-password")
 async def change_pwd(
     body: ChangePasswordRequest,
-    current_user: User = Depends(get_current_user),
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ):
+    current_user: User = await get_current_user_db(request, db)
     success = await change_password(db, current_user, body.old_password, body.new_password)
     if not success:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect old password")

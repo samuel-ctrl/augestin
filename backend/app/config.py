@@ -8,6 +8,7 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "/app/uploads"
     MAX_VIDEO_SIZE_MB: int = 500
     MAX_THUMBNAIL_SIZE_MB: int = 5
+    CORS_ORIGINS: str = "http://localhost:3000,http://localhost:3001"
 
     class Config:
         env_file = ".env"

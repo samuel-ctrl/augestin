@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { SubjectCard, EmptyState, LoadingSpinner, ProgressBar } from "@shared";
+import { SubjectCard, EmptyState, LoadingSpinner, ProgressBar, extractErrorMessage } from "@shared";
 import type { Subject, ResumeBook } from "@shared";
 import api from "../../api/client";
+import { assetUrl } from "../../api/config";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -24,7 +25,7 @@ export default function Dashboard() {
       if (subjectsRes.status === "fulfilled") {
         setSubjects(subjectsRes.value.data.items);
       } else {
-        setError("Failed to load subjects. Please try again.");
+        setError(extractErrorMessage(subjectsRes.reason, "Failed to load subjects. Please try again."));
       }
       if (resumeRes.status === "fulfilled" && resumeRes.value.data) {
         setResumeBook(resumeRes.value.data);
@@ -66,7 +67,7 @@ export default function Dashboard() {
           >
             {resumeBook.thumbnail_url && (
               <img
-                src={resumeBook.thumbnail_url}
+                src={assetUrl(resumeBook.thumbnail_url)}
                 alt={resumeBook.book_title}
                 className="w-20 h-14 object-cover rounded"
               />

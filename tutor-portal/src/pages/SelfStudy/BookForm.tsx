@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { FileUpload, LoadingSpinner, Toast, useToast, standardOptions } from "@shared";
 import api from "../../api/client";
+import { assetUrl } from "../../api/config";
 
 interface BookData {
   title: string;
@@ -187,7 +188,7 @@ export default function BookForm() {
           accept=".mp4,.webm,.mov"
           maxSizeMB={500}
           value={videoFile}
-          currentUrl={existingData?.video_url}
+          currentUrl={assetUrl(existingData?.video_url)}
           onChange={setVideoFile}
         />
 
@@ -196,7 +197,7 @@ export default function BookForm() {
           accept=".jpg,.jpeg,.png,.webp"
           maxSizeMB={5}
           value={thumbnailFile}
-          currentUrl={existingData?.thumbnail_url}
+          currentUrl={assetUrl(existingData?.thumbnail_url)}
           onChange={setThumbnailFile}
         />
 

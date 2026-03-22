@@ -38,7 +38,6 @@ async def _generate_unique_login_id(db: AsyncSession, email: str | None, phone: 
 async def create_student(
     db: AsyncSession,
     name: str,
-    tutor_id: uuid.UUID,
     email: str | None = None,
     phone: str | None = None,
     standard: str | None = None,
@@ -66,7 +65,6 @@ async def create_student(
         user_type=UserType.student,
         standard=validated_standard,
         must_change_password=True,
-        created_by=tutor_id,
     )
     db.add(student)
     await db.commit()

@@ -1,8 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { BookCard, EmptyState, LoadingSpinner, ConfirmDialog, Toast, useToast } from "@shared";
+import { BookCard, EmptyState, LoadingSpinner, ConfirmDialog, Toast, useToast, extractErrorMessage } from "@shared";
 import type { Subject, Book } from "@shared";
 import api from "../../api/client";
+import { assetUrl } from "../../api/config";
 
 export default function SubjectBooks() {
   const { id: subjectId } = useParams<{ id: string }>();
@@ -30,7 +31,7 @@ export default function SubjectBooks() {
       if (status === 404) {
         navigate("/self-study");
       } else {
-        setError("Failed to load subject data. Please try again.");
+        setError(extractErrorMessage(err, "Failed to load subject data. Please try again."));
       }
     } finally {
       setLoading(false);
@@ -110,12 +111,21 @@ export default function SubjectBooks() {
               key={book.id}
               title={book.title}
               standard={book.standard}
-              thumbnailUrl={book.thumbnail_url}
+              thumbnailUrl={assetUrl(book.thumbnail_url)}
               onClick={() =>
                 navigate(`/self-study/books/${book.id}/edit`)
               }
+              questionCount={book.question_count}
               actions={
                 <div className="flex gap-1">
+                  <button
+                    onClick={() =>
+                      navigate(`/self-study/books/${book.id}/questions`)
+                    }
+                    className="text-xs text-primary-500 hover:text-primary-700"
+                  >
+                    Quiz
+                  </button>
                   <button
                     onClick={() =>
                       navigate(`/self-study/books/${book.id}/assign`)

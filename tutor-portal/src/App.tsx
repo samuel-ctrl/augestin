@@ -8,6 +8,8 @@ import Dashboard from "./pages/SelfStudy/Dashboard";
 import SubjectBooks from "./pages/SelfStudy/SubjectBooks";
 import BookForm from "./pages/SelfStudy/BookForm";
 import BookAssign from "./pages/SelfStudy/BookAssign";
+import BookQuestions from "./pages/SelfStudy/BookQuestions";
+import QuestionForm from "./pages/SelfStudy/QuestionForm";
 import StudentList from "./pages/Students/StudentList";
 import StudentCreate from "./pages/Students/StudentCreate";
 import StudentDetail from "./pages/Students/StudentDetail";
@@ -34,6 +36,9 @@ function AuthenticatedApp() {
           <Route path="/self-study/books/new" element={<BookForm />} />
           <Route path="/self-study/books/:id/edit" element={<BookForm />} />
           <Route path="/self-study/books/:id/assign" element={<BookAssign />} />
+          <Route path="/self-study/books/:id/questions" element={<BookQuestions />} />
+          <Route path="/self-study/books/:bookId/questions/new" element={<QuestionForm />} />
+          <Route path="/self-study/questions/:id/edit" element={<QuestionForm />} />
           <Route path="/students" element={<StudentList />} />
           <Route path="/students/new" element={<StudentCreate />} />
           <Route path="/students/:id" element={<StudentDetail />} />

@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { LoadingSpinner, EmptyState, Toast, useToast, standardOptions } from "@shared";
+import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage, standardOptions } from "@shared";
 import type { Book, Student, Assignment } from "@shared";
 import api from "../../api/client";
 
@@ -25,10 +25,10 @@ export default function BookAssign() {
       const [bookRes, studentsRes, assignmentsRes] = await Promise.all([
         api.get(`/books/${bookId}`),
         api.get("/students", {
-          params: { page: 1, page_size: 1000, sort_by: "name", sort_order: "asc" },
+          params: { page: 1, page_size: 100, sort_by: "name", sort_order: "asc" },
         }),
         api.get(`/assignments/book/${bookId}`, {
-          params: { page: 1, page_size: 1000 },
+          params: { page: 1, page_size: 100 },
         }),
       ]);
       setBook(bookRes.data);
@@ -48,7 +48,7 @@ export default function BookAssign() {
       if (status === 404) {
         navigate("/self-study");
       } else {
-        setError("Failed to load assignment data. Please try again.");
+        setError(extractErrorMessage(err, "Failed to load assignment data. Please try again."));
       }
     } finally {
       setLoading(false);

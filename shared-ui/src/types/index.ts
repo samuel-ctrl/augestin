@@ -45,6 +45,7 @@ export interface Book {
   created_by: string;
   created_at: string;
   updated_at: string;
+  question_count?: number;
   watch_percentage?: number;
   last_position_seconds?: number;
   completed?: boolean;
@@ -120,4 +121,59 @@ export interface NavItem {
 export interface BreadcrumbSegment {
   label: string;
   path?: string;
+}
+
+export interface Question {
+  id: string;
+  book_id?: string;
+  question_text: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_option?: string;
+  explanation?: string;
+  sort_order: number;
+  time_limit_seconds: number;
+  created_at?: string;
+}
+
+export interface QuizProgress {
+  correct_count: number;
+  total_attempted: number;
+  current_question_index: number;
+  is_completed: boolean;
+  started_at?: string;
+  completed_at?: string;
+  score_percentage: number;
+  total_time_seconds: number;
+}
+
+export interface ReviewQuestion {
+  id: string;
+  question_text: string;
+  option_a: string;
+  option_b: string;
+  option_c: string;
+  option_d: string;
+  correct_option: string;
+  explanation?: string;
+  selected_option?: string;
+  is_correct: boolean;
+}
+
+export interface QuizSession {
+  questions: Question[];
+  total_questions: number;
+  total_time_seconds: number;
+  progress: QuizProgress | null;
+  answers: Record<string, string>;
+  review?: ReviewQuestion[];
+}
+
+export interface QuizSubmitResponse {
+  is_correct: boolean;
+  correct_option: string;
+  explanation?: string;
+  progress: QuizProgress;
 }

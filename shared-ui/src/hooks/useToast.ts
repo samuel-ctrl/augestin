@@ -27,6 +27,11 @@ export function extractErrorMessage(err: unknown, fallback: string): string {
     (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
 
   if (detail) {
+    // Server unreachable (proxy returned 503)
+    if (detail === "SERVER_UNREACHABLE") {
+      return "Server is currently unreachable. Please try again later or contact the help desk for assistance.";
+    }
+
     // Check if we have a friendly mapping
     if (ERROR_MESSAGE_MAP[detail]) {
       return ERROR_MESSAGE_MAP[detail];

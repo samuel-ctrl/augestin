@@ -54,7 +54,7 @@ async def list_assignments_by_book(
     page: int = 1,
     page_size: int = 20,
     search: str = "",
-    sort_by: str = "assigned_at",
+    sort_by: str = "created_at",
     sort_order: str = "desc",
 ) -> tuple[list[tuple], int, int, int, int]:
     query = (
@@ -80,9 +80,9 @@ async def list_assignments_by_book(
     total = (await db.execute(count_q)).scalar() or 0
 
     # Sort
-    allowed = {"assigned_at"}
+    allowed = {"created_at"}
     if sort_by not in allowed:
-        sort_by = "assigned_at"
+        sort_by = "created_at"
     sort_col = getattr(BookAssignment, sort_by)
     order = sort_col.desc() if sort_order == "desc" else sort_col.asc()
     query = query.order_by(order)

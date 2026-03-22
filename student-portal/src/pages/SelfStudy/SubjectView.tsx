@@ -1,8 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { BookCard, EmptyState, LoadingSpinner, Breadcrumb } from "@shared";
+import { BookCard, EmptyState, LoadingSpinner, Breadcrumb, extractErrorMessage } from "@shared";
 import type { Subject, Book, BreadcrumbSegment } from "@shared";
 import api from "../../api/client";
+import { assetUrl } from "../../api/config";
 
 export default function SubjectView() {
   const { id: subjectId } = useParams<{ id: string }>();
@@ -27,7 +28,7 @@ export default function SubjectView() {
       if (status === 404) {
         navigate("/self-study");
       } else {
-        setError("Failed to load subject. Please try again.");
+        setError(extractErrorMessage(err, "Failed to load subject. Please try again."));
       }
     } finally {
       setLoading(false);
@@ -78,9 +79,10 @@ export default function SubjectView() {
               key={book.id}
               title={book.title}
               standard={book.standard}
-              thumbnailUrl={book.thumbnail_url}
+              thumbnailUrl={assetUrl(book.thumbnail_url)}
               watchPercentage={book.watch_percentage}
               completed={book.completed}
+              questionCount={book.question_count}
               onClick={() => navigate(`/self-study/books/${book.id}`)}
             />
           ))}

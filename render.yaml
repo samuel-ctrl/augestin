@@ -1,0 +1,23 @@
+services:
+  # Backend API (only service on Render — frontends on Cloudflare Pages)
+  - type: web
+    name: edutrack-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        sync: false  # Set manually with your Neon connection string
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRY_HOURS
+        value: "24"
+      - key: UPLOAD_DIR
+        value: /app/uploads
+      - key: MAX_VIDEO_SIZE_MB
+        value: "500"
+      - key: MAX_THUMBNAIL_SIZE_MB
+        value: "5"
+      - key: CORS_ORIGINS
+        sync: false  # Set to your Cloudflare Pages URLs

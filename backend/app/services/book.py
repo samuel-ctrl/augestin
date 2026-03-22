@@ -57,7 +57,6 @@ async def create_book(
     db: AsyncSession,
     title: str,
     subject_id: uuid.UUID,
-    tutor_id: uuid.UUID,
     video_url: str,
     standard: str,
     description: str | None = None,
@@ -76,7 +75,6 @@ async def create_book(
         standard=standard,
         sort_order=sort_order,
         subject_id=subject_id,
-        created_by=tutor_id,
     )
     db.add(book)
     await db.commit()

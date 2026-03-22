@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { DataTable, LoadingSpinner, ConfirmDialog, EmptyState, Toast, useToast } from "@shared";
+import { DataTable, LoadingSpinner, ConfirmDialog, EmptyState, Toast, useToast, extractErrorMessage } from "@shared";
 import type {
   Student,
   BookProgress,
@@ -69,7 +69,7 @@ export default function StudentDetail() {
         if (status === 404) {
           navigate("/students");
         } else {
-          setError("Failed to load student details. Please try again.");
+          setError(extractErrorMessage(err, "Failed to load student details. Please try again."));
         }
       })
       .finally(() => setLoading(false));

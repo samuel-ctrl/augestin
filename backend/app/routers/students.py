@@ -1,7 +1,7 @@
 import math
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -48,8 +48,9 @@ async def _student_to_out(db: AsyncSession, student: User) -> StudentOut:
     )
 
 
-@router.get("/", response_model=PaginatedResponse[StudentOut])
+@router.get("", response_model=PaginatedResponse[StudentOut])
 async def list_students_endpoint(
+    request: Request,
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     search: str = Query(""),
@@ -57,8 +58,8 @@ async def list_students_endpoint(
     sort_order: str = Query("desc"),
     standard: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
-    _tutor: User = Depends(require_tutor),
 ):
+    require_tutor(request)
     students, total, pg, ps, total_pages = await list_students(
         db, page=page, page_size=page_size, search=search,
         sort_by=sort_by, sort_order=sort_order, standard=standard,
@@ -71,17 +72,17 @@ async def list_students_endpoint(
     )
 
 
-@router.post("/", response_model=StudentCreateResponse, status_code=status.HTTP_201_CREATED)
+@router.post("", response_model=StudentCreateResponse, status_code=status.HTTP_201_CREATED)
 async def create_student_endpoint(
     body: StudentCreate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    tutor: User = Depends(require_tutor),
 ):
+    require_tutor(request)
     try:
         student, plain_password = await create_student(
             db,
             name=body.name,
-            tutor_id=tutor.id,
             email=body.email,
             phone=body.phone,
             standard=body.standard,
@@ -99,9 +100,10 @@ async def create_student_endpoint(
 @router.get("/{student_id}", response_model=StudentOut)
 async def get_student_endpoint(
     student_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _tutor: User = Depends(require_tutor),
 ):
+    require_tutor(request)
     student = await get_student(db, student_id)
     if student is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
@@ -112,9 +114,10 @@ async def get_student_endpoint(
 async def update_student_endpoint(
     student_id: uuid.UUID,
     body: StudentUpdate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _tutor: User = Depends(require_tutor),
 ):
+    require_tutor(request)
     student = await get_student(db, student_id)
     if student is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
@@ -132,9 +135,10 @@ async def update_student_endpoint(
 @router.delete("/{student_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_student_endpoint(
     student_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _tutor: User = Depends(require_tutor),
 ):
+    require_tutor(request)
     student = await get_student(db, student_id)
     if student is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
@@ -144,9 +148,10 @@ async def delete_student_endpoint(
 @router.post("/{student_id}/reset-password", response_model=ResetPasswordResponse)
 async def reset_password_endpoint(
     student_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _tutor: User = Depends(require_tutor),
 ):
+    require_tutor(request)
     student = await get_student(db, student_id)
     if student is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
@@ -157,13 +162,14 @@ async def reset_password_endpoint(
 @router.get("/{student_id}/progress", response_model=PaginatedResponse[BookProgressOut])
 async def get_student_progress(
     student_id: uuid.UUID,
+    request: Request,
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
     sort_by: str = Query("last_watched_at"),
     sort_order: str = Query("desc"),
     db: AsyncSession = Depends(get_db),
-    _tutor: User = Depends(require_tutor),
 ):
+    require_tutor(request)
     student = await get_student(db, student_id)
     if student is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")

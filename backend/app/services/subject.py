@@ -17,10 +17,10 @@ VALID_ICONS = {
 }
 
 
-async def create_subject(db: AsyncSession, name: str, icon: str | None, tutor_id: uuid.UUID) -> Subject:
+async def create_subject(db: AsyncSession, name: str, icon: str | None) -> Subject:
     if icon and icon not in VALID_ICONS:
         raise ValueError(f"Invalid icon '{icon}'. Must be one of: {', '.join(sorted(VALID_ICONS))}")
-    subject = Subject(name=name, icon=icon or "book", created_by=tutor_id)
+    subject = Subject(name=name, icon=icon or "book")
     db.add(subject)
     await db.commit()
     await db.refresh(subject)

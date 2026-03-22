@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import type { PaginatedResponse, TableQueryParams } from "../types";
+import { extractErrorMessage } from "./useToast";
 
 interface UseServerTableOptions<T> {
   fetchFn: (params: TableQueryParams) => Promise<PaginatedResponse<T>>;
@@ -87,9 +88,7 @@ export function useServerTable<T>(
         }
       } catch (err: unknown) {
         if (!cancelled) {
-          const message =
-            err instanceof Error ? err.message : "Failed to fetch data";
-          setError(message);
+          setError(extractErrorMessage(err, "Failed to fetch data"));
           setData([]);
         }
       } finally {

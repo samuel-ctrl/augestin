@@ -13,9 +13,10 @@ class BookOut(BaseModel):
     standard: str
     sort_order: int = 0
     subject_id: str
-    created_by: str
+    created_by: str | None = None
     created_at: datetime
-    updated_at: datetime
+    updated_at: datetime | None = None
+    question_count: int = 0
     # Student-specific fields (populated when student requests)
     watch_percentage: float | None = None
     last_position_seconds: float | None = None

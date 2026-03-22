@@ -1,9 +1,13 @@
 import uuid
 
-from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, Request, UploadFile, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from sqlalchemy import func as sa_func
+
 from app.dependencies import get_current_user, get_db, require_tutor
+from app.models.question import Question
 from app.models.user import User, UserType
 from app.models.watch_progress import WatchProgress
 from app.schemas.book import BookOut
@@ -20,12 +24,10 @@ from app.services.book import (
 )
 from app.services.subject import get_subject
 
-from sqlalchemy import select
-
 router = APIRouter(tags=["books"])
 
 
-def _book_to_out(book, progress=None) -> BookOut:
+def _book_to_out(book, progress=None, question_count: int = 0) -> BookOut:
     out = BookOut(
         id=str(book.id),
         title=book.title,
@@ -36,9 +38,10 @@ def _book_to_out(book, progress=None) -> BookOut:
         standard=book.standard,
         sort_order=book.sort_order,
         subject_id=str(book.subject_id),
-        created_by=str(book.created_by),
+        created_by=book.created_by,
         created_at=book.created_at,
         updated_at=book.updated_at,
+        question_count=question_count,
     )
     if progress:
         out.watch_percentage = progress.watch_percentage
@@ -52,6 +55,7 @@ def _book_to_out(book, progress=None) -> BookOut:
 @router.get("/api/subjects/{subject_id}/books", response_model=PaginatedResponse[BookOut])
 async def list_books_endpoint(
     subject_id: uuid.UUID,
+    request: Request,
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
     search: str = Query(""),
@@ -59,8 +63,8 @@ async def list_books_endpoint(
     sort_order: str = Query("asc"),
     standard: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
 ):
+    current_user = get_current_user(request)
     subject = await get_subject(db, subject_id)
     if subject is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Subject not found")
@@ -70,7 +74,20 @@ async def list_books_endpoint(
         page=page, page_size=page_size, search=search,
         sort_by=sort_by, sort_order=sort_order, standard=standard,
     )
-    items = [_book_to_out(d["book"], d["progress"]) for d in items_data]
+    # Fetch question counts for all books in one query
+    book_ids = [d["book"].id for d in items_data]
+    q_counts: dict = {}
+    if book_ids:
+        count_result = await db.execute(
+            select(Question.book_id, sa_func.count(Question.id))
+            .where(Question.book_id.in_(book_ids))
+            .group_by(Question.book_id)
+        )
+        q_counts = dict(count_result.all())
+    items = [
+        _book_to_out(d["book"], d["progress"], question_count=q_counts.get(d["book"].id, 0))
+        for d in items_data
+    ]
     return PaginatedResponse(
         items=items, total=total, page=pg, page_size=ps, total_pages=total_pages,
     )
@@ -79,6 +96,7 @@ async def list_books_endpoint(
 @router.post("/api/subjects/{subject_id}/books", response_model=BookOut, status_code=status.HTTP_201_CREATED)
 async def create_book_endpoint(
     subject_id: uuid.UUID,
+    request: Request,
     title: str = Form(...),
     standard: str = Form(...),
     video: UploadFile = File(...),
@@ -87,8 +105,8 @@ async def create_book_endpoint(
     video_duration_seconds: float | None = Form(None),
     thumbnail: UploadFile | None = File(None),
     db: AsyncSession = Depends(get_db),
-    tutor: User = Depends(require_tutor),
 ):
+    require_tutor(request)
     subject = await get_subject(db, subject_id)
     if subject is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Subject not found")
@@ -113,7 +131,7 @@ async def create_book_endpoint(
 
     try:
         book = await create_book(
-            db, title=title, subject_id=subject_id, tutor_id=tutor.id,
+            db, title=title, subject_id=subject_id,
             video_url=video_url, standard=standard, description=description,
             thumbnail_url=thumbnail_url, video_duration_seconds=video_duration_seconds,
             sort_order=sort_order,
@@ -129,9 +147,10 @@ async def create_book_endpoint(
 @router.get("/api/books/{book_id}", response_model=BookOut)
 async def get_book_endpoint(
     book_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user),
 ):
+    current_user: User = get_current_user(request)
     book = await get_book(db, book_id)
     if book is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
@@ -157,12 +176,19 @@ async def get_book_endpoint(
         )
         progress = wp_result.scalar_one_or_none()
 
-    return _book_to_out(book, progress)
+    # Get question count
+    qc_result = await db.execute(
+        select(sa_func.count(Question.id)).where(Question.book_id == book_id)
+    )
+    question_count = qc_result.scalar() or 0
+
+    return _book_to_out(book, progress, question_count=question_count)
 
 
 @router.put("/api/books/{book_id}", response_model=BookOut)
 async def update_book_endpoint(
     book_id: uuid.UUID,
+    request: Request,
     title: str | None = Form(None),
     description: str | None = Form(None),
     standard: str | None = Form(None),
@@ -171,8 +197,8 @@ async def update_book_endpoint(
     video: UploadFile | None = File(None),
     thumbnail: UploadFile | None = File(None),
     db: AsyncSession = Depends(get_db),
-    _tutor: User = Depends(require_tutor),
 ):
+    require_tutor(request)
     book = await get_book(db, book_id)
     if book is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
@@ -210,9 +236,10 @@ async def update_book_endpoint(
 @router.delete("/api/books/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_book_endpoint(
     book_id: uuid.UUID,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    _tutor: User = Depends(require_tutor),
 ):
+    require_tutor(request)
     book = await get_book(db, book_id)
     if book is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")

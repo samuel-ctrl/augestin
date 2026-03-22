@@ -13,6 +13,11 @@ export type {
   FilterDef,
   NavItem,
   BreadcrumbSegment,
+  Question,
+  QuizProgress,
+  QuizSession,
+  QuizSubmitResponse,
+  ReviewQuestion,
 } from "./types";
 
 // Constants
@@ -53,3 +58,4 @@ export { VideoPlayer } from "./components/VideoPlayer";
 export { IconPicker } from "./components/IconPicker";
 export { FileUpload } from "./components/FileUpload";
 export { CredentialCard } from "./components/CredentialCard";
+export { MathText } from "./components/MathText";

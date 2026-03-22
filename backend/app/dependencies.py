@@ -1,45 +1,52 @@
-import uuid
-
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi import HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db  # noqa: F401 — re-exported for routers
 from app.models.user import User, UserType
-from app.utils.jwt import decode_token
-
-security = HTTPBearer()
 
 
-async def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
-    db: AsyncSession = Depends(get_db),
-) -> User:
-    token = credentials.credentials
-    payload = decode_token(token)
-    if payload is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
-
-    user_id = payload.get("sub")
-    if user_id is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload")
-
-    result = await db.execute(select(User).where(User.id == uuid.UUID(user_id)))
-    user = result.scalar_one_or_none()
+def get_current_user(request: Request) -> User:
+    """Extract the authenticated user set by AuthMiddleware (read-only, detached from DB session)."""
+    user: User | None = getattr(request.state, "user", None)
     if user is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User not found")
-
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+        )
     return user
 
 
-async def require_tutor(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.user_type != UserType.tutor:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Tutor access required")
-    return current_user
+async def get_current_user_db(request: Request, db: AsyncSession) -> User:
+    """Re-fetch the authenticated user in the route's DB session (for mutations)."""
+    middleware_user = get_current_user(request)
+    result = await db.execute(select(User).where(User.id == middleware_user.id))
+    user = result.scalar_one_or_none()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+    return user
 
 
-async def require_student(current_user: User = Depends(get_current_user)) -> User:
-    if current_user.user_type != UserType.student:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Student access required")
-    return current_user
+def require_tutor(request: Request) -> User:
+    """Extract user and verify they are a tutor."""
+    user = get_current_user(request)
+    if user.user_type != UserType.tutor:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Tutor access required",
+        )
+    return user
+
+
+def require_student(request: Request) -> User:
+    """Extract user and verify they are a student."""
+    user = get_current_user(request)
+    if user.user_type != UserType.student:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Student access required",
+        )
+    return user

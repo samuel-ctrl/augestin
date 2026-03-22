@@ -1,10 +1,9 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, require_student
-from app.models.user import User
 from app.schemas.progress import ProgressUpdate, ResumeBookOut
 from app.services.progress import get_resume_book, upsert_progress
 
@@ -15,9 +14,10 @@ router = APIRouter(prefix="/api/progress", tags=["progress"])
 async def update_progress(
     book_id: uuid.UUID,
     body: ProgressUpdate,
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    student: User = Depends(require_student),
 ):
+    student = require_student(request)
     try:
         progress = await upsert_progress(
             db,
@@ -37,9 +37,10 @@ async def update_progress(
 
 @router.get("/resume", response_model=ResumeBookOut | None)
 async def resume_book(
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    student: User = Depends(require_student),
 ):
+    student = require_student(request)
     result = await get_resume_book(db, student.id)
     if result is None:
         return None
