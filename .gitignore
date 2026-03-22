@@ -1,6 +1,7 @@
 node_modules/
 __pycache__/
 .env
+.env.deploy
 uploads/videos/*
 uploads/thumbnails/*
 dist/
