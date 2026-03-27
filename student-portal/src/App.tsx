@@ -9,6 +9,8 @@ import DevComponents from "./pages/DevComponents";
 import Dashboard from "./pages/SelfStudy/Dashboard";
 import SubjectView from "./pages/SelfStudy/SubjectView";
 import BookView from "./pages/SelfStudy/BookView";
+import QuizSetDashboard from "./pages/QuizSets/QuizSetDashboard";
+import QuizSetView from "./pages/QuizSets/QuizSetView";
 import Profile from "./pages/Profile";
 
 function AuthenticatedApp() {
@@ -32,6 +34,8 @@ function AuthenticatedApp() {
           <Route path="/self-study" element={<Dashboard />} />
           <Route path="/self-study/subjects/:id" element={<SubjectView />} />
           <Route path="/self-study/books/:id" element={<BookView />} />
+          <Route path="/quiz-sets" element={<QuizSetDashboard />} />
+          <Route path="/quiz-sets/:id" element={<QuizSetView />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/" element={<Navigate to="/self-study" replace />} />
           <Route path="*" element={<NotFound />} />

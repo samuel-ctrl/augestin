@@ -19,6 +19,11 @@ export const sidebarItems: NavItem[] = [
     icon: "📚",
   },
   {
+    path: "/quiz-sets",
+    label: "Quiz Sets",
+    icon: "🧩",
+  },
+  {
     path: "/profile",
     label: "Profile",
     icon: createElement(ProfileIcon),

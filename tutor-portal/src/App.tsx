@@ -13,6 +13,10 @@ import QuestionForm from "./pages/SelfStudy/QuestionForm";
 import BookPreview from "./pages/SelfStudy/BookPreview";
 import BookRecap from "./pages/SelfStudy/BookRecap";
 import BookTest from "./pages/SelfStudy/BookTest";
+import QuizSetList from "./pages/QuizSets/QuizSetList";
+import QuizSetForm from "./pages/QuizSets/QuizSetForm";
+import QuizSetQuestions from "./pages/QuizSets/QuizSetQuestions";
+import QuizSetAssign from "./pages/QuizSets/QuizSetAssign";
 import StudentList from "./pages/Students/StudentList";
 import StudentCreate from "./pages/Students/StudentCreate";
 import StudentDetail from "./pages/Students/StudentDetail";
@@ -45,6 +49,12 @@ function AuthenticatedApp() {
           <Route path="/self-study/books/:id/questions" element={<BookQuestions />} />
           <Route path="/self-study/books/:bookId/questions/new" element={<QuestionForm />} />
           <Route path="/self-study/questions/:id/edit" element={<QuestionForm />} />
+          <Route path="/quiz-sets" element={<QuizSetList />} />
+          <Route path="/quiz-sets/new" element={<QuizSetForm />} />
+          <Route path="/quiz-sets/:id/edit" element={<QuizSetForm />} />
+          <Route path="/quiz-sets/:id/questions" element={<QuizSetQuestions />} />
+          <Route path="/quiz-sets/:quizSetId/questions/new" element={<QuestionForm />} />
+          <Route path="/quiz-sets/:id/assign" element={<QuizSetAssign />} />
           <Route path="/students" element={<StudentList />} />
           <Route path="/students/new" element={<StudentCreate />} />
           <Route path="/students/:id" element={<StudentDetail />} />

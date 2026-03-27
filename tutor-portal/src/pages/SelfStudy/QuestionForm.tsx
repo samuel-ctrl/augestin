@@ -4,16 +4,18 @@ import { LoadingSpinner, Toast, useToast, MathText } from "@shared";
 import api from "../../api/client";
 
 export default function QuestionForm() {
-  const params = useParams<{ id: string; bookId: string }>();
+  const params = useParams<{ id: string; bookId: string; quizSetId: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   // Edit mode: /self-study/questions/:id/edit
-  // Create mode: /self-study/books/:bookId/questions/new
-  const isEdit = !!params.id && !params.bookId;
+  // Create mode: /self-study/books/:bookId/questions/new OR /quiz-sets/:quizSetId/questions/new
+  const isEdit = !!params.id && !params.bookId && !params.quizSetId;
   const questionId = params.id;
+  const isQuizSetMode = !!params.quizSetId;
 
   const [bookId, setBookId] = useState(params.bookId || searchParams.get("book_id") || "");
-  const [bookTitle, setBookTitle] = useState("");
+  const [quizSetId, setQuizSetId] = useState(params.quizSetId || searchParams.get("quiz_set_id") || "");
+  const [sourceTitle, setSourceTitle] = useState("");
   const [questionText, setQuestionText] = useState("");
   const [optionA, setOptionA] = useState("");
   const [optionB, setOptionB] = useState("");
@@ -34,7 +36,11 @@ export default function QuestionForm() {
         .get(`/questions/${questionId}`)
         .then((res) => {
           const q = res.data;
-          setBookId(q.book_id);
+          if (q.book_id) {
+            setBookId(q.book_id);
+          } else if (q.quiz_set_id) {
+            setQuizSetId(q.quiz_set_id);
+          }
           setQuestionText(q.question_text);
           setOptionA(q.option_a);
           setOptionB(q.option_b);
@@ -53,15 +59,20 @@ export default function QuestionForm() {
     }
   }, [questionId, isEdit, navigate]);
 
-  // Fetch book title for header
+  // Fetch book or quiz set title for header
   useEffect(() => {
     if (bookId) {
       api
         .get(`/books/${bookId}`)
-        .then((res) => setBookTitle(res.data.title))
+        .then((res) => setSourceTitle(res.data.title))
+        .catch(() => {});
+    } else if (quizSetId) {
+      api
+        .get(`/quiz-sets/${quizSetId}`)
+        .then((res) => setSourceTitle(res.data.name))
         .catch(() => {});
     }
-  }, [bookId]);
+  }, [bookId, quizSetId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -82,10 +93,15 @@ export default function QuestionForm() {
     try {
       if (isEdit) {
         await api.put(`/questions/${questionId}`, payload);
+      } else if (isQuizSetMode) {
+        await api.post(`/quiz-sets/${quizSetId}/questions`, payload);
       } else {
         await api.post(`/books/${bookId}/questions`, payload);
       }
-      navigate(`/self-study/books/${bookId}/questions`);
+      const redirectPath = isQuizSetMode
+        ? `/quiz-sets/${quizSetId}/questions`
+        : `/self-study/books/${bookId}/questions`;
+      navigate(redirectPath);
     } catch (err: unknown) {
       showApiError(err, "Failed to save question.");
     } finally {
@@ -102,7 +118,12 @@ export default function QuestionForm() {
     <div className="max-w-2xl mx-auto">
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <button
-        onClick={() => navigate(`/self-study/books/${bookId}/questions`)}
+        onClick={() => {
+          const path = isQuizSetMode
+            ? `/quiz-sets/${quizSetId}/questions`
+            : `/self-study/books/${bookId}/questions`;
+          navigate(path);
+        }}
         className="text-sm text-gray-500 hover:text-gray-700 mb-4 inline-flex items-center gap-1"
       >
         &larr; Back to Questions
@@ -111,9 +132,9 @@ export default function QuestionForm() {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-xl font-semibold text-gray-800">
           {isEdit ? "Edit Question" : "Add Question"}
-          {bookTitle && (
+          {sourceTitle && (
             <span className="text-sm font-normal text-gray-500 ml-2">
-              — {bookTitle}
+              — {sourceTitle}
             </span>
           )}
         </h1>
@@ -257,7 +278,12 @@ export default function QuestionForm() {
         <div className="flex gap-3 pt-2">
           <button
             type="button"
-            onClick={() => navigate(`/self-study/books/${bookId}/questions`)}
+            onClick={() => {
+              const path = isQuizSetMode
+                ? `/quiz-sets/${quizSetId}/questions`
+                : `/self-study/books/${bookId}/questions`;
+              navigate(path);
+            }}
             className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors"
           >
             Cancel
