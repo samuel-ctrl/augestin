@@ -1,0 +1,166 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { LoadingSpinner, EmptyState, Toast, useToast, ConfirmDialog, Breadcrumb } from "@shared";
+import api from "../../api/client";
+import RecapEditor from "../../components/RecapEditor";
+
+interface Book {
+  id: string;
+  title: string;
+  subject_id: string;
+}
+
+interface Recap {
+  id: string;
+  book_id: string;
+  created_by: string;
+  title: string;
+  content: any;
+  created_at: string;
+  updated_at?: string;
+}
+
+export default function BookRecap() {
+  const { id: bookId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { toast, showApiError, showSuccess } = useToast();
+
+  const [book, setBook] = useState<Book | null>(null);
+  const [recap, setRecap] = useState<Recap | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const titleRef = useRef<string>("");
+
+  // Fetch book and recap data
+  const fetchData = useCallback(async () => {
+    if (!bookId) return;
+
+    try {
+      setLoading(true);
+      const [bookRes, recapRes] = await Promise.all([
+        api.get<Book>(`/books/${bookId}`),
+        api.get<Recap | null>(`/books/${bookId}/recap`),
+      ]);
+
+      setBook(bookRes.data);
+      if (recapRes.data) {
+        setRecap(recapRes.data);
+        titleRef.current = recapRes.data.title;
+      } else {
+        titleRef.current = "";
+      }
+    } catch (err) {
+      showApiError(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [bookId, showApiError]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  const handleSave = useCallback(
+    async (content: any) => {
+      if (!bookId) return;
+
+      try {
+        const res = await api.post<Recap>(`/books/${bookId}/recap`, {
+          title: titleRef.current || "Chapter Summary",
+          content,
+        });
+        setRecap(res.data);
+        showSuccess("Recap saved successfully");
+      } catch (err) {
+        showApiError(err);
+      }
+    },
+    [bookId, showApiError, showSuccess]
+  );
+
+  const handleDelete = useCallback(async () => {
+    if (!bookId) return;
+
+    try {
+      setDeleting(true);
+      await api.delete(`/books/${bookId}/recap`);
+      setRecap(null);
+      showSuccess("Recap deleted successfully");
+      setShowDeleteConfirm(false);
+    } catch (err) {
+      showApiError(err);
+    } finally {
+      setDeleting(false);
+    }
+  }, [bookId, showApiError, showSuccess]);
+
+  const handleTitleChange = useCallback((newTitle: string) => {
+    titleRef.current = newTitle;
+  }, []);
+
+  if (loading) {
+    return <LoadingSpinner fullPage />;
+  }
+
+  if (!book) {
+    return (
+      <EmptyState
+        icon="📚"
+        title="Book Not Found"
+        description="The book you're looking for doesn't exist."
+      />
+    );
+  }
+
+  return (
+    <div className="p-6">
+      {toast && <Toast {...toast} />}
+
+      {/* Breadcrumb */}
+      <Breadcrumb
+        items={[
+          { label: "Self-Study", href: "/self-study" },
+          { label: book.title, href: `/self-study/books/${bookId}/preview` },
+          { label: "Manage Recap", href: "#" },
+        ]}
+      />
+
+      {/* Header */}
+      <div className="mt-6 mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-gray-900">Manage Recap</h1>
+        {recap && (
+          <button
+            onClick={() => setShowDeleteConfirm(true)}
+            disabled={deleting}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+          >
+            {deleting ? "Deleting..." : "Delete Recap"}
+          </button>
+        )}
+      </div>
+
+      {/* Recap Editor */}
+      <RecapEditor
+        bookId={bookId!}
+        onSave={handleSave}
+        onTitleChange={handleTitleChange}
+        initialTitle={recap?.title}
+        initialContent={recap?.content}
+      />
+
+      {/* Delete Confirmation */}
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          title="Delete Recap"
+          message="Are you sure you want to delete this recap? This action cannot be undone."
+          variant="danger"
+          onConfirm={handleDelete}
+          onCancel={() => setShowDeleteConfirm(false)}
+          confirmText="Delete"
+          cancelText="Cancel"
+        />
+      )}
+    </div>
+  );
+}

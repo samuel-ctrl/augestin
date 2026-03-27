@@ -5,12 +5,14 @@ import api from "../../api/client";
 import QuestionCard from "./QuestionCard";
 
 interface QuizPanelProps {
-  bookId: string;
+  quizSource: "book" | "quiz_set";
+  quizId: string;
+  displayTitle?: string;
 }
 
 type QuizState = "loading" | "start" | "active" | "completed";
 
-export default function QuizPanel({ bookId }: QuizPanelProps) {
+export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPanelProps) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [totalTimeSeconds, setTotalTimeSeconds] = useState(0);
@@ -21,20 +23,30 @@ export default function QuizPanel({ bookId }: QuizPanelProps) {
   const [submitting, setSubmitting] = useState(false);
   // answers: { question_id -> selected_option }
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  // skipped: { question_id -> true }
+  const [skipped, setSkipped] = useState<Record<string, boolean>>({});
   const [review, setReview] = useState<ReviewQuestion[] | null>(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const autoCompletedRef = useRef(false);
 
+  // Helper function to generate API paths
+  const getApiPath = useCallback((endpoint: string) => {
+    const basePath = quizSource === "book" ? `/books/${quizId}` : `/quiz-sets/${quizId}`;
+    return `${basePath}${endpoint}`;
+  }, [quizSource, quizId]);
+
   const fetchSession = useCallback(async () => {
     try {
-      const res = await api.get(`/books/${bookId}/quiz`);
+      const basePath = quizSource === "book" ? `/books/${quizId}/quiz` : `/quiz-sets/${quizId}/quiz`;
+      const res = await api.get(basePath);
       const session = res.data;
       setQuestions(session.questions);
       setTotalQuestions(session.total_questions);
       setTotalTimeSeconds(session.total_time_seconds);
       setProgress(session.progress);
       setAnswers(session.answers || {});
+      setSkipped(session.skipped || {});
       setReview(session.review || null);
 
       if (session.total_questions === 0) {
@@ -48,8 +60,8 @@ export default function QuizPanel({ bookId }: QuizPanelProps) {
         );
         const remaining = Math.max(0, session.progress.total_time_seconds - elapsed);
         if (remaining <= 0) {
-          await api.post(`/books/${bookId}/quiz/complete`);
-          const freshRes = await api.get(`/books/${bookId}/quiz`);
+          await api.post(getApiPath(`/quiz/complete`));
+          const freshRes = await api.get(getApiPath(`/quiz`));
           setProgress(freshRes.data.progress);
           setQuizState("completed");
         } else {
@@ -106,10 +118,10 @@ export default function QuizPanel({ bookId }: QuizPanelProps) {
 
   const handleComplete = async () => {
     try {
-      const res = await api.post(`/books/${bookId}/quiz/complete`);
+      const res = await api.post(getApiPath(`/quiz/complete`));
       setProgress(res.data);
       // Fetch review data
-      const sessionRes = await api.get(`/books/${bookId}/quiz`);
+      const sessionRes = await api.get(getApiPath(`/quiz`));
       setReview(sessionRes.data.review || null);
     } catch {}
     setQuizState("completed");
@@ -118,11 +130,12 @@ export default function QuizPanel({ bookId }: QuizPanelProps) {
 
   const handleStartQuiz = async () => {
     try {
-      const res = await api.post(`/books/${bookId}/quiz/start`);
+      const res = await api.post(getApiPath(`/quiz/start`));
       setProgress(res.data);
       setTimeLeft(res.data.total_time_seconds);
       setCurrentIndex(0);
       setAnswers({});
+      setSkipped({});
       setQuizState("active");
     } catch {
       setError("Failed to start quiz.");
@@ -130,17 +143,57 @@ export default function QuizPanel({ bookId }: QuizPanelProps) {
   };
 
   const handleSubmitAnswer = useCallback(
-    async (questionId: string, selectedOption: string) => {
+    async (questionId: string, selectedOption: string | null, isSkipped: boolean) => {
+      if (submitting) return;
+      setSubmitting(true);
+
+      // Optimistic update: if submitting an answer, clear skip state
+      if (selectedOption) {
+        setAnswers((prev) => ({ ...prev, [questionId]: selectedOption }));
+        setSkipped((prev) => ({ ...prev, [questionId]: false }));
+      }
+
+      try {
+        const res = await api.post(getApiPath(`/quiz/submit`), {
+          question_id: questionId,
+          selected_option: selectedOption,
+          is_skipped: isSkipped,
+        });
+        setProgress(res.data.progress);
+      } catch (err) {
+        // Best-effort: revert optimistic update on error
+        if (selectedOption) {
+          setAnswers((prev) => {
+            const newAnswers = { ...prev };
+            delete newAnswers[questionId];
+            return newAnswers;
+          });
+        }
+      } finally {
+        setSubmitting(false);
+      }
+    },
+    [bookId, submitting]
+  );
+
+  const handleSkipQuestion = useCallback(
+    async (questionId: string) => {
       if (submitting) return;
       setSubmitting(true);
 
       // Optimistic update
-      setAnswers((prev) => ({ ...prev, [questionId]: selectedOption }));
+      setSkipped((prev) => ({ ...prev, [questionId]: true }));
+      setAnswers((prev) => {
+        const newAnswers = { ...prev };
+        delete newAnswers[questionId];
+        return newAnswers;
+      });
 
       try {
-        const res = await api.post(`/books/${bookId}/quiz/submit`, {
+        const res = await api.post(getApiPath(`/quiz/submit`), {
           question_id: questionId,
-          selected_option: selectedOption,
+          selected_option: null,
+          is_skipped: true,
         });
         setProgress(res.data.progress);
       } catch {
@@ -369,6 +422,8 @@ export default function QuizPanel({ bookId }: QuizPanelProps) {
   if (!currentQuestion) return null;
 
   const answeredCount = Object.keys(answers).length;
+  const skippedCount = Object.keys(skipped).length;
+  const totalHandled = answeredCount + skippedCount;
   const timerMinutes = Math.floor(timeLeft / 60);
   const timerSeconds = timeLeft % 60;
   const timerColor =
@@ -388,7 +443,8 @@ export default function QuizPanel({ bookId }: QuizPanelProps) {
             </span>
           </div>
           <span className="text-sm text-gray-500">
-            {answeredCount} / {totalQuestions} answered
+            {totalHandled} / {totalQuestions} done
+            {answeredCount > 0 && ` (${answeredCount} answered, ${skippedCount} skipped)`}
           </span>
         </div>
 
@@ -396,6 +452,7 @@ export default function QuizPanel({ bookId }: QuizPanelProps) {
         <div className="flex flex-wrap gap-2">
           {questions.map((q, idx) => {
             const isAnswered = !!answers[q.id];
+            const isQuestionSkipped = !!skipped[q.id];
             const isCurrent = idx === currentIndex;
 
             let circleClass = "border-gray-300 text-gray-500 bg-white hover:bg-gray-50";
@@ -403,6 +460,8 @@ export default function QuizPanel({ bookId }: QuizPanelProps) {
               circleClass = "border-primary-500 bg-primary-600 text-white";
             } else if (isAnswered) {
               circleClass = "border-green-400 bg-green-500 text-white";
+            } else if (isQuestionSkipped) {
+              circleClass = "border-yellow-400 bg-yellow-500 text-white";
             }
 
             return (
@@ -411,8 +470,9 @@ export default function QuizPanel({ bookId }: QuizPanelProps) {
                 type="button"
                 onClick={() => setCurrentIndex(idx)}
                 className={`w-9 h-9 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-colors ${circleClass}`}
+                title={isQuestionSkipped ? "Skipped" : isAnswered ? "Answered" : "Not answered"}
               >
-                {idx + 1}
+                {isQuestionSkipped ? "⏭" : idx + 1}
               </button>
             );
           })}
@@ -426,7 +486,9 @@ export default function QuizPanel({ bookId }: QuizPanelProps) {
         questionNumber={currentIndex + 1}
         totalQuestions={totalQuestions}
         selectedAnswer={answers[currentQuestion.id] || null}
+        isSkipped={!!skipped[currentQuestion.id]}
         onSubmit={handleSubmitAnswer}
+        onSkip={handleSkipQuestion}
         onNext={() => setCurrentIndex((i) => Math.min(i + 1, totalQuestions - 1))}
         onPrevious={() => setCurrentIndex((i) => Math.max(i - 1, 0))}
         canGoNext={currentIndex < totalQuestions - 1}
@@ -440,7 +502,7 @@ export default function QuizPanel({ bookId }: QuizPanelProps) {
           onClick={handleFinishQuiz}
           className="px-6 py-2.5 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition-colors"
         >
-          Finish Quiz ({answeredCount}/{totalQuestions} answered)
+          Finish Quiz ({totalHandled}/{totalQuestions} done)
         </button>
       </div>
     </div>

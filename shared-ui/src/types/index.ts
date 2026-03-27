@@ -112,11 +112,17 @@ export interface BreadcrumbSegment {
 export interface Question {
   id: string;
   book_id?: string;
+  quiz_set_id?: string;
   question_text: string;
+  question_image_url?: string;
   option_a: string;
+  option_a_image_url?: string;
   option_b: string;
+  option_b_image_url?: string;
   option_c: string;
+  option_c_image_url?: string;
   option_d: string;
+  option_d_image_url?: string;
   correct_option?: string;
   explanation?: string;
   sort_order: number;
@@ -126,8 +132,11 @@ export interface Question {
 
 export interface QuizProgress {
   correct_count: number;
+  skipped_count: number;
   total_attempted: number;
+  total_questions: number;
   current_question_index: number;
+  is_started: boolean;
   is_completed: boolean;
   started_at?: string;
   completed_at?: string;
@@ -154,12 +163,71 @@ export interface QuizSession {
   total_time_seconds: number;
   progress: QuizProgress | null;
   answers: Record<string, string>;
+  skipped: Record<string, boolean>;
   review?: ReviewQuestion[];
 }
 
 export interface QuizSubmitResponse {
   is_correct: boolean;
+  is_skipped: boolean;
   correct_option: string;
   explanation?: string;
   progress: QuizProgress;
+}
+
+export interface Recap {
+  id: string;
+  book_id: string;
+  created_by: string;
+  title: string;
+  content: any;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuizSet {
+  id: string;
+  name: string;
+  description?: string;
+  thumbnail_url?: string;
+  subject_id: string;
+  created_by: string;
+  sort_order: number;
+  question_count: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface QuizSetAssignment {
+  id: string;
+  quiz_set_id: string;
+  student_id: string;
+  student_name: string;
+  student_login_id: string;
+  created_at: string;
+}
+
+export interface AssignedQuizSet {
+  id: string;
+  name: string;
+  description?: string;
+  thumbnail_url?: string;
+  subject_id: string;
+  subject_name: string;
+  question_count: number;
+  progress?: QuizProgress;
+}
+
+export interface BookTest {
+  id: string;
+  book_id: string;
+  drive_link: string;
+  instructions?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface TestSubmissionStatus {
+  has_submitted: boolean;
+  submitted_at?: string;
 }

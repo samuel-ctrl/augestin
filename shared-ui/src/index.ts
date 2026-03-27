@@ -17,6 +17,12 @@ export type {
   QuizSession,
   QuizSubmitResponse,
   ReviewQuestion,
+  Recap,
+  QuizSet,
+  QuizSetAssignment,
+  AssignedQuizSet,
+  BookTest,
+  TestSubmissionStatus,
 } from "./types";
 
 // Constants
@@ -62,3 +68,4 @@ export { IconPicker } from "./components/IconPicker";
 export { FileUpload } from "./components/FileUpload";
 export { CredentialCard } from "./components/CredentialCard";
 export { MathText } from "./components/MathText";
+export { RecapViewer } from "./components/RecapViewer";

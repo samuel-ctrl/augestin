@@ -6,7 +6,7 @@ import api from "../../api/client";
 import { assetUrl } from "../../api/config";
 import QuizPanel from "./QuizPanel";
 
-type Tab = "record" | "quiz";
+type Tab = "record" | "quiz" | "test";
 
 export default function BookView() {
   const { id: bookId } = useParams<{ id: string }>();
@@ -16,6 +16,27 @@ export default function BookView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("record");
+  const [test, setTest] = useState<any | null>(null);
+  const [testLoading, setTestLoading] = useState(false);
+  const [testSubmitted, setTestSubmitted] = useState(false);
+
+  const fetchTestData = useCallback(async () => {
+    if (!bookId) return;
+    try {
+      setTestLoading(true);
+      const testRes = await api.get(`/books/${bookId}/test`);
+      if (testRes.data) {
+        setTest(testRes.data);
+        const statusRes = await api.get(`/books/${bookId}/test/my-submission`);
+        setTestSubmitted(statusRes.data.has_submitted);
+      }
+    } catch (err) {
+      // Silently fail if test doesn't exist or endpoint returns error
+      setTest(null);
+    } finally {
+      setTestLoading(false);
+    }
+  }, [bookId]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -25,6 +46,11 @@ export default function BookView() {
 
       const subjectRes = await api.get(`/subjects/${bookData.subject_id}`);
       setSubject(subjectRes.data);
+
+      // Fetch test data in parallel
+      if (bookId) {
+        fetchTestData();
+      }
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 404 || status === 403) {
@@ -35,7 +61,7 @@ export default function BookView() {
     } finally {
       setLoading(false);
     }
-  }, [bookId, navigate]);
+  }, [bookId, navigate, fetchTestData]);
 
   useEffect(() => {
     fetchData();
@@ -109,9 +135,24 @@ export default function BookView() {
             Quiz
           </button>
         )}
+        {test && !testLoading ? (
+          <button
+            onClick={() => setActiveTab("test")}
+            className={`px-4 py-2 text-sm rounded-lg font-medium transition-colors flex items-center gap-1.5 ${
+              activeTab === "test"
+                ? "bg-primary-600 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            Test
+            {testSubmitted && (
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+            )}
+          </button>
+        ) : null}
       </div>
 
-      {activeTab === "record" ? (
+      {activeTab === "record" && (
         <div>
           {/* Video Player */}
           <VideoPlayer src={assetUrl(book.video_url)} />
@@ -131,8 +172,51 @@ export default function BookView() {
             )}
           </div>
         </div>
-      ) : (
-        <QuizPanel bookId={bookId!} />
+      )}
+
+      {activeTab === "quiz" && (
+        <QuizPanel quizSource="book" quizId={bookId!} />
+      )}
+
+      {activeTab === "test" && test && (
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Test</h2>
+
+          {test.instructions && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h3 className="text-sm font-medium text-blue-900 mb-2">Instructions:</h3>
+              <p className="text-sm text-blue-800 whitespace-pre-wrap">{test.instructions}</p>
+            </div>
+          )}
+
+          <div className="flex items-center gap-4 flex-wrap">
+            <a
+              href={test.drive_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+            >
+              Open Test File
+            </a>
+            <button
+              onClick={async () => {
+                try {
+                  await api.put(`/books/${bookId}/test/submit`);
+                  setTestSubmitted(!testSubmitted);
+                } catch (err) {
+                  console.error("Failed to toggle submission:", err);
+                }
+              }}
+              className={`px-6 py-2 rounded-lg font-medium transition-colors ${
+                testSubmitted
+                  ? "bg-green-100 text-green-700 hover:bg-green-200"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {testSubmitted ? "✓ Submitted" : "Mark as Submitted"}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

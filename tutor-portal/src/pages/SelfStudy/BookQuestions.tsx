@@ -105,12 +105,26 @@ export default function BookQuestions() {
             {questions.length} question{questions.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <button
-          onClick={() => navigate(`/self-study/books/${bookId}/questions/new`)}
-          className="px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors"
-        >
-          + Add Question
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => navigate(`/self-study/books/${bookId}/recap`)}
+            className="px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            📝 Manage Recap
+          </button>
+          <button
+            onClick={() => navigate(`/self-study/books/${bookId}/test`)}
+            className="px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors"
+          >
+            📋 Manage Test
+          </button>
+          <button
+            onClick={() => navigate(`/self-study/books/${bookId}/questions/new`)}
+            className="px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors"
+          >
+            + Add Question
+          </button>
+        </div>
       </div>
 
       {questions.length === 0 ? (

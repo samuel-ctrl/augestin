@@ -26,3 +26,5 @@ class Book(AuditBase):
     watch_progress = relationship("WatchProgress", back_populates="book", cascade="all, delete-orphan")
     questions = relationship("Question", back_populates="book", cascade="all, delete-orphan")
     quiz_progress = relationship("QuizProgress", back_populates="book", cascade="all, delete-orphan")
+    recap = relationship("BookRecap", back_populates="book", cascade="all, delete-orphan", uselist=False)
+    test = relationship("BookTest", back_populates="book", cascade="all, delete-orphan", uselist=False)

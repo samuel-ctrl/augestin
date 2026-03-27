@@ -39,12 +39,18 @@ router = APIRouter(tags=["quiz"])
 def _question_to_out(q) -> QuestionOut:
     return QuestionOut(
         id=str(q.id),
-        book_id=str(q.book_id),
+        book_id=str(q.book_id) if q.book_id else None,
+        quiz_set_id=str(q.quiz_set_id) if q.quiz_set_id else None,
         question_text=q.question_text,
+        question_image_url=q.question_image_url,
         option_a=q.option_a,
+        option_a_image_url=q.option_a_image_url,
         option_b=q.option_b,
+        option_b_image_url=q.option_b_image_url,
         option_c=q.option_c,
+        option_c_image_url=q.option_c_image_url,
         option_d=q.option_d,
+        option_d_image_url=q.option_d_image_url,
         correct_option=q.correct_option,
         explanation=q.explanation,
         sort_order=q.sort_order,
@@ -57,10 +63,15 @@ def _question_to_student_out(q) -> StudentQuestionOut:
     return StudentQuestionOut(
         id=str(q.id),
         question_text=q.question_text,
+        question_image_url=q.question_image_url,
         option_a=q.option_a,
+        option_a_image_url=q.option_a_image_url,
         option_b=q.option_b,
+        option_b_image_url=q.option_b_image_url,
         option_c=q.option_c,
+        option_c_image_url=q.option_c_image_url,
         option_d=q.option_d,
+        option_d_image_url=q.option_d_image_url,
         sort_order=q.sort_order,
         time_limit_seconds=q.time_limit_seconds,
     )
@@ -69,8 +80,11 @@ def _question_to_student_out(q) -> StudentQuestionOut:
 def _progress_to_out(p) -> QuizProgressOut:
     return QuizProgressOut(
         correct_count=p.correct_count,
+        skipped_count=p.skipped_count,
         total_attempted=p.total_attempted,
+        total_questions=p.total_questions,
         current_question_index=p.current_question_index,
+        is_started=p.is_started,
         is_completed=p.is_completed,
         started_at=p.started_at,
         completed_at=p.completed_at,
@@ -125,8 +139,11 @@ async def create_question_endpoint(
         question = await create_question(
             db, book_id=book_id,
             question_text=body.question_text,
-            option_a=body.option_a, option_b=body.option_b,
-            option_c=body.option_c, option_d=body.option_d,
+            question_image_url=body.question_image_url,
+            option_a=body.option_a, option_a_image_url=body.option_a_image_url,
+            option_b=body.option_b, option_b_image_url=body.option_b_image_url,
+            option_c=body.option_c, option_c_image_url=body.option_c_image_url,
+            option_d=body.option_d, option_d_image_url=body.option_d_image_url,
             correct_option=body.correct_option,
             explanation=body.explanation,
             sort_order=body.sort_order,
@@ -186,8 +203,11 @@ async def update_question_endpoint(
         question = await update_question(
             db, question,
             question_text=body.question_text,
-            option_a=body.option_a, option_b=body.option_b,
-            option_c=body.option_c, option_d=body.option_d,
+            question_image_url=body.question_image_url,
+            option_a=body.option_a, option_a_image_url=body.option_a_image_url,
+            option_b=body.option_b, option_b_image_url=body.option_b_image_url,
+            option_c=body.option_c, option_c_image_url=body.option_c_image_url,
+            option_d=body.option_d, option_d_image_url=body.option_d_image_url,
             correct_option=body.correct_option,
             explanation=body.explanation,
             sort_order=body.sort_order,
@@ -245,12 +265,13 @@ async def get_quiz_session_endpoint(
 ):
     student = require_student(request)
     try:
-        session = await get_quiz_session(db, student_id=student.id, book_id=book_id)
+        session = await get_quiz_session(db, student_id=student.id, quiz_source="book", quiz_id=book_id)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
     progress = session["progress"]
     answers = session.get("answers", {})
+    skipped = session.get("skipped", {})
 
     # Build review data only when quiz is completed
     review = None
@@ -278,6 +299,7 @@ async def get_quiz_session_endpoint(
         total_time_seconds=session["total_time_seconds"],
         progress=_progress_to_out(progress) if progress else None,
         answers=answers,
+        skipped=skipped,
         review=review,
     )
 
@@ -290,7 +312,7 @@ async def start_quiz_endpoint(
 ):
     student = require_student(request)
     try:
-        progress = await start_quiz(db, student_id=student.id, book_id=book_id)
+        progress = await start_quiz(db, student_id=student.id, quiz_source="book", quiz_id=book_id)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return _progress_to_out(progress)
@@ -306,15 +328,17 @@ async def submit_answer_endpoint(
     student = require_student(request)
     try:
         result = await submit_answer(
-            db, student_id=student.id, book_id=book_id,
+            db, student_id=student.id, quiz_source="book", quiz_id=book_id,
             question_id=uuid.UUID(body.question_id),
             selected_option=body.selected_option,
+            is_skipped=body.is_skipped,
             time_taken_seconds=body.time_taken_seconds,
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return QuizSubmitResponse(
         is_correct=result["is_correct"],
+        is_skipped=result["is_skipped"],
         correct_option=result["correct_option"],
         explanation=result["explanation"],
         progress=_progress_to_out(result["progress"]),
@@ -330,7 +354,7 @@ async def complete_quiz_endpoint(
     """Auto-complete quiz on exit or timeout."""
     student = require_student(request)
     try:
-        progress = await complete_quiz(db, student_id=student.id, book_id=book_id)
+        progress = await complete_quiz(db, student_id=student.id, quiz_source="book", quiz_id=book_id)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return _progress_to_out(progress)
@@ -343,7 +367,7 @@ async def get_quiz_progress_endpoint(
     db: AsyncSession = Depends(get_db),
 ):
     student = require_student(request)
-    progress = await get_quiz_progress(db, student_id=student.id, book_id=book_id)
+    progress = await get_quiz_progress(db, student_id=student.id, quiz_source="book", quiz_id=book_id)
     if progress is None:
         return None
     return _progress_to_out(progress)

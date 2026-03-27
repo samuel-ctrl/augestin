@@ -11,3 +11,5 @@ student-portal/shared-ui/
 tutor-portal/shared-ui/
 !uploads/videos/.gitkeep
 !uploads/thumbnails/.gitkeep
+# Plan documents
+docs/

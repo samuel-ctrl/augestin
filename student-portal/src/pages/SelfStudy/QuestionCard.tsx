@@ -7,7 +7,9 @@ interface QuestionCardProps {
   questionNumber: number;
   totalQuestions: number;
   selectedAnswer: string | null;
-  onSubmit: (questionId: string, selectedOption: string) => void;
+  isSkipped: boolean;
+  onSubmit: (questionId: string, selectedOption: string | null, isSkipped: boolean) => void;
+  onSkip: (questionId: string) => void;
   onNext: () => void;
   onPrevious: () => void;
   canGoNext: boolean;
@@ -20,7 +22,9 @@ export default function QuestionCard({
   questionNumber,
   totalQuestions,
   selectedAnswer,
+  isSkipped,
   onSubmit,
+  onSkip,
   onNext,
   onPrevious,
   canGoNext,
@@ -39,16 +43,22 @@ export default function QuestionCard({
       if (disabled) return;
       setSelected(option);
       // Auto-save answer immediately
-      onSubmit(question.id, option);
+      onSubmit(question.id, option, false);
     },
     [disabled, question.id, onSubmit]
   );
 
+  const handleSkip = useCallback(() => {
+    if (disabled) return;
+    setSelected(null);
+    onSkip(question.id);
+  }, [disabled, question.id, onSkip]);
+
   const options = [
-    { key: "A", text: question.option_a },
-    { key: "B", text: question.option_b },
-    { key: "C", text: question.option_c },
-    { key: "D", text: question.option_d },
+    { key: "A", text: question.option_a, imageUrl: question.option_a_image_url },
+    { key: "B", text: question.option_b, imageUrl: question.option_b_image_url },
+    { key: "C", text: question.option_c, imageUrl: question.option_c_image_url },
+    { key: "D", text: question.option_d, imageUrl: question.option_d_image_url },
   ];
 
   return (
@@ -59,11 +69,18 @@ export default function QuestionCard({
           <span className="text-gray-400 text-sm mr-1">Q{questionNumber}.</span>
           <MathText text={question.question_text} />
         </p>
+        {question.question_image_url && (
+          <img
+            src={question.question_image_url}
+            alt="Question visual"
+            className="mt-4 max-w-full h-auto rounded"
+          />
+        )}
       </div>
 
       {/* Options */}
       <div className="space-y-3 mb-6">
-        {options.map(({ key, text }) => {
+        {options.map(({ key, text, imageUrl }) => {
           const isSelected = selected === key;
 
           return (
@@ -72,27 +89,52 @@ export default function QuestionCard({
               type="button"
               onClick={() => handleSelect(key)}
               disabled={disabled}
-              className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-colors text-left ${
+              className={`w-full flex flex-col gap-3 p-3 rounded-lg border transition-colors text-left ${
                 isSelected
                   ? "border-primary-400 bg-primary-50"
                   : "border-gray-200 bg-white hover:bg-gray-50"
               }`}
             >
-              <span
-                className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-medium shrink-0 ${
-                  isSelected
-                    ? "border-primary-500 bg-primary-500 text-white"
-                    : "border-gray-300 text-gray-500"
-                }`}
-              >
-                {key}
-              </span>
-              <span className="text-sm text-gray-700">
-                <MathText text={text} />
-              </span>
+              <div className="flex items-center gap-3">
+                <span
+                  className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-medium shrink-0 ${
+                    isSelected
+                      ? "border-primary-500 bg-primary-500 text-white"
+                      : "border-gray-300 text-gray-500"
+                  }`}
+                >
+                  {key}
+                </span>
+                <span className="text-sm text-gray-700">
+                  <MathText text={text} />
+                </span>
+              </div>
+              {imageUrl && (
+                <img
+                  src={imageUrl}
+                  alt={`Option ${key}`}
+                  className="max-w-full h-auto rounded ml-10"
+                />
+              )}
             </button>
           );
         })}
+      </div>
+
+      {/* Skip Button */}
+      <div className="mb-6">
+        <button
+          type="button"
+          onClick={handleSkip}
+          disabled={disabled}
+          className={`w-full px-4 py-2 text-sm rounded-lg border transition-colors ${
+            isSkipped
+              ? "border-yellow-400 bg-yellow-50 text-yellow-700"
+              : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
+          } disabled:opacity-40 disabled:cursor-not-allowed`}
+        >
+          ⏭️ Skip this question
+        </button>
       </div>
 
       {/* Navigation */}
