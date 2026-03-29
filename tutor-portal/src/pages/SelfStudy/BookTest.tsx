@@ -36,10 +36,20 @@ interface PaginatedResponse<T> {
   total_pages: number;
 }
 
+// Validate Google Drive URL
+function isValidDriveUrl(url: string): boolean {
+  if (!url.trim()) return false;
+  return url.includes("drive.google.com") && (
+    url.includes("/file/") || url.includes("/folders/")
+  );
+}
+
 export default function BookTest() {
   const { id: bookId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast, showApiError, showSuccess } = useToast();
+
+  const [urlError, setUrlError] = useState<string | null>(null);
 
   const [book, setBook] = useState<Book | null>(null);
   const [test, setTest] = useState<BookTest | null>(null);
@@ -112,9 +122,16 @@ export default function BookTest() {
 
   const handleSaveTest = useCallback(async () => {
     if (!bookId || !driveLink.trim()) {
-      showApiError(new Error("Drive link is required"));
+      setUrlError("Drive link is required");
       return;
     }
+
+    if (!isValidDriveUrl(driveLink)) {
+      setUrlError("Please provide a valid Google Drive URL (must contain drive.google.com and /file/ or /folders/)");
+      return;
+    }
+
+    setUrlError(null);
 
     try {
       setSubmitting(true);
@@ -203,13 +220,24 @@ export default function BookTest() {
             <input
               type="url"
               value={driveLink}
-              onChange={(e) => setDriveLink(e.target.value)}
+              onChange={(e) => {
+                setDriveLink(e.target.value);
+                setUrlError(null);
+              }}
               placeholder="https://drive.google.com/file/d/..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 transition-colors ${
+                urlError
+                  ? "border-red-300 focus:ring-red-500 bg-red-50"
+                  : "border-gray-300 focus:ring-primary-500"
+              }`}
             />
-            <p className="text-xs text-gray-500 mt-1">
-              Provide the full Google Drive link to the test file (embed or view URL)
-            </p>
+            {urlError ? (
+              <p className="text-xs text-red-600 mt-1">{urlError}</p>
+            ) : (
+              <p className="text-xs text-gray-500 mt-1">
+                Provide the full Google Drive link to the test file (embed or view URL)
+              </p>
+            )}
           </div>
 
           <div>

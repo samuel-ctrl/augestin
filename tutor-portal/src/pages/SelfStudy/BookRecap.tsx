@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { LoadingSpinner, EmptyState, Toast, useToast, ConfirmDialog, Breadcrumb } from "@shared";
+import { LoadingSpinner, EmptyState, Toast, useToast, ConfirmDialog, Breadcrumb, RecapViewer } from "@shared";
 import api from "../../api/client";
 import RecapEditor from "../../components/RecapEditor";
 
@@ -22,7 +22,6 @@ interface Recap {
 
 export default function BookRecap() {
   const { id: bookId } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { toast, showApiError, showSuccess } = useToast();
 
   const [book, setBook] = useState<Book | null>(null);
@@ -30,7 +29,21 @@ export default function BookRecap() {
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const titleRef = useRef<string>("");
+
+  // Detect mobile on mount and on resize
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    setIsMobile(mediaQuery.matches);
+
+    const handleChange = (e: MediaQueryListEvent) => {
+      setIsMobile(e.matches);
+    };
+
+    mediaQuery.addEventListener("change", handleChange);
+    return () => mediaQuery.removeEventListener("change", handleChange);
+  }, []);
 
   // Fetch book and recap data
   const fetchData = useCallback(async () => {
@@ -141,13 +154,35 @@ export default function BookRecap() {
       </div>
 
       {/* Recap Editor */}
-      <RecapEditor
-        bookId={bookId!}
-        onSave={handleSave}
-        onTitleChange={handleTitleChange}
-        initialTitle={recap?.title}
-        initialContent={recap?.content}
-      />
+      {isMobile ? (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl">📱</span>
+            <div>
+              <h3 className="font-semibold text-yellow-900 mb-1">Mobile Editor Not Supported</h3>
+              <p className="text-sm text-yellow-700">
+                Recap editing is not optimized for mobile devices. Please use a desktop or tablet to edit your recap notes.
+              </p>
+            </div>
+          </div>
+          {recap && (
+            <div className="mt-4 pt-4 border-t border-yellow-200">
+              <p className="text-xs text-yellow-600 mb-3">Current recap content:</p>
+              <div className="bg-white rounded p-3 text-sm">
+                <RecapViewer content={recap.content} title={recap.title} />
+              </div>
+            </div>
+          )}
+        </div>
+      ) : (
+        <RecapEditor
+          bookId={bookId!}
+          onSave={handleSave}
+          onTitleChange={handleTitleChange}
+          initialTitle={recap?.title}
+          initialContent={recap?.content}
+        />
+      )}
 
       {/* Delete Confirmation */}
       {showDeleteConfirm && (

@@ -5,10 +5,67 @@ interface RecapViewerProps {
   title?: string;
 }
 
+// Supported Tiptap node types for recap content
+const SUPPORTED_NODE_TYPES = new Set([
+  "document",
+  "paragraph",
+  "text",
+  "heading",
+  "bulletList",
+  "orderedList",
+  "listItem",
+  "bold",
+  "italic",
+  "code",
+  "codeBlock",
+  "image",
+  "link",
+  "horizontalRule",
+  "blockquote",
+  "hardBreak",
+]);
+
+// Validate and filter Recap content to only include supported extensions
+function validateRecapContent(node: any): any {
+  if (!node) return null;
+
+  // Filter unsupported node types
+  if (node.type && !SUPPORTED_NODE_TYPES.has(node.type)) {
+    console.warn(`Unsupported recap node type filtered: ${node.type}`);
+    return null;
+  }
+
+  // Recursively validate nested content
+  if (node.content && Array.isArray(node.content)) {
+    node.content = node.content
+      .map((child: any) => validateRecapContent(child))
+      .filter(Boolean);
+  }
+
+  // Validate marks (bold, italic, etc.)
+  if (node.marks && Array.isArray(node.marks)) {
+    node.marks = node.marks.filter((mark: any) => {
+      const isSupported = SUPPORTED_NODE_TYPES.has(mark.type);
+      if (!isSupported) {
+        console.warn(`Unsupported recap mark type filtered: ${mark.type}`);
+      }
+      return isSupported;
+    });
+  }
+
+  return node;
+}
+
 export default function RecapViewer({ content, title }: RecapViewerProps) {
   const rendered = useMemo(() => {
     try {
       if (!content || !content.content) {
+        return null;
+      }
+
+      // Validate and filter content
+      const validatedContent = validateRecapContent(content);
+      if (!validatedContent || !validatedContent.content) {
         return null;
       }
 
@@ -145,7 +202,7 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
         });
       };
 
-      return renderNodes(content.content);
+      return renderNodes(validatedContent.content);
     } catch (error) {
       console.error("Error rendering recap content:", error);
       return <p className="text-red-600">Failed to render recap content</p>;

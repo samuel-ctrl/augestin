@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
@@ -7,6 +7,33 @@ import HorizontalRule from "@tiptap/extension-horizontal-rule";
 import Blockquote from "@tiptap/extension-blockquote";
 import CodeBlock from "@tiptap/extension-code-block";
 import { LoadingSpinner } from "@shared";
+
+// Debounce helper function
+function useDebounce<T>(callback: T, delay: number) {
+  const timeoutRef = useRef<NodeJS.Timeout>();
+
+  const debouncedCallback = useCallback(
+    ((...args: any[]) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        (callback as any)(...args);
+      }, delay);
+    }) as T,
+    [callback, delay]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
+  return debouncedCallback;
+}
 
 interface RecapEditorProps {
   bookId: string;
@@ -27,6 +54,38 @@ export default function RecapEditor({
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Debounced save function
+  const performSave = useCallback(async (editorInstance: any) => {
+    if (!editorInstance || editorInstance.getHTML().trim() === "<p></p>") {
+      return;
+    }
+
+    try {
+      setSaving(true);
+      setError(null);
+      const content = editorInstance.getJSON();
+
+      // Check content size (5MB limit)
+      const contentJson = JSON.stringify(content);
+      const sizeMB = new Blob([contentJson]).size / (1024 * 1024);
+      if (sizeMB > 5) {
+        setError("Content exceeds 5MB limit");
+        setSaving(false);
+        return;
+      }
+
+      // Save both content and title
+      await onSave(content);
+      setLastSaved(new Date().toLocaleTimeString());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save");
+    } finally {
+      setSaving(false);
+    }
+  }, [onSave]);
+
+  const debouncedSave = useDebounce(performSave, 2000);
 
   const editor = useEditor({
     extensions: [
@@ -51,39 +110,11 @@ export default function RecapEditor({
     ],
     content: initialContent || "<p>Start typing your recap notes here...</p>",
     autofocus: "end",
+    onUpdate: ({ editor: editorInstance }) => {
+      // Debounced autosave: waits 2 seconds after last edit to save
+      debouncedSave(editorInstance as any);
+    },
   });
-
-  // Auto-save every 5 seconds
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      if (editor && editor.getHTML().trim() !== "<p></p>") {
-        try {
-          setSaving(true);
-          setError(null);
-          const content = editor.getJSON();
-
-          // Check content size (5MB limit)
-          const contentJson = JSON.stringify(content);
-          const sizeMB = new Blob([contentJson]).size / (1024 * 1024);
-          if (sizeMB > 5) {
-            setError("Content exceeds 5MB limit");
-            setSaving(false);
-            return;
-          }
-
-          // Save both content and title
-          await onSave(content);
-          setLastSaved(new Date().toLocaleTimeString());
-        } catch (err) {
-          setError(err instanceof Error ? err.message : "Failed to save");
-        } finally {
-          setSaving(false);
-        }
-      }
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [editor, onSave, title]);
 
   const handleInsertImage = useCallback(() => {
     const url = prompt("Enter image URL (Google Drive, etc.):");
@@ -304,7 +335,7 @@ export default function RecapEditor({
             </>
           )}
         </div>
-        <span className="text-gray-400">Auto-saves every 5 seconds</span>
+        <span className="text-gray-400">Auto-saves 2 seconds after you stop editing</span>
       </div>
     </div>
   );
