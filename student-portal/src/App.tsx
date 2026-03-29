@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import ChangePassword from "./pages/ChangePassword";
 import NotFound from "./pages/NotFound";
 import DevComponents from "./pages/DevComponents";
+import HomeDashboard from "./pages/Home/HomeDashboard";
 import Dashboard from "./pages/SelfStudy/Dashboard";
 import SubjectView from "./pages/SelfStudy/SubjectView";
 import BookView from "./pages/SelfStudy/BookView";
@@ -31,13 +32,13 @@ function AuthenticatedApp() {
         onLogout={logout}
       >
         <Routes>
+          <Route path="/" element={<HomeDashboard />} />
           <Route path="/self-study" element={<Dashboard />} />
           <Route path="/self-study/subjects/:id" element={<SubjectView />} />
           <Route path="/self-study/books/:id" element={<BookView />} />
           <Route path="/quiz-sets" element={<QuizSetDashboard />} />
           <Route path="/quiz-sets/:id" element={<QuizSetView />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/" element={<Navigate to="/self-study" replace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>

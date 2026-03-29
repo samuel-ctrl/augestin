@@ -14,6 +14,11 @@ const ProfileIcon = () =>
 
 export const sidebarItems: NavItem[] = [
   {
+    path: "/",
+    label: "Home",
+    icon: "🏠",
+  },
+  {
     path: "/self-study",
     label: "Self-Study",
     icon: "📚",
