@@ -68,4 +68,4 @@ export { IconPicker } from "./components/IconPicker";
 export { FileUpload } from "./components/FileUpload";
 export { CredentialCard } from "./components/CredentialCard";
 export { MathText } from "./components/MathText";
-export { RecapViewer } from "./components/RecapViewer";
+export { default as RecapViewer } from "./components/RecapViewer";

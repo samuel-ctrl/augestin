@@ -9,7 +9,8 @@
       "Bash(cp -r shared-ui student-portal/shared-ui)",
       "Bash(python -c \":*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ]
   }
 }

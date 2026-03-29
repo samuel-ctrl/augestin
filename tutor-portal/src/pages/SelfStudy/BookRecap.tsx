@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { LoadingSpinner, EmptyState, Toast, useToast, ConfirmDialog, Breadcrumb, RecapViewer } from "@shared";
 import api from "../../api/client";
 import RecapEditor from "../../components/RecapEditor";
@@ -22,7 +22,7 @@ interface Recap {
 
 export default function BookRecap() {
   const { id: bookId } = useParams<{ id: string }>();
-  const { toast, showApiError, showSuccess } = useToast();
+  const { toast, showApiError, showSuccess, dismiss } = useToast();
 
   const [book, setBook] = useState<Book | null>(null);
   const [recap, setRecap] = useState<Recap | null>(null);
@@ -64,7 +64,7 @@ export default function BookRecap() {
         titleRef.current = "";
       }
     } catch (err) {
-      showApiError(err);
+      showApiError(err, "Failed to load recap data.");
     } finally {
       setLoading(false);
     }
@@ -86,7 +86,7 @@ export default function BookRecap() {
         setRecap(res.data);
         showSuccess("Recap saved successfully");
       } catch (err) {
-        showApiError(err);
+        showApiError(err, "Failed to save recap.");
       }
     },
     [bookId, showApiError, showSuccess]
@@ -102,7 +102,7 @@ export default function BookRecap() {
       showSuccess("Recap deleted successfully");
       setShowDeleteConfirm(false);
     } catch (err) {
-      showApiError(err);
+      showApiError(err, "Failed to delete recap.");
     } finally {
       setDeleting(false);
     }
@@ -128,14 +128,14 @@ export default function BookRecap() {
 
   return (
     <div className="p-6">
-      {toast && <Toast {...toast} />}
+      {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
 
       {/* Breadcrumb */}
       <Breadcrumb
-        items={[
-          { label: "Self-Study", href: "/self-study" },
-          { label: book.title, href: `/self-study/books/${bookId}/preview` },
-          { label: "Manage Recap", href: "#" },
+        segments={[
+          { label: "Self-Study", path: "/self-study" },
+          { label: book.title, path: `/self-study/books/${bookId}/preview` },
+          { label: "Manage Recap" },
         ]}
       />
 
@@ -185,17 +185,16 @@ export default function BookRecap() {
       )}
 
       {/* Delete Confirmation */}
-      {showDeleteConfirm && (
-        <ConfirmDialog
-          title="Delete Recap"
-          message="Are you sure you want to delete this recap? This action cannot be undone."
-          variant="danger"
-          onConfirm={handleDelete}
-          onCancel={() => setShowDeleteConfirm(false)}
-          confirmText="Delete"
-          cancelText="Cancel"
-        />
-      )}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Delete Recap"
+        message="Are you sure you want to delete this recap? This action cannot be undone."
+        variant="danger"
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+      />
     </div>
   );
 }

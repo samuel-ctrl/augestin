@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { LoadingSpinner, EmptyState, Toast, useToast, ConfirmDialog, Breadcrumb, DataTable } from "@shared";
+import { useParams } from "react-router-dom";
+import { LoadingSpinner, EmptyState, Toast, useToast, ConfirmDialog, Breadcrumb } from "@shared";
 import api from "../../api/client";
 
 interface Book {
@@ -44,10 +44,9 @@ function isValidDriveUrl(url: string): boolean {
   );
 }
 
-export default function BookTest() {
+export default function BookTestPage() {
   const { id: bookId } = useParams<{ id: string }>();
-  const navigate = useNavigate();
-  const { toast, showApiError, showSuccess } = useToast();
+  const { toast, showApiError, showSuccess, dismiss } = useToast();
 
   const [urlError, setUrlError] = useState<string | null>(null);
 
@@ -64,7 +63,7 @@ export default function BookTest() {
   const [submitting, setSubmitting] = useState(false);
 
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(50);
+  const [pageSize] = useState(50);
   const [totalSubmissions, setTotalSubmissions] = useState(0);
 
   // Fetch book and test data
@@ -85,7 +84,7 @@ export default function BookTest() {
         setInstructions(testRes.data.instructions || "");
       }
     } catch (err) {
-      showApiError(err);
+      showApiError(err, "Failed to load test data.");
     } finally {
       setLoading(false);
     }
@@ -104,7 +103,7 @@ export default function BookTest() {
       setSubmissions(res.data.items);
       setTotalSubmissions(res.data.total);
     } catch (err) {
-      showApiError(err);
+      showApiError(err, "Failed to load submissions.");
     } finally {
       setSubmissionsLoading(false);
     }
@@ -142,7 +141,7 @@ export default function BookTest() {
       setTest(res.data);
       showSuccess("Test saved successfully");
     } catch (err) {
-      showApiError(err);
+      showApiError(err, "Failed to save test.");
     } finally {
       setSubmitting(false);
     }
@@ -161,7 +160,7 @@ export default function BookTest() {
       showSuccess("Test deleted successfully");
       setShowDeleteConfirm(false);
     } catch (err) {
-      showApiError(err);
+      showApiError(err, "Failed to delete test.");
     } finally {
       setDeleting(false);
     }
@@ -183,14 +182,14 @@ export default function BookTest() {
 
   return (
     <div className="p-6">
-      {toast && <Toast {...toast} />}
+      {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
 
       {/* Breadcrumb */}
       <Breadcrumb
-        items={[
-          { label: "Self-Study", href: "/self-study" },
-          { label: book.title, href: `/self-study/books/${bookId}/preview` },
-          { label: "Manage Test", href: "#" },
+        segments={[
+          { label: "Self-Study", path: "/self-study" },
+          { label: book.title, path: `/self-study/books/${bookId}/preview` },
+          { label: "Manage Test" },
         ]}
       />
 
@@ -352,17 +351,16 @@ export default function BookTest() {
       )}
 
       {/* Delete Confirmation */}
-      {showDeleteConfirm && (
-        <ConfirmDialog
-          title="Delete Test"
-          message="Are you sure you want to delete this test? This action cannot be undone."
-          variant="danger"
-          onConfirm={handleDelete}
-          onCancel={() => setShowDeleteConfirm(false)}
-          confirmText="Delete"
-          cancelText="Cancel"
-        />
-      )}
+      <ConfirmDialog
+        open={showDeleteConfirm}
+        title="Delete Test"
+        message="Are you sure you want to delete this test? This action cannot be undone."
+        variant="danger"
+        onConfirm={handleDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+      />
     </div>
   );
 }

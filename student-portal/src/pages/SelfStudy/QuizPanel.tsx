@@ -75,7 +75,7 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
       const status = (err as { response?: { status?: number } })?.response?.status;
       setError(status === 403 ? "This book is not assigned to you." : "Failed to load quiz.");
     }
-  }, [bookId]);
+  }, [quizId]);
 
   useEffect(() => {
     fetchSession();
@@ -107,14 +107,17 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
   useEffect(() => {
     if (quizState !== "active") return;
     const handleUnload = () => {
+      const beaconPath = quizSource === "book"
+        ? `/api/books/${quizId}/quiz/complete`
+        : `/api/quiz-sets/${quizId}/quiz/complete`;
       navigator.sendBeacon(
-        `/api/books/${bookId}/quiz/complete`,
+        beaconPath,
         new Blob([JSON.stringify({})], { type: "application/json" })
       );
     };
     window.addEventListener("beforeunload", handleUnload);
     return () => window.removeEventListener("beforeunload", handleUnload);
-  }, [quizState, bookId]);
+  }, [quizState, quizId]);
 
   const handleComplete = async () => {
     try {
@@ -173,7 +176,7 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
         setSubmitting(false);
       }
     },
-    [bookId, submitting]
+    [quizId, submitting]
   );
 
   const handleSkipQuestion = useCallback(
@@ -202,7 +205,7 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
         setSubmitting(false);
       }
     },
-    [bookId, submitting]
+    [quizId, submitting]
   );
 
   const handleFinishQuiz = async () => {

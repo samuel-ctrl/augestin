@@ -9,18 +9,18 @@ import CodeBlock from "@tiptap/extension-code-block";
 import { LoadingSpinner } from "@shared";
 
 // Debounce helper function
-function useDebounce<T>(callback: T, delay: number) {
-  const timeoutRef = useRef<NodeJS.Timeout>();
+function useDebounce(callback: (...args: any[]) => void, delay: number) {
+  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
 
   const debouncedCallback = useCallback(
-    ((...args: any[]) => {
+    (...args: any[]) => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
       timeoutRef.current = setTimeout(() => {
-        (callback as any)(...args);
+        callback(...args);
       }, delay);
-    }) as T,
+    },
     [callback, delay]
   );
 

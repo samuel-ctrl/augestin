@@ -87,12 +87,13 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
               );
 
             case "heading": {
-              const level = node.attrs?.level || 1;
-              const className = {
+              const level = (node.attrs?.level || 1) as number;
+              const headingClasses: Record<number, string> = {
                 1: "text-3xl font-bold mb-4",
                 2: "text-2xl font-bold mb-3",
                 3: "text-xl font-bold mb-2",
-              }[level] || "text-lg font-bold mb-2";
+              };
+              const className = headingClasses[level] || "text-lg font-bold mb-2";
 
               const Tag = `h${level}` as keyof JSX.IntrinsicElements;
               return (
