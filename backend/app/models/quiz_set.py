@@ -22,5 +22,5 @@ class QuizSet(AuditBase):
 
     # Relationships
     created_by_user = relationship("User", foreign_keys=[tutor_id])
-    questions = relationship("Question", back_populates="quiz_set", cascade="all, delete-orphan")
-    assignments = relationship("QuizSetAssignment", back_populates="quiz_set", cascade="all, delete-orphan")
+    questions = relationship("Question", back_populates="quiz_set", cascade="all, delete-orphan", lazy="selectin")
+    assignments = relationship("QuizSetAssignment", back_populates="quiz_set", cascade="all, delete-orphan", lazy="selectin")
