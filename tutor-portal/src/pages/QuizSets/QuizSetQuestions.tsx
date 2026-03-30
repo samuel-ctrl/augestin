@@ -15,7 +15,6 @@ import api from "../../api/client";
 interface QuizSetInfo {
   id: string;
   name: string;
-  subject_id: string;
 }
 
 export default function QuizSetQuestions() {
@@ -35,7 +34,7 @@ export default function QuizSetQuestions() {
       const [quizSetRes, questionsRes] = await Promise.all([
         api.get(`/quiz-sets/${quizSetId}`),
         api.get(`/quiz-sets/${quizSetId}/questions`, {
-          params: { page: 1, page_size: 100, sort_by: "sort_order", sort_order: "asc" },
+          params: { page: 1, page_size: 100, sort_by: "created_at", sort_order: "asc" },
         }),
       ]);
       setQuizSet(quizSetRes.data);

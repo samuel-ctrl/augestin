@@ -31,7 +31,6 @@ def _book_to_out(book, question_count: int = 0) -> BookOut:
         thumbnail_url=book.thumbnail_url,
         video_url=book.video_url,
         standard=book.standard,
-        sort_order=book.sort_order,
         subject_id=str(book.subject_id),
         created_by=book.created_by,
         created_at=book.created_at,
@@ -49,7 +48,7 @@ async def list_books_endpoint(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
     search: str = Query(""),
-    sort_by: str = Query("sort_order"),
+    sort_by: str = Query("created_at"),
     sort_order: str = Query("asc"),
     standard: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
@@ -101,7 +100,6 @@ async def create_book_endpoint(
             video_url=body.video_url, standard=body.standard,
             description=body.description,
             thumbnail_url=body.thumbnail_url,
-            sort_order=body.sort_order,
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -158,7 +156,7 @@ async def update_book_endpoint(
     try:
         book = await update_book(
             db, book, title=body.title, description=body.description, standard=body.standard,
-            sort_order=body.sort_order, video_url=body.video_url, thumbnail_url=body.thumbnail_url,
+            video_url=body.video_url, thumbnail_url=body.thumbnail_url,
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

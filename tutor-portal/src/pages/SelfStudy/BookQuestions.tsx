@@ -35,7 +35,7 @@ export default function BookQuestions() {
       const [bookRes, questionsRes] = await Promise.all([
         api.get(`/books/${bookId}`),
         api.get(`/books/${bookId}/questions`, {
-          params: { page: 1, page_size: 100, sort_by: "sort_order", sort_order: "asc" },
+          params: { page: 1, page_size: 100, sort_by: "created_at", sort_order: "asc" },
         }),
       ]);
       setBook(bookRes.data);

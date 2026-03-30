@@ -9,7 +9,6 @@ from app.dependencies import get_db, require_student, require_tutor
 from app.models.quiz_set import QuizSet
 from app.models.quiz_set_assignment import QuizSetAssignment
 from app.models.user import User
-from app.models.subject import Subject
 from app.schemas.quiz_sets import (
     QuizSetCreate, QuizSetUpdate, QuizSetOut, QuizSetAssignCreate, QuizSetAssignOut,
     AssignedQuizSetOut
@@ -31,25 +30,16 @@ router = APIRouter(tags=["quiz_sets"])
 async def list_quiz_sets(
     request: Request,
     db: AsyncSession = Depends(get_db),
-    subject_id: str | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
     search: str = Query(""),
-    sort_by: str = Query("sort_order"),
-    sort_order: str = Query("asc"),
+    sort_by: str = Query("created_at"),
+    sort_order: str = Query("desc"),
 ):
-    """List quiz sets for tutor. Optional subject filter."""
+    """List quiz sets for tutor."""
     require_tutor(request)
 
     query = select(QuizSet)
-
-    # Filter by subject if provided
-    if subject_id:
-        try:
-            subject_uuid = uuid.UUID(subject_id)
-            query = query.where(QuizSet.subject_id == subject_uuid)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid subject_id")
 
     # Search by name or description
     if search:
@@ -65,7 +55,10 @@ async def list_quiz_sets(
     total = (await db.execute(count_query)).scalar() or 0
 
     # Sort
-    sort_column = getattr(QuizSet, sort_by, QuizSet.sort_order)
+    allowed_sort = {"created_at", "name"}
+    if sort_by not in allowed_sort:
+        sort_by = "created_at"
+    sort_column = getattr(QuizSet, sort_by)
     if sort_order.lower() == "desc":
         query = query.order_by(sort_column.desc())
     else:
@@ -86,9 +79,7 @@ async def list_quiz_sets(
             name=qs.name,
             description=qs.description,
             thumbnail_url=qs.thumbnail_url,
-            subject_id=str(qs.subject_id),
             created_by=str(qs.tutor_id),
-            sort_order=qs.sort_order,
             question_count=question_count,
             created_at=qs.created_at,
             updated_at=qs.updated_at,
@@ -113,18 +104,11 @@ async def create_quiz_set(
     """Create a new quiz set."""
     tutor = require_tutor(request)
 
-    try:
-        subject_id = uuid.UUID(body.subject_id)
-    except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid subject_id")
-
     new_quiz_set = QuizSet(
-        subject_id=subject_id,
         tutor_id=tutor.id,
         name=body.name,
         description=body.description,
         thumbnail_url=body.thumbnail_url,
-        sort_order=body.sort_order,
     )
     db.add(new_quiz_set)
 
@@ -140,9 +124,7 @@ async def create_quiz_set(
         name=new_quiz_set.name,
         description=new_quiz_set.description,
         thumbnail_url=new_quiz_set.thumbnail_url,
-        subject_id=str(new_quiz_set.subject_id),
         created_by=str(new_quiz_set.tutor_id),
-        sort_order=new_quiz_set.sort_order,
         question_count=0,
         created_at=new_quiz_set.created_at,
         updated_at=new_quiz_set.updated_at,
@@ -170,9 +152,7 @@ async def get_quiz_set(
         name=quiz_set.name,
         description=quiz_set.description,
         thumbnail_url=quiz_set.thumbnail_url,
-        subject_id=str(quiz_set.subject_id),
         created_by=str(quiz_set.tutor_id),
-        sort_order=quiz_set.sort_order,
         question_count=question_count,
         created_at=quiz_set.created_at,
         updated_at=quiz_set.updated_at,
@@ -205,8 +185,6 @@ async def update_quiz_set(
         quiz_set.description = body.description
     if body.thumbnail_url is not None:
         quiz_set.thumbnail_url = body.thumbnail_url
-    if body.sort_order is not None:
-        quiz_set.sort_order = body.sort_order
 
     try:
         await db.commit()
@@ -221,9 +199,7 @@ async def update_quiz_set(
         name=quiz_set.name,
         description=quiz_set.description,
         thumbnail_url=quiz_set.thumbnail_url,
-        subject_id=str(quiz_set.subject_id),
         created_by=str(quiz_set.tutor_id),
-        sort_order=quiz_set.sort_order,
         question_count=question_count,
         created_at=quiz_set.created_at,
         updated_at=quiz_set.updated_at,
@@ -265,7 +241,7 @@ async def list_quiz_set_questions(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
     search: str = Query(""),
-    sort_by: str = Query("sort_order"),
+    sort_by: str = Query("created_at"),
     sort_order: str = Query("asc"),
 ):
     """List questions for a quiz set."""
@@ -538,13 +514,12 @@ async def list_student_quiz_sets(
     """List quiz sets assigned to the student."""
     student = require_student(request)
 
-    # Query: QuizSetAssignment -> QuizSet -> Subject, with optional QuizProgress join
+    # Query: QuizSetAssignment -> QuizSet, with optional QuizProgress join
     from app.models.quiz_progress import QuizProgress
 
     query = (
-        select(QuizSet, Subject.name.label("subject_name"), QuizProgress)
+        select(QuizSet, QuizProgress)
         .join(QuizSetAssignment, QuizSet.id == QuizSetAssignment.quiz_set_id)
-        .join(Subject, QuizSet.subject_id == Subject.id)
         .outerjoin(
             QuizProgress,
             and_(
@@ -554,7 +529,7 @@ async def list_student_quiz_sets(
             )
         )
         .where(QuizSetAssignment.student_id == student.id)
-        .order_by(QuizSet.sort_order.asc())
+        .order_by(QuizSet.created_at.desc())
     )
 
     results = (await db.execute(query)).all()
@@ -562,8 +537,7 @@ async def list_student_quiz_sets(
     items = []
     for row in results:
         quiz_set = row[0]
-        subject_name = row[1]
-        progress = row[2]
+        progress = row[1]
 
         question_count = len(quiz_set.questions)
         progress_dict = None
@@ -582,8 +556,6 @@ async def list_student_quiz_sets(
             name=quiz_set.name,
             description=quiz_set.description,
             thumbnail_url=quiz_set.thumbnail_url,
-            subject_id=str(quiz_set.subject_id),
-            subject_name=subject_name,
             question_count=question_count,
             progress=progress_dict,
         ))

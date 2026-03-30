@@ -23,7 +23,6 @@ export default function QuestionForm() {
   const [optionD, setOptionD] = useState("");
   const [correctOption, setCorrectOption] = useState("A");
   const [explanation, setExplanation] = useState("");
-  const [sortOrder, setSortOrder] = useState(0);
   const [timeLimitSeconds, setTimeLimitSeconds] = useState(60);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
@@ -48,7 +47,6 @@ export default function QuestionForm() {
           setOptionD(q.option_d);
           setCorrectOption(q.correct_option);
           setExplanation(q.explanation || "");
-          setSortOrder(q.sort_order);
           setTimeLimitSeconds(q.time_limit_seconds);
         })
         .catch((err) => {
@@ -86,7 +84,6 @@ export default function QuestionForm() {
       option_d: optionD,
       correct_option: correctOption,
       explanation: explanation || null,
-      sort_order: sortOrder,
       time_limit_seconds: timeLimitSeconds,
     };
 
@@ -245,33 +242,19 @@ export default function QuestionForm() {
           )}
         </div>
 
-        {/* Sort Order & Time Limit */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Sort Order
-            </label>
-            <input
-              type="number"
-              value={sortOrder}
-              onChange={(e) => setSortOrder(Number(e.target.value))}
-              min={0}
-              className={inputClass}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Time Limit (seconds)
-            </label>
-            <input
-              type="number"
-              value={timeLimitSeconds}
-              onChange={(e) => setTimeLimitSeconds(Number(e.target.value))}
-              min={10}
-              max={300}
-              className={inputClass}
-            />
-          </div>
+        {/* Time Limit */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Time Limit (seconds)
+          </label>
+          <input
+            type="number"
+            value={timeLimitSeconds}
+            onChange={(e) => setTimeLimitSeconds(Number(e.target.value))}
+            min={10}
+            max={300}
+            className={inputClass}
+          />
         </div>
 
         {/* Actions */}

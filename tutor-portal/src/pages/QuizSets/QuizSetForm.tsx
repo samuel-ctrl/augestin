@@ -1,16 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { LoadingSpinner, Toast, useToast } from "@shared";
-import type { Subject } from "@shared";
 import api from "../../api/client";
-
-interface QuizSetData {
-  name: string;
-  description?: string;
-  thumbnail_url?: string;
-  subject_id: string;
-  sort_order: number;
-}
 
 export default function QuizSetForm() {
   const { id } = useParams<{ id: string }>();
@@ -19,10 +10,7 @@ export default function QuizSetForm() {
 
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [subjectId, setSubjectId] = useState("");
-  const [sortOrder, setSortOrder] = useState(0);
   const [thumbnailUrl, setThumbnailUrl] = useState("");
-  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const { toast, showApiError, dismiss } = useToast();
@@ -30,18 +18,11 @@ export default function QuizSetForm() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const subjectsRes = await api.get("/subjects", {
-          params: { page: 1, page_size: 100 },
-        });
-        setSubjects(subjectsRes.data.items);
-
         if (isEdit && id) {
           const quizSetRes = await api.get(`/quiz-sets/${id}`);
           const qs = quizSetRes.data;
           setName(qs.name);
           setDescription(qs.description || "");
-          setSubjectId(qs.subject_id);
-          setSortOrder(qs.sort_order);
           setThumbnailUrl(qs.thumbnail_url || "");
         }
       } catch (err) {
@@ -62,18 +43,11 @@ export default function QuizSetForm() {
       return;
     }
 
-    if (!subjectId) {
-      showApiError(null, "Subject is required");
-      return;
-    }
-
     setSaving(true);
     try {
       const payload = {
         name,
         description: description || null,
-        subject_id: subjectId,
-        sort_order: sortOrder,
         thumbnail_url: thumbnailUrl.trim() || null,
       };
 
@@ -126,24 +100,6 @@ export default function QuizSetForm() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Subject *
-            </label>
-            <select
-              value={subjectId}
-              onChange={(e) => setSubjectId(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            >
-              <option value="">Select a subject...</option>
-              {subjects.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
               Description
             </label>
             <textarea
@@ -164,18 +120,6 @@ export default function QuizSetForm() {
               value={thumbnailUrl}
               onChange={(e) => setThumbnailUrl(e.target.value)}
               placeholder="https://..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Sort Order
-            </label>
-            <input
-              type="number"
-              value={sortOrder}
-              onChange={(e) => setSortOrder(Number(e.target.value))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
           </div>

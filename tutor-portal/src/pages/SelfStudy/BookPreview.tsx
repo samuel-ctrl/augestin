@@ -26,7 +26,7 @@ export default function BookPreview() {
       const [subjectRes, questionsRes] = await Promise.all([
         api.get(`/subjects/${bookData.subject_id}`),
         api.get(`/books/${bookId}/questions`, {
-          params: { page: 1, page_size: 100, sort_by: "sort_order", sort_order: "asc" },
+          params: { page: 1, page_size: 100, sort_by: "created_at", sort_order: "asc" },
         }),
       ]);
       setSubject(subjectRes.data);

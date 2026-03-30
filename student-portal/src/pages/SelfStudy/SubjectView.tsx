@@ -21,7 +21,7 @@ export default function SubjectView() {
       const [subjectRes, booksRes] = await Promise.all([
         api.get(`/subjects/${subjectId}`),
         api.get(`/subjects/${subjectId}/books`, {
-          params: { page: 1, page_size: 100, sort_by: "sort_order", sort_order: "asc" },
+          params: { page: 1, page_size: 100, sort_by: "created_at", sort_order: "asc" },
         }),
       ]);
       setSubject(subjectRes.data);
@@ -83,12 +83,6 @@ export default function SubjectView() {
         );
       },
     },
-    {
-      key: "sort_order",
-      label: "Order",
-      sortable: true,
-      width: "80px",
-    },
   ];
 
   if (loading) return <LoadingSpinner fullPage />;
@@ -147,7 +141,7 @@ export default function SubjectView() {
           fetchFn={fetchBooks}
           columns={columns}
           searchPlaceholder="Search books..."
-          defaultSortBy="sort_order"
+          defaultSortBy="created_at"
           defaultSortOrder="asc"
           onRowClick={(book) => navigate(`/self-study/books/${book.id}`)}
           rowKey={(book) => book.id}

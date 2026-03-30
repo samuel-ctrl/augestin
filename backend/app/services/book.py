@@ -62,7 +62,6 @@ async def create_book(
     standard: str,
     description: str | None = None,
     thumbnail_url: str | None = None,
-    sort_order: int = 0,
 ) -> Book:
     if standard not in VALID_STANDARDS:
         raise ValueError(f"Invalid standard '{standard}'")
@@ -75,7 +74,6 @@ async def create_book(
         thumbnail_url=thumbnail_url,
         video_url=video_url,
         standard=standard,
-        sort_order=sort_order,
         subject_id=subject_id,
     )
     db.add(book)
@@ -95,7 +93,6 @@ async def update_book(
     title: str | None = None,
     description: str | None = None,
     standard: str | None = None,
-    sort_order: int | None = None,
     video_url: str | None = None,
     thumbnail_url: str | None = None,
 ) -> Book:
@@ -107,8 +104,6 @@ async def update_book(
         if standard not in VALID_STANDARDS:
             raise ValueError(f"Invalid standard '{standard}'")
         book.standard = standard
-    if sort_order is not None:
-        book.sort_order = sort_order
     if video_url is not None:
         validate_url(video_url)
         book.video_url = video_url
@@ -135,7 +130,7 @@ async def list_books(
     page: int = 1,
     page_size: int = 50,
     search: str = "",
-    sort_by: str = "sort_order",
+    sort_by: str = "created_at",
     sort_order: str = "asc",
     standard: str | None = None,
 ) -> tuple[list[Book], int, int, int, int]:
@@ -163,9 +158,9 @@ async def list_books(
     total = (await db.execute(count_q)).scalar() or 0
 
     # Sort
-    allowed_sort = {"sort_order", "title", "standard", "created_at"}
+    allowed_sort = {"title", "standard", "created_at"}
     if sort_by not in allowed_sort:
-        sort_by = "sort_order"
+        sort_by = "created_at"
     sort_col = getattr(Book, sort_by)
     order = sort_col.desc() if sort_order == "desc" else sort_col.asc()
     query = query.order_by(order)

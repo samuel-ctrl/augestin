@@ -38,7 +38,6 @@ class Question(AuditBase):
     option_d_image_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     correct_option: Mapped[str] = mapped_column(String(1), nullable=False)
     explanation: Mapped[str | None] = mapped_column(Text, nullable=True)
-    sort_order: Mapped[int] = mapped_column(Integer, default=0)
     time_limit_seconds: Mapped[int] = mapped_column(Integer, default=60)
 
     # Relationships

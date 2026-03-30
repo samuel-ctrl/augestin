@@ -8,7 +8,6 @@ class BookCreateRequest(BaseModel):
     standard: str
     video_url: str
     description: str | None = None
-    sort_order: int = 0
     thumbnail_url: str | None = None
 
 
@@ -16,7 +15,6 @@ class BookUpdateRequest(BaseModel):
     title: str | None = None
     description: str | None = None
     standard: str | None = None
-    sort_order: int | None = None
     video_url: str | None = None
     thumbnail_url: str | None = None  # empty string clears the thumbnail
 
@@ -28,7 +26,6 @@ class BookOut(BaseModel):
     thumbnail_url: str | None = None
     video_url: str
     standard: str
-    sort_order: int = 0
     subject_id: str
     created_by: str | None = None
     created_at: datetime

@@ -35,7 +35,6 @@ async def create_question(
     option_d_image_url: str | None = None,
     correct_option: str = "",
     explanation: str | None = None,
-    sort_order: int = 0,
     time_limit_seconds: int = 60,
 ) -> Question:
     # Validate exactly one source
@@ -67,7 +66,6 @@ async def create_question(
         option_d_image_url=option_d_image_url,
         correct_option=correct_option,
         explanation=explanation,
-        sort_order=sort_order,
         time_limit_seconds=time_limit_seconds,
     )
     db.add(question)
@@ -131,7 +129,6 @@ async def update_question(
     option_d_image_url: str | None = None,
     correct_option: str | None = None,
     explanation: str | None = None,
-    sort_order: int | None = None,
     time_limit_seconds: int | None = None,
 ) -> Question:
     if question_text is not None:
@@ -158,8 +155,6 @@ async def update_question(
         question.correct_option = correct_option
     if explanation is not None:
         question.explanation = explanation
-    if sort_order is not None:
-        question.sort_order = sort_order
     if time_limit_seconds is not None:
         question.time_limit_seconds = time_limit_seconds
 
@@ -180,7 +175,7 @@ async def list_questions(
     page: int = 1,
     page_size: int = 50,
     search: str = "",
-    sort_by: str = "sort_order",
+    sort_by: str = "created_at",
     sort_order: str = "asc",
 ) -> tuple[list[Question], int, int, int, int]:
     # Build query based on source
@@ -206,9 +201,9 @@ async def list_questions(
     count_q = select(func.count()).select_from(query.subquery())
     total = (await db.execute(count_q)).scalar() or 0
 
-    allowed_sort = {"sort_order", "created_at", "question_text"}
+    allowed_sort = {"created_at", "question_text"}
     if sort_by not in allowed_sort:
-        sort_by = "sort_order"
+        sort_by = "created_at"
     sort_col = getattr(Question, sort_by)
     order = sort_col.desc() if sort_order == "desc" else sort_col.asc()
     query = query.order_by(order)
@@ -251,7 +246,7 @@ async def reorder_questions(
         question = result.scalar_one_or_none()
         if question is None:
             raise ValueError(f"Question {qid} not found in this source")
-        question.sort_order = idx
+        pass  # reorder is a no-op now that sort_order is removed
     await db.commit()
 
 
@@ -316,18 +311,18 @@ async def _get_questions(
     quiz_source: str,
     quiz_id: uuid.UUID,
 ) -> list[Question]:
-    """Get all questions for a quiz, ordered by sort_order."""
+    """Get all questions for a quiz, ordered by created_at."""
     if quiz_source == "book":
         result = await db.execute(
             select(Question)
             .where(Question.book_id == quiz_id)
-            .order_by(Question.sort_order.asc())
+            .order_by(Question.created_at.asc())
         )
     elif quiz_source == "quiz_set":
         result = await db.execute(
             select(Question)
             .where(Question.quiz_set_id == quiz_id)
-            .order_by(Question.sort_order.asc())
+            .order_by(Question.created_at.asc())
         )
     else:
         raise ValueError("Invalid quiz_source")

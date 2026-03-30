@@ -7,15 +7,12 @@ class QuizSetCreate(BaseModel):
     name: str
     description: str | None = None
     thumbnail_url: str | None = None
-    subject_id: str
-    sort_order: int = 0
 
 
 class QuizSetUpdate(BaseModel):
     name: str | None = None
     description: str | None = None
     thumbnail_url: str | None = None
-    sort_order: int | None = None
 
 
 class QuizSetOut(BaseModel):
@@ -23,9 +20,7 @@ class QuizSetOut(BaseModel):
     name: str
     description: str | None = None
     thumbnail_url: str | None = None
-    subject_id: str
     created_by: str
-    sort_order: int
     question_count: int = 0
     created_at: datetime
     updated_at: datetime | None = None
@@ -53,8 +48,6 @@ class AssignedQuizSetOut(BaseModel):
     name: str
     description: str | None = None
     thumbnail_url: str | None = None
-    subject_id: str
-    subject_name: str
     question_count: int = 0
     progress: dict | None = None
 

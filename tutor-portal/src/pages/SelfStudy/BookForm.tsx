@@ -7,7 +7,6 @@ interface BookData {
   title: string;
   description: string;
   standard: string;
-  sort_order: number;
   subject_id: string;
   thumbnail_url?: string;
   video_url?: string;
@@ -22,7 +21,6 @@ export default function BookForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [standard, setStandard] = useState("");
-  const [sortOrder, setSortOrder] = useState(0);
   const [subjectId, setSubjectId] = useState(
     searchParams.get("subject_id") || ""
   );
@@ -42,7 +40,6 @@ export default function BookForm() {
           setTitle(book.title);
           setDescription(book.description || "");
           setStandard(book.standard);
-          setSortOrder(book.sort_order);
           setSubjectId(book.subject_id);
           setVideoUrl(book.video_url || "");
           setThumbnailUrl(book.thumbnail_url || "");
@@ -70,7 +67,6 @@ export default function BookForm() {
         title,
         description: description || null,
         standard,
-        sort_order: sortOrder,
       };
 
       if (!isEdit) {
@@ -169,18 +165,6 @@ export default function BookForm() {
                 </option>
               ))}
             </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Sort Order
-            </label>
-            <input
-              type="number"
-              value={sortOrder}
-              onChange={(e) => setSortOrder(Number(e.target.value))}
-              min={0}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            />
           </div>
         </div>
 

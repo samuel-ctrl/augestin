@@ -16,7 +16,6 @@ class QuestionCreate(BaseModel):
     option_d_image_url: str | None = None
     correct_option: str
     explanation: str | None = None
-    sort_order: int = 0
     time_limit_seconds: int = 60
 
     @field_validator("correct_option")
@@ -45,7 +44,6 @@ class QuestionUpdate(BaseModel):
     option_d_image_url: str | None = None
     correct_option: str | None = None
     explanation: str | None = None
-    sort_order: int | None = None
     time_limit_seconds: int | None = None
 
     @field_validator("correct_option")
@@ -82,7 +80,6 @@ class QuestionOut(BaseModel):
     option_d_image_url: str | None = None
     correct_option: str
     explanation: str | None = None
-    sort_order: int
     time_limit_seconds: int
     created_at: datetime
 
@@ -102,7 +99,6 @@ class StudentQuestionOut(BaseModel):
     option_c_image_url: str | None = None
     option_d: str
     option_d_image_url: str | None = None
-    sort_order: int
     time_limit_seconds: int
 
     model_config = {"from_attributes": True}

@@ -18,16 +18,14 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Create quiz_sets table
+    # Create quiz_sets table (no subject_id, no sort_order)
     op.create_table(
         "quiz_sets",
         sa.Column("id", postgresql.UUID(as_uuid=True), nullable=False),
-        sa.Column("subject_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("tutor_id", postgresql.UUID(as_uuid=True), nullable=False),
         sa.Column("name", sa.String(255), nullable=False),
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("thumbnail_url", sa.Text(), nullable=True),
-        sa.Column("sort_order", sa.Integer(), nullable=False, server_default="0"),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.func.now()),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("version", sa.Integer(), nullable=False, server_default="1"),
@@ -36,10 +34,8 @@ def upgrade() -> None:
         sa.Column("created_by_name", sa.String(), nullable=True),
         sa.Column("updated_by_name", sa.String(), nullable=True),
         sa.ForeignKeyConstraint(["tutor_id"], ["users.id"], ondelete="CASCADE"),
-        sa.ForeignKeyConstraint(["subject_id"], ["subjects.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index("ix_quiz_sets_subject_id", "quiz_sets", ["subject_id"])
     op.create_index("ix_quiz_sets_tutor_id", "quiz_sets", ["tutor_id"])
 
     # Create quiz_set_assignments table
@@ -84,5 +80,4 @@ def downgrade() -> None:
     op.drop_table("quiz_set_assignments")
 
     op.drop_index("ix_quiz_sets_tutor_id", table_name="quiz_sets")
-    op.drop_index("ix_quiz_sets_subject_id", table_name="quiz_sets")
     op.drop_table("quiz_sets")

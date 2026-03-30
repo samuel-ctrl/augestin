@@ -53,7 +53,6 @@ def _question_to_out(q) -> QuestionOut:
         option_d_image_url=q.option_d_image_url,
         correct_option=q.correct_option,
         explanation=q.explanation,
-        sort_order=q.sort_order,
         time_limit_seconds=q.time_limit_seconds,
         created_at=q.created_at,
     )
@@ -72,7 +71,6 @@ def _question_to_student_out(q) -> StudentQuestionOut:
         option_c_image_url=q.option_c_image_url,
         option_d=q.option_d,
         option_d_image_url=q.option_d_image_url,
-        sort_order=q.sort_order,
         time_limit_seconds=q.time_limit_seconds,
     )
 
@@ -108,7 +106,7 @@ async def list_questions_endpoint(
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
     search: str = Query(""),
-    sort_by: str = Query("sort_order"),
+    sort_by: str = Query("created_at"),
     sort_order: str = Query("asc"),
     db: AsyncSession = Depends(get_db),
 ):
@@ -146,7 +144,6 @@ async def create_question_endpoint(
             option_d=body.option_d, option_d_image_url=body.option_d_image_url,
             correct_option=body.correct_option,
             explanation=body.explanation,
-            sort_order=body.sort_order,
             time_limit_seconds=body.time_limit_seconds,
         )
     except ValueError as e:
@@ -210,7 +207,6 @@ async def update_question_endpoint(
             option_d=body.option_d, option_d_image_url=body.option_d_image_url,
             correct_option=body.correct_option,
             explanation=body.explanation,
-            sort_order=body.sort_order,
             time_limit_seconds=body.time_limit_seconds,
         )
     except ValueError as e:

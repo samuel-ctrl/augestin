@@ -73,7 +73,7 @@ export default function QuizSetDashboard() {
               <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
                 {qs.name}
               </h3>
-              <p className="text-xs text-gray-500 mt-1">{qs.subject_name}</p>
+              {qs.description && <p className="text-xs text-gray-500 mt-1 line-clamp-1">{qs.description}</p>}
               <div className="flex items-center justify-between mt-3">
                 <span className="text-xs text-gray-500">
                   {qs.question_count} Q{qs.question_count !== 1 ? "s" : ""}

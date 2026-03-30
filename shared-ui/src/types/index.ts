@@ -39,7 +39,6 @@ export interface Book {
   thumbnail_url?: string;
   video_url: string;
   standard: string;
-  sort_order: number;
   subject_id: string;
   created_by: string;
   created_at: string;
@@ -125,7 +124,6 @@ export interface Question {
   option_d_image_url?: string;
   correct_option?: string;
   explanation?: string;
-  sort_order: number;
   time_limit_seconds: number;
   created_at?: string;
 }
@@ -190,9 +188,7 @@ export interface QuizSet {
   name: string;
   description?: string;
   thumbnail_url?: string;
-  subject_id: string;
   created_by: string;
-  sort_order: number;
   question_count: number;
   created_at: string;
   updated_at?: string;
@@ -212,8 +208,6 @@ export interface AssignedQuizSet {
   name: string;
   description?: string;
   thumbnail_url?: string;
-  subject_id: string;
-  subject_name: string;
   question_count: number;
   progress?: QuizProgress;
 }

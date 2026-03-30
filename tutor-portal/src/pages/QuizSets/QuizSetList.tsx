@@ -8,32 +8,19 @@ import {
   useToast,
   extractErrorMessage,
 } from "@shared";
-import type { QuizSet, Subject, PaginatedResponse, TableQueryParams } from "@shared";
+import type { QuizSet, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
 
 export default function QuizSetList() {
   const navigate = useNavigate();
   const [quizSets, setQuizSets] = useState<QuizSet[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<QuizSet | null>(null);
-  const [subjectFilter, setSubjectFilter] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize] = useState(50);
   const [total, setTotal] = useState(0);
   const { toast, showApiError, showSuccess, dismiss } = useToast();
-
-  const fetchSubjects = useCallback(async () => {
-    try {
-      const res = await api.get("/subjects", {
-        params: { page: 1, page_size: 100 },
-      });
-      setSubjects(res.data.items);
-    } catch (err) {
-      console.error("Failed to load subjects:", err);
-    }
-  }, []);
 
   const fetchQuizSets = useCallback(async () => {
     setError(null);
@@ -45,9 +32,6 @@ export default function QuizSetList() {
         sort_by: "created_at",
         sort_order: "desc",
       };
-      if (subjectFilter) {
-        params.subject_id = subjectFilter;
-      }
       const res = await api.get("/quiz-sets", { params });
       setQuizSets(res.data.items);
       setTotal(res.data.total);
@@ -56,12 +40,11 @@ export default function QuizSetList() {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, subjectFilter]);
+  }, [page, pageSize]);
 
   useEffect(() => {
-    fetchSubjects();
     fetchQuizSets();
-  }, [fetchSubjects, fetchQuizSets]);
+  }, [fetchQuizSets]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -103,25 +86,6 @@ export default function QuizSetList() {
         </button>
       </div>
 
-      {/* Subject Filter */}
-      <div className="mb-6 flex gap-3">
-        <select
-          value={subjectFilter}
-          onChange={(e) => {
-            setSubjectFilter(e.target.value);
-            setPage(1);
-          }}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-        >
-          <option value="">All Subjects</option>
-          {subjects.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
       {/* Quiz Sets List */}
       {quizSets.length === 0 ? (
         <EmptyState
@@ -151,10 +115,6 @@ export default function QuizSetList() {
                     </p>
                   )}
                   <div className="flex items-center gap-3 mt-2">
-                    <span className="text-xs text-gray-500">
-                      {subjects.find((s) => s.id === qs.subject_id)?.name ||
-                        "Unknown Subject"}
-                    </span>
                     <span className="px-2 py-0.5 bg-primary-50 text-primary-600 text-xs rounded">
                       {qs.question_count} Q{qs.question_count !== 1 ? "s" : ""}
                     </span>
