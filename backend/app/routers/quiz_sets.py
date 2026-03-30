@@ -13,6 +13,8 @@ from app.schemas.quiz_sets import (
     QuizSetCreate, QuizSetUpdate, QuizSetOut, QuizSetAssignCreate, QuizSetAssignOut,
     AssignedQuizSetOut
 )
+from app.schemas.quiz import QuestionOut
+from app.routers.quiz import _question_to_out
 from app.schemas.pagination import PaginatedResponse
 from app.services.quiz import (
     get_quiz_session, start_quiz, submit_answer, complete_quiz, get_quiz_progress,
@@ -233,7 +235,7 @@ async def delete_quiz_set(
 # QUESTIONS SUB-RESOURCE
 # ============================================================================
 
-@router.get("/api/quiz-sets/{quiz_set_id}/questions", response_model=PaginatedResponse)
+@router.get("/api/quiz-sets/{quiz_set_id}/questions", response_model=PaginatedResponse[QuestionOut])
 async def list_quiz_set_questions(
     quiz_set_id: uuid.UUID,
     request: Request,
@@ -247,9 +249,13 @@ async def list_quiz_set_questions(
     """List questions for a quiz set."""
     require_tutor(request)
 
-    return await list_questions(
+    questions, total, pg, ps, total_pages = await list_questions(
         db, quiz_set_id=quiz_set_id, page=page, page_size=page_size,
-        search=search, sort_by=sort_by, sort_order=sort_order
+        search=search, sort_by=sort_by, sort_order=sort_order,
+    )
+    return PaginatedResponse(
+        items=[_question_to_out(q) for q in questions],
+        total=total, page=pg, page_size=ps, total_pages=total_pages,
     )
 
 
