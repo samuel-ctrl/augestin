@@ -13,7 +13,9 @@ from app.schemas.quiz_sets import (
     QuizSetCreate, QuizSetUpdate, QuizSetOut, QuizSetAssignCreate, QuizSetAssignOut,
     AssignedQuizSetOut
 )
-from app.schemas.quiz import QuestionOut
+from app.schemas.quiz import (
+    QuestionCreate, QuestionBulkCreate, QuestionOut, ReorderRequest, QuizSubmitRequest
+)
 from app.routers.quiz import _question_to_out
 from app.schemas.pagination import PaginatedResponse
 from app.services.quiz import (
@@ -259,43 +261,69 @@ async def list_quiz_set_questions(
     )
 
 
-@router.post("/api/quiz-sets/{quiz_set_id}/questions", response_model=dict, status_code=status.HTTP_201_CREATED)
+@router.post("/api/quiz-sets/{quiz_set_id}/questions", response_model=QuestionOut, status_code=status.HTTP_201_CREATED)
 async def create_quiz_set_question(
     quiz_set_id: uuid.UUID,
-    body: dict,
+    body: QuestionCreate,
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """Create a question for a quiz set."""
     require_tutor(request)
 
-    return await create_question(db, quiz_set_id=quiz_set_id, **body)
+    try:
+        question = await create_question(
+            db, quiz_set_id=quiz_set_id,
+            question_text=body.question_text,
+            question_image_url=body.question_image_url,
+            option_a=body.option_a, option_a_image_url=body.option_a_image_url,
+            option_b=body.option_b, option_b_image_url=body.option_b_image_url,
+            option_c=body.option_c, option_c_image_url=body.option_c_image_url,
+            option_d=body.option_d, option_d_image_url=body.option_d_image_url,
+            correct_option=body.correct_option,
+            explanation=body.explanation,
+            time_limit_seconds=body.time_limit_seconds,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return _question_to_out(question)
 
 
-@router.post("/api/quiz-sets/{quiz_set_id}/questions/bulk", response_model=dict)
+@router.post("/api/quiz-sets/{quiz_set_id}/questions/bulk", response_model=list[QuestionOut], status_code=status.HTTP_201_CREATED)
 async def bulk_create_quiz_set_questions(
     quiz_set_id: uuid.UUID,
-    body: dict,
+    body: QuestionBulkCreate,
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """Bulk create questions for a quiz set."""
     require_tutor(request)
 
-    return await bulk_create_questions(db, quiz_set_id=quiz_set_id, **body)
+    try:
+        questions = await bulk_create_questions(
+            db, quiz_set_id=quiz_set_id,
+            questions_data=[q.model_dump() for q in body.questions],
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return [_question_to_out(q) for q in questions]
 
 
 @router.put("/api/quiz-sets/{quiz_set_id}/questions/reorder", response_model=dict)
 async def reorder_quiz_set_questions(
     quiz_set_id: uuid.UUID,
-    body: dict,
+    body: ReorderRequest,
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """Reorder questions for a quiz set."""
     require_tutor(request)
 
-    return await reorder_questions(db, quiz_set_id=quiz_set_id, **body)
+    try:
+        await reorder_questions(db, quiz_set_id=quiz_set_id, question_ids=body.question_ids)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+    return {"status": "ok"}
 
 
 # ============================================================================
@@ -474,14 +502,23 @@ async def start_quiz_set_quiz(
 @router.post("/api/quiz-sets/{quiz_set_id}/quiz/submit")
 async def submit_quiz_set_answer(
     quiz_set_id: uuid.UUID,
-    body: dict,
+    body: QuizSubmitRequest,
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     """Submit or update an answer."""
     student = require_student(request)
 
-    return await submit_answer(db, student.id, "quiz_set", quiz_set_id, **body)
+    try:
+        return await submit_answer(
+            db, student.id, "quiz_set", quiz_set_id,
+            question_id=body.question_id,
+            selected_option=body.selected_option,
+            is_skipped=body.is_skipped,
+            time_taken_seconds=body.time_taken_seconds,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.post("/api/quiz-sets/{quiz_set_id}/quiz/complete")
