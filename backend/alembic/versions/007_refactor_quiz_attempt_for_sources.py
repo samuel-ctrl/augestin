@@ -20,8 +20,14 @@ depends_on: Union[str, Sequence[str], None] = None
 def upgrade() -> None:
     # Add new columns to quiz_attempts
     op.add_column("quiz_attempts", sa.Column("quiz_source", sa.String(20), nullable=False, server_default="book"))
-    op.add_column("quiz_attempts", sa.Column("quiz_id", postgresql.UUID(as_uuid=True), nullable=False, server_default=sa.text("book_id")))
+    op.add_column("quiz_attempts", sa.Column("quiz_id", postgresql.UUID(as_uuid=True), nullable=True))
     op.add_column("quiz_attempts", sa.Column("is_skipped", sa.Boolean(), nullable=False, server_default="false"))
+
+    # Copy book_id into quiz_id for existing rows
+    op.execute("UPDATE quiz_attempts SET quiz_id = book_id WHERE quiz_id IS NULL")
+
+    # Now make quiz_id NOT NULL
+    op.alter_column("quiz_attempts", "quiz_id", nullable=False)
 
     # Make book_id nullable
     op.alter_column("quiz_attempts", "book_id", existing_type=postgresql.UUID(as_uuid=True), nullable=True)

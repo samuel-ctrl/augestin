@@ -25,8 +25,8 @@ def upgrade() -> None:
     op.add_column("quiz_progress", sa.Column("skipped_count", sa.Integer(), nullable=False, server_default="0"))
     op.add_column("quiz_progress", sa.Column("total_questions", sa.Integer(), nullable=False, server_default="0"))
 
-    # Rename score_percentage to score_percentage (already done)
-    # Add any other fields if needed
+    # Copy book_id into quiz_id for existing rows
+    op.execute("UPDATE quiz_progress SET quiz_id = book_id WHERE quiz_id IS NULL")
 
     # Create new unique constraint for quiz_source
     op.create_unique_constraint(
