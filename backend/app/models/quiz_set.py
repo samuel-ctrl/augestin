@@ -11,14 +11,14 @@ class QuizSet(AuditBase):
     __tablename__ = "quiz_sets"
     __table_args__ = (
         Index("ix_quiz_sets_subject_id", "subject_id"),
-        Index("ix_quiz_sets_created_by", "tutor_id"),
+        Index("ix_quiz_sets_tutor_id", "tutor_id"),
     )
 
     subject_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False
     )
     tutor_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, name="created_by"
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)

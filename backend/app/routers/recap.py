@@ -73,7 +73,7 @@ async def create_or_update_recap_endpoint(
     return RecapOut(
         id=str(recap.id),
         book_id=str(recap.book_id),
-        created_by=str(recap.created_by),
+        created_by=str(recap.author_id),
         title=recap.title,
         content=recap.content,
         created_at=recap.created_at,
@@ -119,7 +119,7 @@ async def update_recap_endpoint(
     return RecapOut(
         id=str(recap.id),
         book_id=str(recap.book_id),
-        created_by=str(recap.created_by),
+        created_by=str(recap.author_id),
         title=recap.title,
         content=recap.content,
         created_at=recap.created_at,

@@ -6,7 +6,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, require_student, require_tutor
-from app.models.quiz_set import QuizSet, QuizSetAssignment
+from app.models.quiz_set import QuizSet
+from app.models.quiz_set_assignment import QuizSetAssignment
 from app.models.user import User
 from app.models.subject import Subject
 from app.schemas.quiz_sets import (

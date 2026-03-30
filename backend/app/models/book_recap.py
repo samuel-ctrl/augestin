@@ -11,14 +11,14 @@ class BookRecap(AuditBase):
     __tablename__ = "book_recaps"
     __table_args__ = (
         Index("ix_book_recaps_book_id", "book_id"),
-        Index("ix_book_recaps_created_by", "created_by"),
+        Index("ix_book_recaps_author_id", "author_id"),
     )
 
     book_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("books.id", ondelete="CASCADE"), nullable=False
     )
     author_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False, name="created_by"
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
     title: Mapped[str] = mapped_column(Text, nullable=False)
     content: Mapped[dict] = mapped_column(JSON, nullable=False, default=dict)
