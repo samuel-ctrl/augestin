@@ -55,9 +55,9 @@ export function DataTable<T>({
   });
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-visible">
       {/* Toolbar */}
-      <div className="flex items-center gap-3 p-4" style={{ backgroundColor: "rgb(44, 62, 80)" }}>
+      <div className="flex items-center gap-3 p-4 rounded-t-xl" style={{ backgroundColor: "rgb(44, 62, 80)" }}>
         <div className="flex-1 max-w-sm">
           <TableSearch
             value={search}
@@ -163,7 +163,7 @@ export function DataTable<T>({
       </div>
 
       {/* Pagination */}
-      <div style={{ backgroundColor: "rgb(44, 62, 80)" }}>
+      <div className="rounded-b-xl" style={{ backgroundColor: "rgb(44, 62, 80)" }}>
         <TablePagination
           page={pagination.page}
           pageSize={pagination.pageSize}
