@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { LoadingSpinner, Toast, useToast, standardOptions } from "@shared";
+import { LoadingSpinner, Toast, useToast, standardOptions, Button } from "@shared";
 import api from "../../api/client";
 
 interface BookData {
@@ -197,13 +197,9 @@ export default function BookForm() {
               className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
             {isEdit && thumbnailUrl && (
-              <button
-                type="button"
-                onClick={() => setThumbnailUrl("")}
-                className="px-3 py-2 text-xs text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition-colors"
-              >
+              <Button type="button" variant="outline" color="danger" size="sm" onClick={() => setThumbnailUrl("")}>
                 Clear
-              </button>
+              </Button>
             )}
           </div>
           <p className="mt-1 text-xs text-gray-400">
@@ -212,26 +208,15 @@ export default function BookForm() {
         </div>
 
         <div className="flex gap-3 pt-2">
-          <button
-            type="button"
-            onClick={() =>
-              navigate(
-                subjectId
-                  ? `/self-study/subjects/${subjectId}`
-                  : "/self-study"
-              )
-            }
-            className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+          <Button
+            type="button" variant="outline" color="secondary" fullWidth
+            onClick={() => navigate(subjectId ? `/self-study/subjects/${subjectId}` : "/self-study")}
           >
             Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex-1 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors"
-          >
+          </Button>
+          <Button type="submit" color={isEdit ? "primary" : "success"} fullWidth disabled={saving}>
             {saving ? "Saving..." : isEdit ? "Update Book" : "Create Book"}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

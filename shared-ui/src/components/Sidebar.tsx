@@ -33,13 +33,30 @@ export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, o
 
   return (
     <div className="flex flex-col h-full bg-gradient-to-b from-indigo-900 via-purple-900 to-indigo-950 text-white relative overflow-hidden">
-      {/* Background decorative shapes */}
+      {/* Background decorative bubbles */}
       <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-20 left-0 w-24 h-24 bg-indigo-400/10 rounded-full -translate-x-1/2" />
-      <div className="absolute top-1/2 right-0 w-16 h-16 bg-pink-400/10 rounded-full translate-x-1/3" />
+      <div className="absolute bottom-20 left-0 w-28 h-28 bg-indigo-400/10 rounded-full -translate-x-1/2" />
+      <div className="absolute top-1/2 right-0 w-20 h-20 bg-pink-400/10 rounded-full translate-x-1/3" />
+      <div className="absolute top-1/4 left-2 w-14 h-14 bg-cyan-400/8 rounded-full" />
+      <div className="absolute top-[12%] right-4 w-10 h-10 bg-yellow-400/10 rounded-full" />
+      <div className="absolute bottom-1/3 right-2 w-24 h-24 bg-purple-300/8 rounded-full" />
+      <div className="absolute top-[38%] left-0 w-12 h-12 bg-blue-400/10 rounded-full -translate-x-1/3" />
+      <div className="absolute bottom-[15%] right-0 w-16 h-16 bg-violet-400/8 rounded-full translate-x-1/4" />
+      <div className="absolute top-[68%] left-6 w-8 h-8 bg-pink-300/12 rounded-full" />
+      <div className="absolute bottom-32 left-1/2 w-10 h-10 bg-indigo-300/10 rounded-full" />
+      <div className="absolute top-[85%] right-6 w-6 h-6 bg-orange-400/10 rounded-full" />
+      <div className="absolute top-[5%] left-1/2 w-7 h-7 bg-white/8 rounded-full" />
+      <div className="absolute top-[55%] right-8 w-5 h-5 bg-cyan-300/12 rounded-full" />
+      <div className="absolute bottom-[40%] left-4 w-9 h-9 bg-purple-400/10 rounded-full" />
+      <div className="absolute top-[30%] right-1 w-6 h-6 bg-pink-500/8 rounded-full" />
+      <div className="absolute bottom-[8%] left-1/3 w-11 h-11 bg-indigo-500/8 rounded-full" />
+      <div className="absolute top-[78%] right-1/3 w-7 h-7 bg-violet-300/10 rounded-full" />
+      <div className="absolute top-[48%] left-10 w-4 h-4 bg-yellow-300/12 rounded-full" />
+      <div className="absolute bottom-[25%] right-10 w-8 h-8 bg-blue-300/8 rounded-full" />
+      <div className="absolute top-[92%] left-8 w-5 h-5 bg-white/6 rounded-full" />
 
       {/* Logo / Header */}
-      <div className={`py-5 flex items-center border-b border-white/10 relative z-10 ${collapsed ? "px-2 justify-center" : "px-4 justify-between"}`}>
+      <div className={`py-5 flex items-center border-b border-white/20 relative z-10 ${collapsed ? "px-2 justify-center" : "px-4 justify-between"}`}>
         {!collapsed && (
           <div className="flex items-center gap-2">
             {logo || (
@@ -81,7 +98,7 @@ export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, o
       {/* Nav items */}
       <nav className={`flex-1 py-4 space-y-1 relative z-10 ${collapsed ? "px-2" : "px-3"}`}>
         {navItems.map((item) => {
-          const isActive = location.pathname.startsWith(item.path);
+          const isActive = item.path === "/" ? location.pathname === "/" : location.pathname.startsWith(item.path);
           return (
             <Link
               key={item.path}

@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { DataTable, LoadingSpinner, ConfirmDialog, EmptyState, Toast, useToast, extractErrorMessage } from "@shared";
+import { DataTable, LoadingSpinner, ConfirmDialog, EmptyState, Toast, useToast, extractErrorMessage, Button } from "@shared";
 import type {
   Student,
   BookProgress,
@@ -132,12 +132,9 @@ export default function StudentDetail() {
               <p>Assignments: {student.assignment_count}</p>
             </div>
           </div>
-          <button
-            onClick={() => setShowResetConfirm(true)}
-            className="px-3 py-1.5 border border-gray-300 text-sm rounded-lg hover:bg-gray-50 text-gray-600 transition-colors"
-          >
+          <Button variant="outline" color="warning" size="sm" onClick={() => setShowResetConfirm(true)}>
             Reset Password
-          </button>
+          </Button>
         </div>
 
         {newPassword && (

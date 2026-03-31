@@ -9,6 +9,8 @@ import {
   Toast,
   useToast,
   extractErrorMessage,
+  Button,
+  PageHeader,
 } from "@shared";
 import type { Subject, Book, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
@@ -126,52 +128,39 @@ export default function SubjectBooks() {
   return (
     <div>
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <button
-            onClick={() => navigate("/self-study")}
-            className="text-sm text-gray-500 hover:text-gray-700 mb-1 inline-flex items-center gap-1"
-          >
-            &larr; Self-Study
-          </button>
-          <h1 className="text-xl font-semibold text-gray-800">
-            {subject.name}
-          </h1>
-        </div>
-        <div className="flex items-center gap-3">
-          {/* View Toggle Tabs */}
-          <div className="flex border-b border-gray-200">
-            <button
-              onClick={() => setViewMode("table")}
-              className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
-                viewMode === "table"
-                  ? "border-primary-600 text-primary-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              Table
-            </button>
-            <button
-              onClick={() => setViewMode("card")}
-              className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
-                viewMode === "card"
-                  ? "border-primary-600 text-primary-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              Cards
-            </button>
-          </div>
-          <button
-            onClick={() =>
-              navigate(`/self-study/books/new?subject_id=${subjectId}`)
-            }
-            className="px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors"
-          >
-            + Add Book
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={subject.name}
+        backButton={{ label: "Self-Study", onClick: () => navigate("/self-study") }}
+        actions={
+          <>
+            <div className="flex border border-gray-500 rounded-lg overflow-hidden">
+              <button
+                onClick={() => setViewMode("table")}
+                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                  viewMode === "table"
+                    ? "bg-white/20 text-white"
+                    : "text-gray-300 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                Table
+              </button>
+              <button
+                onClick={() => setViewMode("card")}
+                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
+                  viewMode === "card"
+                    ? "bg-white/20 text-white"
+                    : "text-gray-300 hover:text-white hover:bg-white/10"
+                }`}
+              >
+                Cards
+              </button>
+            </div>
+            <Button color="success" onClick={() => navigate(`/self-study/books/new?subject_id=${subjectId}`)}>
+              + Add Book
+            </Button>
+          </>
+        }
+      />
 
       {viewMode === "table" ? (
         <DataTable<Book>

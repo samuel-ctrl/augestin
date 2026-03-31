@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { extractErrorMessage, Toast, useToast } from "@shared";
+import { extractErrorMessage, Toast, useToast, PageHeader } from "@shared";
 import api from "../api/client";
 
 export default function Profile() {
@@ -46,7 +46,7 @@ export default function Profile() {
   return (
     <div className="max-w-md mx-auto">
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
-      <h1 className="text-xl font-semibold text-gray-800 mb-6">Profile</h1>
+      <PageHeader title="Profile" />
 
       {/* Info Card */}
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">

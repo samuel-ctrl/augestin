@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { VideoPlayer, Breadcrumb, LoadingSpinner, EmptyState, RecapViewer, extractErrorMessage } from "@shared";
-import type { Book, Subject, BreadcrumbSegment } from "@shared";
+import { VideoPlayer, LoadingSpinner, EmptyState, RecapViewer, PageHeader, extractErrorMessage } from "@shared";
+import type { Book, Subject } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
 import QuizPanel from "./QuizPanel";
@@ -87,17 +87,13 @@ export default function BookView() {
 
   const hasQuestions = (book.question_count ?? 0) > 0;
 
-  const breadcrumbs: BreadcrumbSegment[] = [
-    { label: "Self-Study", path: "/self-study" },
-    { label: subject.name, path: `/self-study/subjects/${subject.id}` },
-    { label: book.title },
-  ];
-
   return (
     <div>
-      <div className="mb-6">
-        <Breadcrumb segments={breadcrumbs} />
-      </div>
+      <PageHeader
+        title={book.title}
+        subtitle={subject.name}
+        backButton={{ label: subject.name, onClick: () => navigate(`/self-study/subjects/${subject.id}`) }}
+      />
 
       {/* Tabs */}
       <div className="flex gap-1 mb-4">

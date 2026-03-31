@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage } from "@shared";
+import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage, PageHeader } from "@shared";
 import type { Book, AssignedQuizSet, QuizProgress } from "@shared";
 import api from "../../api/client";
 
@@ -102,10 +102,10 @@ export default function HomeDashboard() {
     <div>
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
 
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
-        <p className="text-gray-600 mt-1">Continue learning or start something new</p>
-      </div>
+      <PageHeader
+        title="Welcome Back"
+        subtitle="Continue learning or start something new"
+      />
 
       {!hasContent ? (
         <EmptyState

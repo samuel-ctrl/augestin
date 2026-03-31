@@ -55,9 +55,9 @@ export function DataTable<T>({
   });
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
       {/* Toolbar */}
-      <div className="flex items-center gap-3 p-4 border-b border-gray-200">
+      <div className="flex items-center gap-3 p-4" style={{ backgroundColor: "rgb(44, 62, 80)" }}>
         <div className="flex-1 max-w-sm">
           <TableSearch
             value={search}
@@ -77,8 +77,8 @@ export function DataTable<T>({
       {/* Table */}
       <div className="overflow-visible">
         <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
+          <thead>
+            <tr style={{ backgroundColor: "rgb(44, 62, 80)" }}>
               {columns.map((col) => (
                 <TableSortHeader
                   key={col.key}
@@ -89,16 +89,17 @@ export function DataTable<T>({
                   sortable={col.sortable !== false}
                   onToggleSort={handlers.toggleSort}
                   width={col.width}
+                  dark
                 />
               ))}
               {actions && (
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider w-20">
+                <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider w-20">
                   Actions
                 </th>
               )}
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-100">
             {loading ? (
               <tr>
                 <td
@@ -130,11 +131,8 @@ export function DataTable<T>({
               data.map((row, idx) => (
                 <tr
                   key={rowKey ? rowKey(row) : idx}
-                  className={`${
-                    onRowClick
-                      ? "cursor-pointer hover:bg-gray-50"
-                      : ""
-                  }`}
+                  className={`${onRowClick ? "cursor-pointer" : ""} hover:bg-gray-50 transition-colors duration-150`}
+                  style={{ backgroundColor: idx % 2 === 0 ? "rgb(205, 205, 205)" : "rgb(173, 200, 255)" }}
                   onClick={() => onRowClick?.(row)}
                 >
                   {columns.map((col) => {
@@ -142,7 +140,7 @@ export function DataTable<T>({
                     return (
                       <td
                         key={col.key}
-                        className="px-4 py-3 text-sm text-gray-700"
+                        className="px-4 py-3.5 text-sm text-gray-800"
                         style={col.width ? { width: col.width } : undefined}
                       >
                         {col.render ? col.render(value, row) : String(value ?? "—")}
@@ -151,7 +149,7 @@ export function DataTable<T>({
                   })}
                   {actions && (
                     <td
-                      className="px-4 py-3 text-right"
+                      className="px-4 py-3.5 text-right"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {actions(row)}
@@ -165,14 +163,16 @@ export function DataTable<T>({
       </div>
 
       {/* Pagination */}
-      <TablePagination
-        page={pagination.page}
-        pageSize={pagination.pageSize}
-        total={pagination.total}
-        totalPages={pagination.totalPages}
-        onPageChange={handlers.setPage}
-        onPageSizeChange={handlers.setPageSize}
-      />
+      <div style={{ backgroundColor: "rgb(44, 62, 80)" }}>
+        <TablePagination
+          page={pagination.page}
+          pageSize={pagination.pageSize}
+          total={pagination.total}
+          totalPages={pagination.totalPages}
+          onPageChange={handlers.setPage}
+          onPageSizeChange={handlers.setPageSize}
+        />
+      </div>
     </div>
   );
 }

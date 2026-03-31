@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { LoadingSpinner, Toast, useToast } from "@shared";
+import { LoadingSpinner, Toast, useToast, Button } from "@shared";
 import api from "../../api/client";
 
 export default function QuizSetForm() {
@@ -126,20 +126,12 @@ export default function QuizSetForm() {
         </div>
 
         <div className="flex justify-end gap-3 mt-6">
-          <button
-            type="button"
-            onClick={() => navigate("/quiz-sets")}
-            className="px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors"
-          >
+          <Button type="button" variant="outline" color="secondary" onClick={() => navigate("/quiz-sets")}>
             Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-6 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
-          >
+          </Button>
+          <Button type="submit" color={isEdit ? "primary" : "success"} disabled={saving}>
             {saving ? "Saving..." : isEdit ? "Update Quiz Set" : "Create Quiz Set"}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

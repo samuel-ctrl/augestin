@@ -1,4 +1,5 @@
 import React from "react";
+import { Button } from "./Button";
 
 interface EmptyStateProps {
   icon?: React.ReactNode;
@@ -37,16 +38,12 @@ export function EmptyState({ icon, title, description, action, variant = "defaul
         <p className="text-sm text-gray-400 mb-6 max-w-sm leading-relaxed">{description}</p>
       )}
       {action && (
-        <button
+        <Button
+          color={isError ? "secondary" : "primary"}
           onClick={action.onClick}
-          className={`px-5 py-2.5 text-sm font-medium rounded-lg transition-colors ${
-            isError
-              ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              : "bg-primary-600 text-white hover:bg-primary-700"
-          }`}
         >
           {action.label}
-        </button>
+        </Button>
       )}
     </div>
   );

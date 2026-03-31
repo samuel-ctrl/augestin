@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage, standardOptions } from "@shared";
+import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage, standardOptions, Button } from "@shared";
 import type { Student } from "@shared";
 import api from "../../api/client";
 
@@ -217,19 +217,12 @@ export default function QuizSetAssign() {
       </div>
 
       <div className="flex justify-end gap-3">
-        <button
-          onClick={() => navigate("/quiz-sets")}
-          className="px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors"
-        >
+        <Button variant="outline" color="secondary" onClick={() => navigate("/quiz-sets")}>
           Cancel
-        </button>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="px-6 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
-        >
+        </Button>
+        <Button color="primary" onClick={handleSave} disabled={saving}>
           {saving ? "Saving..." : "Save Assignments"}
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { LoadingSpinner, Toast, useToast, MathText } from "@shared";
+import { LoadingSpinner, Toast, useToast, MathText, Button } from "@shared";
 import api from "../../api/client";
 
 export default function QuestionForm() {
@@ -319,25 +319,20 @@ export default function QuestionForm() {
 
         {/* Actions */}
         <div className="flex gap-3 pt-2">
-          <button
-            type="button"
+          <Button
+            type="button" variant="outline" color="secondary" fullWidth
             onClick={() => {
               const path = isQuizSetMode
                 ? `/quiz-sets/${quizSetId}/questions`
                 : `/self-study/books/${bookId}/questions`;
               navigate(path);
             }}
-            className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors"
           >
             Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={saving}
-            className="flex-1 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors"
-          >
+          </Button>
+          <Button type="submit" color={isEdit ? "primary" : "success"} fullWidth disabled={saving}>
             {saving ? "Saving..." : isEdit ? "Update Question" : "Create Question"}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

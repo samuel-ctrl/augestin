@@ -54,7 +54,7 @@ export function AppLayout({
       </div>
 
       {/* Main area */}
-      <div className="flex-1 flex flex-col min-w-0 relative">
+      <div className="flex-1 flex flex-col min-w-0 relative border-l-2 border-gray-400/30">
         {/* Mobile menu button (only visible on mobile) */}
         <div className="lg:hidden flex items-center gap-3 px-4 py-3 shrink-0">
           <button

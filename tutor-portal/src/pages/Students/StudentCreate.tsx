@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CredentialCard, Toast, useToast, standardOptions } from "@shared";
+import { CredentialCard, Toast, useToast, standardOptions, Button } from "@shared";
 import api from "../../api/client";
 
 interface Credentials {
@@ -47,7 +47,8 @@ export default function StudentCreate() {
           password={credentials.password}
         />
         <div className="mt-6 flex gap-3">
-          <button
+          <Button
+            variant="outline" color="secondary"
             onClick={() => {
               setCredentials(null);
               setName("");
@@ -55,16 +56,12 @@ export default function StudentCreate() {
               setPhone("");
               setStandard("");
             }}
-            className="px-4 py-2 border border-gray-300 text-gray-700 text-sm rounded-lg hover:bg-gray-50 transition-colors"
           >
             Create Another
-          </button>
-          <button
-            onClick={() => navigate("/students")}
-            className="px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors"
-          >
+          </Button>
+          <Button color="primary" onClick={() => navigate("/students")}>
             Back to Students
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -134,20 +131,12 @@ export default function StudentCreate() {
           </select>
         </div>
         <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={() => navigate("/students")}
-            className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm hover:bg-gray-50 transition-colors"
-          >
+          <Button type="button" variant="outline" color="secondary" fullWidth onClick={() => navigate("/students")}>
             Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex-1 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors"
-          >
+          </Button>
+          <Button type="submit" color="success" fullWidth disabled={loading}>
             {loading ? "Creating..." : "Create Student"}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

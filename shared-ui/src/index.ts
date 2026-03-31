@@ -51,6 +51,8 @@ export { TableSortHeader } from "./components/DataTable/TableSortHeader";
 export { TablePagination } from "./components/DataTable/TablePagination";
 
 // UI Primitives
+export { PageHeader } from "./components/PageHeader";
+export { Button } from "./components/Button";
 export { LoadingSpinner } from "./components/LoadingSpinner";
 export { ErrorToast } from "./components/ErrorToast";
 export { Toast } from "./components/Toast";

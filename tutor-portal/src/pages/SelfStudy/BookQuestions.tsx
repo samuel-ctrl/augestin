@@ -8,6 +8,7 @@ import {
   useToast,
   MathText,
   extractErrorMessage,
+  Button,
 } from "@shared";
 import type { Question } from "@shared";
 import api from "../../api/client";
@@ -106,24 +107,15 @@ export default function BookQuestions() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate(`/self-study/books/${bookId}/recap`)}
-            className="px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors"
-          >
+          <Button color="secondary" onClick={() => navigate(`/self-study/books/${bookId}/recap`)}>
             📝 Manage Recap
-          </button>
-          <button
-            onClick={() => navigate(`/self-study/books/${bookId}/test`)}
-            className="px-4 py-2 bg-gray-600 text-white text-sm rounded-lg hover:bg-gray-700 transition-colors"
-          >
+          </Button>
+          <Button color="secondary" onClick={() => navigate(`/self-study/books/${bookId}/test`)}>
             📋 Manage Test
-          </button>
-          <button
-            onClick={() => navigate(`/self-study/books/${bookId}/questions/new`)}
-            className="px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors"
-          >
+          </Button>
+          <Button color="success" onClick={() => navigate(`/self-study/books/${bookId}/questions/new`)}>
             + Add Question
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -161,24 +153,24 @@ export default function BookQuestions() {
                     {q.correct_option}
                   </span>
                   <span className="text-xs text-gray-400">{q.time_limit_seconds}s</span>
-                  <button
+                  <Button
+                    variant="ghost" color="primary" size="xs"
                     onClick={(e) => {
                       e.stopPropagation();
                       navigate(`/self-study/questions/${q.id}/edit`);
                     }}
-                    className="text-xs text-primary-500 hover:text-primary-700"
                   >
                     Edit
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost" color="danger" size="xs"
                     onClick={(e) => {
                       e.stopPropagation();
                       setDeleteTarget(q);
                     }}
-                    className="text-xs text-red-400 hover:text-red-600"
                   >
                     Delete
-                  </button>
+                  </Button>
                 </div>
               </div>
 

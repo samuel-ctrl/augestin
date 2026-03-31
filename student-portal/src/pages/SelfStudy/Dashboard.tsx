@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { SubjectTile, EmptyState, LoadingSpinner, extractErrorMessage } from "@shared";
+import { SubjectTile, EmptyState, LoadingSpinner, extractErrorMessage, PageHeader } from "@shared";
 import type { Subject } from "@shared";
 import api from "../../api/client";
 
@@ -42,7 +42,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <h1 className="text-xl font-semibold text-gray-800 mb-6">Self-Study</h1>
+      <PageHeader title="Self-Study" subtitle="Select a subject to start learning" />
 
       {/* Subject Grid */}
       {subjects.length === 0 ? (
@@ -53,9 +53,6 @@ export default function Dashboard() {
         />
       ) : (
         <div>
-          <h2 className="text-sm font-medium text-gray-500 uppercase tracking-wider mb-3">
-            Select a subject to start learning
-          </h2>
           <div className="flex flex-wrap gap-8">
             {subjects.map((subject, index) => (
               <SubjectTile

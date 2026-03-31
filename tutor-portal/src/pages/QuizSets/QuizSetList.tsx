@@ -7,6 +7,8 @@ import {
   Toast,
   useToast,
   extractErrorMessage,
+  Button,
+  PageHeader,
 } from "@shared";
 import type { QuizSet, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
@@ -76,15 +78,14 @@ export default function QuizSetList() {
   return (
     <div>
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Quiz Sets</h1>
-        <button
-          onClick={() => navigate("/quiz-sets/new")}
-          className="px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors"
-        >
-          + New Quiz Set
-        </button>
-      </div>
+      <PageHeader
+        title="Quiz Sets"
+        actions={
+          <Button color="success" onClick={() => navigate("/quiz-sets/new")}>
+            + New Quiz Set
+          </Button>
+        }
+      />
 
       {/* Quiz Sets List */}
       {quizSets.length === 0 ? (
@@ -121,30 +122,18 @@ export default function QuizSetList() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 ml-4 shrink-0">
-                  <button
-                    onClick={() => navigate(`/quiz-sets/${qs.id}/questions`)}
-                    className="text-xs text-primary-500 hover:text-primary-700"
-                  >
+                  <Button variant="ghost" color="primary" size="xs" onClick={() => navigate(`/quiz-sets/${qs.id}/questions`)}>
                     Questions
-                  </button>
-                  <button
-                    onClick={() => navigate(`/quiz-sets/${qs.id}/assign`)}
-                    className="text-xs text-primary-500 hover:text-primary-700"
-                  >
+                  </Button>
+                  <Button variant="ghost" color="primary" size="xs" onClick={() => navigate(`/quiz-sets/${qs.id}/assign`)}>
                     Assign
-                  </button>
-                  <button
-                    onClick={() => navigate(`/quiz-sets/${qs.id}/edit`)}
-                    className="text-xs text-primary-500 hover:text-primary-700"
-                  >
+                  </Button>
+                  <Button variant="ghost" color="primary" size="xs" onClick={() => navigate(`/quiz-sets/${qs.id}/edit`)}>
                     Edit
-                  </button>
-                  <button
-                    onClick={() => setDeleteTarget(qs)}
-                    className="text-xs text-red-400 hover:text-red-600"
-                  >
+                  </Button>
+                  <Button variant="ghost" color="danger" size="xs" onClick={() => setDeleteTarget(qs)}>
                     Delete
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>

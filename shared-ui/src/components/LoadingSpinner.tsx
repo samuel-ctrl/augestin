@@ -6,26 +6,43 @@ interface LoadingSpinnerProps {
 }
 
 export function LoadingSpinner({ fullPage, size = "md" }: LoadingSpinnerProps) {
-  const sizeClasses = {
-    sm: "h-4 w-4",
-    md: "h-8 w-8",
-    lg: "h-12 w-12",
+  const dotSizes = {
+    sm: "w-1.5 h-1.5",
+    md: "w-2.5 h-2.5",
+    lg: "w-3.5 h-3.5",
+  };
+
+  const gapSizes = {
+    sm: "gap-1",
+    md: "gap-1.5",
+    lg: "gap-2",
   };
 
   const spinner = (
-    <svg
-      className={`animate-spin text-primary-500 ${sizeClasses[size]}`}
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-      />
-    </svg>
+    <div className={`flex items-center ${gapSizes[size]}`}>
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className={`${dotSizes[size]} rounded-full bg-primary-500`}
+          style={{
+            animation: "bounceLoader 1.4s ease-in-out infinite",
+            animationDelay: `${i * 0.16}s`,
+          }}
+        />
+      ))}
+      <style>{`
+        @keyframes bounceLoader {
+          0%, 80%, 100% {
+            transform: scale(0.4);
+            opacity: 0.3;
+          }
+          40% {
+            transform: scale(1);
+            opacity: 1;
+          }
+        }
+      `}</style>
+    </div>
   );
 
   if (fullPage) {

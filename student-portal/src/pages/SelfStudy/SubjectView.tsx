@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { BookCard, DataTable, EmptyState, LoadingSpinner, Breadcrumb, extractErrorMessage } from "@shared";
-import type { Subject, Book, BreadcrumbSegment, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
+import { BookCard, DataTable, EmptyState, LoadingSpinner, PageHeader, extractErrorMessage } from "@shared";
+import type { Subject, Book, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
 
@@ -98,43 +98,37 @@ export default function SubjectView() {
   }
   if (!subject) return null;
 
-  const breadcrumbs: BreadcrumbSegment[] = [
-    { label: "Self-Study", path: "/self-study" },
-    { label: subject.name },
-  ];
-
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <Breadcrumb segments={breadcrumbs} />
-          <h1 className="text-xl font-semibold text-gray-800 mt-2">
-            {subject.name}
-          </h1>
-        </div>
-        <div className="flex border-b border-gray-200">
-          <button
-            onClick={() => setViewMode("table")}
-            className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
-              viewMode === "table"
-                ? "border-primary-600 text-primary-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            }`}
-          >
-            Table
-          </button>
-          <button
-            onClick={() => setViewMode("card")}
-            className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
-              viewMode === "card"
-                ? "border-primary-600 text-primary-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            }`}
-          >
-            Cards
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={subject.name}
+        subtitle={`${books.length} book${books.length !== 1 ? "s" : ""}`}
+        backButton={{ label: "Self-Study", onClick: () => navigate("/self-study") }}
+        actions={
+          <div className="flex border-b border-white/20">
+            <button
+              onClick={() => setViewMode("table")}
+              className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+                viewMode === "table"
+                  ? "border-white text-white"
+                  : "border-transparent text-white/60 hover:text-white/80"
+              }`}
+            >
+              Table
+            </button>
+            <button
+              onClick={() => setViewMode("card")}
+              className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors ${
+                viewMode === "card"
+                  ? "border-white text-white"
+                  : "border-transparent text-white/60 hover:text-white/80"
+              }`}
+            >
+              Cards
+            </button>
+          </div>
+        }
+      />
 
       {viewMode === "table" ? (
         <DataTable<Book>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { LoadingSpinner, EmptyState, Toast, useToast, ConfirmDialog, Breadcrumb } from "@shared";
+import { LoadingSpinner, EmptyState, Toast, useToast, ConfirmDialog, Breadcrumb, Button } from "@shared";
 import api from "../../api/client";
 
 interface Book {
@@ -197,13 +197,9 @@ export default function BookTestPage() {
       <div className="mt-6 mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Manage Test</h1>
         {test && (
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            disabled={deleting}
-            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
-          >
+          <Button color="danger" onClick={() => setShowDeleteConfirm(true)} disabled={deleting}>
             {deleting ? "Deleting..." : "Delete Test"}
-          </button>
+          </Button>
         )}
       </div>
 
@@ -252,13 +248,9 @@ export default function BookTestPage() {
             />
           </div>
 
-          <button
-            onClick={handleSaveTest}
-            disabled={submitting || !driveLink.trim()}
-            className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors"
-          >
+          <Button color="primary" onClick={handleSaveTest} disabled={submitting || !driveLink.trim()}>
             {submitting ? "Saving..." : "Save Test"}
-          </button>
+          </Button>
         </div>
       </div>
 

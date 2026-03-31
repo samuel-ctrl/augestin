@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { VideoPlayer, LoadingSpinner, EmptyState, MathText, RecapViewer, extractErrorMessage } from "@shared";
+import { VideoPlayer, LoadingSpinner, EmptyState, MathText, RecapViewer, extractErrorMessage, Button } from "@shared";
 import type { Book, Subject, Question } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
@@ -181,12 +181,9 @@ export default function BookPreview() {
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Recap</h2>
-            <button
-              onClick={() => navigate(`/self-study/books/${bookId}/recap`)}
-              className="px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors"
-            >
+            <Button color={recap ? "primary" : "success"} onClick={() => navigate(`/self-study/books/${bookId}/recap`)}>
               {recap ? "Edit Recap" : "Create Recap"}
-            </button>
+            </Button>
           </div>
           {recap ? (
             <RecapViewer content={recap.content} title={recap.title} />
@@ -204,12 +201,9 @@ export default function BookPreview() {
         <div className="bg-white rounded-lg border border-gray-200 p-6">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Test</h2>
-            <button
-              onClick={() => navigate(`/self-study/books/${bookId}/test`)}
-              className="px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors"
-            >
+            <Button color={test ? "primary" : "success"} onClick={() => navigate(`/self-study/books/${bookId}/test`)}>
               {test ? "Manage Test" : "Create Test"}
-            </button>
+            </Button>
           </div>
           {test ? (
             <div>

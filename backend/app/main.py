@@ -64,13 +64,13 @@ app.add_middleware(
 )
 app.add_middleware(AuthMiddleware)
 
-# Routers — quiz_sets before students so /api/students/quiz-sets
-# doesn't get matched by students' /{student_id} route
+# Routers — books and quiz_sets before students so /api/students/books
+# and /api/students/quiz-sets don't get matched by students' /{student_id} route
 app.include_router(auth.router)
+app.include_router(books.router)
 app.include_router(quiz_sets.router)
 app.include_router(students.router)
 app.include_router(subjects.router)
-app.include_router(books.router)
 app.include_router(assignments.router)
 app.include_router(progress.router)
 app.include_router(quiz.router)

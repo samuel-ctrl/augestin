@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { extractErrorMessage } from "@shared";
+import { extractErrorMessage, Button } from "@shared";
 import api from "../api/client";
 
 export default function ChangePassword() {
@@ -92,13 +92,9 @@ export default function ChangePassword() {
             />
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 disabled:opacity-50 transition-colors"
-          >
+          <Button type="submit" color="primary" fullWidth disabled={loading}>
             {loading ? "Changing..." : "Set New Password"}
-          </button>
+          </Button>
         </form>
       </div>
     </div>

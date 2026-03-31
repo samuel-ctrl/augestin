@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { SubjectTile, EmptyState, LoadingSpinner, ConfirmDialog, Toast, useToast, extractErrorMessage } from "@shared";
+import { SubjectTile, EmptyState, LoadingSpinner, ConfirmDialog, Toast, useToast, extractErrorMessage, Button, PageHeader } from "@shared";
 import type { Subject } from "@shared";
 import api from "../../api/client";
 import SubjectForm from "../../components/SubjectForm";
@@ -99,26 +99,22 @@ export default function Dashboard() {
     <div>
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
 
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Self-Study</h1>
-          <p className="text-sm text-gray-500 mt-1">
-            {subjects.length > 0
-              ? `${subjects.length} subject${subjects.length !== 1 ? "s" : ""}`
-              : "Manage your study subjects and books"}
-          </p>
-        </div>
-        <button
-          onClick={() => setShowCreateForm(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors shadow-sm"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          Add Subject
-        </button>
-      </div>
+      <PageHeader
+        title="Self-Study"
+        subtitle={
+          subjects.length > 0
+            ? `${subjects.length} subject${subjects.length !== 1 ? "s" : ""}`
+            : "Manage your study subjects and books"
+        }
+        actions={
+          <Button color="success" onClick={() => setShowCreateForm(true)}>
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Subject
+          </Button>
+        }
+      />
 
       {subjects.length === 0 ? (
         <EmptyState

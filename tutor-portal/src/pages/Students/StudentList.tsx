@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { DataTable, ConfirmDialog, Toast, useToast, extractErrorMessage, standardOptions } from "@shared";
+import { DataTable, ConfirmDialog, Toast, useToast, extractErrorMessage, standardOptions, Button, PageHeader } from "@shared";
 import type { Student, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
 
@@ -58,15 +58,14 @@ export default function StudentList() {
   return (
     <div>
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-semibold text-gray-800">Students</h1>
-        <button
-          onClick={() => navigate("/students/new")}
-          className="px-4 py-2 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors"
-        >
-          + Add Student
-        </button>
-      </div>
+      <PageHeader
+        title="Students"
+        actions={
+          <Button color="success" onClick={() => navigate("/students/new")}>
+            + Add Student
+          </Button>
+        }
+      />
 
       <DataTable<Student>
         key={refreshKey}
@@ -78,12 +77,9 @@ export default function StudentList() {
         onRowClick={(student) => navigate(`/students/${student.id}`)}
         rowKey={(s) => s.id}
         actions={(student) => (
-          <button
-            onClick={() => setDeleteTarget(student)}
-            className="text-red-500 hover:text-red-700 text-sm"
-          >
+          <Button variant="ghost" color="danger" size="xs" onClick={() => setDeleteTarget(student)}>
             Delete
-          </button>
+          </Button>
         )}
       />
 

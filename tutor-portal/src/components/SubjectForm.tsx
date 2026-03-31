@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { IconPicker } from "@shared";
+import { IconPicker, Button } from "@shared";
 
 interface SubjectFormProps {
   open: boolean;
@@ -85,28 +85,12 @@ export default function SubjectForm({
 
           {/* Footer */}
           <div className="flex justify-end gap-3 pt-3 border-t border-gray-100">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="px-4 py-2.5 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 text-gray-700 transition-colors"
-            >
+            <Button type="button" variant="outline" color="secondary" onClick={onCancel}>
               Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={loading || !name.trim()}
-              className="px-5 py-2.5 text-sm font-medium bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
-            >
-              {loading ? (
-                <span className="inline-flex items-center gap-2">
-                  <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Saving...
-                </span>
-              ) : isEdit ? "Update" : "Create"}
-            </button>
+            </Button>
+            <Button type="submit" color={isEdit ? "primary" : "success"} disabled={loading || !name.trim()}>
+              {loading ? "Saving..." : isEdit ? "Update" : "Create"}
+            </Button>
           </div>
         </form>
       </div>

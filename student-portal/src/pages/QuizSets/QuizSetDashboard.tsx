@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage } from "@shared";
+import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage, PageHeader } from "@shared";
 import type { AssignedQuizSet } from "@shared";
 import api from "../../api/client";
 
@@ -40,12 +40,10 @@ export default function QuizSetDashboard() {
   return (
     <div>
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Quiz Sets</h1>
-        <p className="text-sm text-gray-500 mt-1">
-          Available quiz sets assigned to you
-        </p>
-      </div>
+      <PageHeader
+        title="Quiz Sets"
+        subtitle="Available quiz sets assigned to you"
+      />
 
       {quizSets.length === 0 ? (
         <EmptyState

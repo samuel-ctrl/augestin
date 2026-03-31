@@ -4,6 +4,7 @@ import { AppLayout, ProtectedRoute } from "@shared";
 import { sidebarItems } from "./config/sidebar";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
+import TutorDashboard from "./pages/TutorDashboard";
 import Dashboard from "./pages/SelfStudy/Dashboard";
 import SubjectBooks from "./pages/SelfStudy/SubjectBooks";
 import BookForm from "./pages/SelfStudy/BookForm";
@@ -38,6 +39,7 @@ function AuthenticatedApp() {
         onLogout={logout}
       >
         <Routes>
+          <Route path="/dashboard" element={<TutorDashboard />} />
           <Route path="/self-study" element={<Dashboard />} />
           <Route path="/self-study/subjects/:id" element={<SubjectBooks />} />
           <Route path="/self-study/books/new" element={<BookForm />} />
@@ -58,7 +60,7 @@ function AuthenticatedApp() {
           <Route path="/students" element={<StudentList />} />
           <Route path="/students/new" element={<StudentCreate />} />
           <Route path="/students/:id" element={<StudentDetail />} />
-          <Route path="/" element={<Navigate to="/self-study" replace />} />
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>
