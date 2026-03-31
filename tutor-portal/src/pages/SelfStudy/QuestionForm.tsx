@@ -24,9 +24,15 @@ export default function QuestionForm() {
   const [correctOption, setCorrectOption] = useState("A");
   const [explanation, setExplanation] = useState("");
   const [timeLimitSeconds, setTimeLimitSeconds] = useState(60);
+  const [questionImageUrl, setQuestionImageUrl] = useState("");
+  const [optionAImageUrl, setOptionAImageUrl] = useState("");
+  const [optionBImageUrl, setOptionBImageUrl] = useState("");
+  const [optionCImageUrl, setOptionCImageUrl] = useState("");
+  const [optionDImageUrl, setOptionDImageUrl] = useState("");
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
+  const [showImageFields, setShowImageFields] = useState(false);
   const { toast, showApiError, dismiss } = useToast();
 
   useEffect(() => {
@@ -48,6 +54,14 @@ export default function QuestionForm() {
           setCorrectOption(q.correct_option);
           setExplanation(q.explanation || "");
           setTimeLimitSeconds(q.time_limit_seconds);
+          setQuestionImageUrl(q.question_image_url || "");
+          setOptionAImageUrl(q.option_a_image_url || "");
+          setOptionBImageUrl(q.option_b_image_url || "");
+          setOptionCImageUrl(q.option_c_image_url || "");
+          setOptionDImageUrl(q.option_d_image_url || "");
+          if (q.question_image_url || q.option_a_image_url || q.option_b_image_url || q.option_c_image_url || q.option_d_image_url) {
+            setShowImageFields(true);
+          }
         })
         .catch((err) => {
           showApiError(err, "Failed to load question.");
@@ -78,10 +92,15 @@ export default function QuestionForm() {
 
     const payload = {
       question_text: questionText,
+      question_image_url: questionImageUrl || null,
       option_a: optionA,
+      option_a_image_url: optionAImageUrl || null,
       option_b: optionB,
+      option_b_image_url: optionBImageUrl || null,
       option_c: optionC,
+      option_c_image_url: optionCImageUrl || null,
       option_d: optionD,
+      option_d_image_url: optionDImageUrl || null,
       correct_option: correctOption,
       explanation: explanation || null,
       time_limit_seconds: timeLimitSeconds,
@@ -168,13 +187,43 @@ export default function QuestionForm() {
           )}
         </div>
 
+        {/* Question Image URL */}
+        <div>
+          <button
+            type="button"
+            onClick={() => setShowImageFields(!showImageFields)}
+            className="text-sm text-primary-600 hover:text-primary-700 flex items-center gap-1"
+          >
+            <svg className={`w-4 h-4 transition-transform ${showImageFields ? "rotate-90" : ""}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+            {showImageFields ? "Hide Image Fields" : "Add Images (optional)"}
+          </button>
+        </div>
+
+        {showImageFields && (
+          <div className="p-4 bg-gray-50 rounded-lg border border-gray-200 space-y-3">
+            <p className="text-xs text-gray-500">Paste Google Drive image URLs or any direct image URL.</p>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Question Image URL</label>
+              <input
+                type="url"
+                value={questionImageUrl}
+                onChange={(e) => setQuestionImageUrl(e.target.value)}
+                placeholder="https://drive.google.com/..."
+                className={inputClass}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Options */}
         {[
-          { label: "Option A *", value: optionA, setter: setOptionA },
-          { label: "Option B *", value: optionB, setter: setOptionB },
-          { label: "Option C *", value: optionC, setter: setOptionC },
-          { label: "Option D *", value: optionD, setter: setOptionD },
-        ].map(({ label, value, setter }) => (
+          { label: "Option A *", value: optionA, setter: setOptionA, imgValue: optionAImageUrl, imgSetter: setOptionAImageUrl },
+          { label: "Option B *", value: optionB, setter: setOptionB, imgValue: optionBImageUrl, imgSetter: setOptionBImageUrl },
+          { label: "Option C *", value: optionC, setter: setOptionC, imgValue: optionCImageUrl, imgSetter: setOptionCImageUrl },
+          { label: "Option D *", value: optionD, setter: setOptionD, imgValue: optionDImageUrl, imgSetter: setOptionDImageUrl },
+        ].map(({ label, value, setter, imgValue, imgSetter }) => (
           <div key={label}>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               {label}
@@ -190,6 +239,17 @@ export default function QuestionForm() {
             {showPreview && value && (
               <div className="mt-1 p-2 bg-gray-50 rounded text-sm border border-gray-200">
                 <MathText text={value} />
+              </div>
+            )}
+            {showImageFields && (
+              <div className="mt-1">
+                <input
+                  type="url"
+                  value={imgValue}
+                  onChange={(e) => imgSetter(e.target.value)}
+                  placeholder="Image URL for this option (optional)"
+                  className={`${inputClass} text-xs`}
+                />
               </div>
             )}
           </div>

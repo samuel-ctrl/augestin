@@ -276,17 +276,24 @@ async def get_quiz_session_endpoint(
         for q in session["questions"]:
             qid = str(q.id)
             student_answer = answers.get(qid)
+            is_skipped = skipped.get(qid, False)
             review.append(ReviewQuestionOut(
                 id=qid,
                 question_text=q.question_text,
+                question_image_url=q.question_image_url,
                 option_a=q.option_a,
+                option_a_image_url=q.option_a_image_url,
                 option_b=q.option_b,
+                option_b_image_url=q.option_b_image_url,
                 option_c=q.option_c,
+                option_c_image_url=q.option_c_image_url,
                 option_d=q.option_d,
+                option_d_image_url=q.option_d_image_url,
                 correct_option=q.correct_option,
                 explanation=q.explanation,
                 selected_option=student_answer,
                 is_correct=student_answer == q.correct_option if student_answer else False,
+                is_skipped=is_skipped,
             ))
 
     return QuizSessionOut(

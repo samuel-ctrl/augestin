@@ -41,10 +41,10 @@ export default function HomeDashboard() {
 
         // Fetch assigned books with their progress
         const booksRes = await api.get<{ items: any[] }>("/students/books");
-        const quizSetsRes = await api.get<{ items: AssignedQuizSet[] }>("/students/quiz-sets");
+        const quizSetsRes = await api.get<AssignedQuizSet[]>("/students/quiz-sets");
 
         const books = booksRes.data.items || [];
-        const quizSets = quizSetsRes.data.items || [];
+        const quizSets = Array.isArray(quizSetsRes.data) ? quizSetsRes.data : [];
 
         // Separate books into pending and continue watching
         const pending: PendingQuiz[] = [];

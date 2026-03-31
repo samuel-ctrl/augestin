@@ -1,13 +1,16 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from sqlalchemy import select
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from sqlalchemy import func as sa_func
 
-from app.dependencies import get_current_user, get_db, require_tutor
+from app.dependencies import get_current_user, get_db, require_student, require_tutor
+from app.models.book import Book
+from app.models.book_assignment import BookAssignment
 from app.models.question import Question
+from app.models.quiz_progress import QuizProgress
 from app.models.user import User, UserType
 from app.schemas.book import BookCreateRequest, BookOut, BookUpdateRequest
 from app.schemas.pagination import PaginatedResponse
@@ -175,3 +178,71 @@ async def delete_book_endpoint(
     if book is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
     await delete_book(db, book)
+
+
+# --- /api/students/books ---
+
+@router.get("/api/students/books")
+async def list_student_books(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """List books assigned to the current student with quiz progress."""
+    student = require_student(request)
+
+    query = (
+        select(Book, QuizProgress)
+        .join(BookAssignment, Book.id == BookAssignment.book_id)
+        .outerjoin(
+            QuizProgress,
+            and_(
+                QuizProgress.book_id == Book.id,
+                QuizProgress.quiz_source == "book",
+                QuizProgress.student_id == student.id,
+            )
+        )
+        .where(BookAssignment.student_id == student.id)
+        .order_by(Book.created_at.desc())
+    )
+
+    results = (await db.execute(query)).all()
+
+    # Gather book IDs for question count query
+    book_ids = [row[0].id for row in results]
+    q_counts: dict = {}
+    if book_ids:
+        count_result = await db.execute(
+            select(Question.book_id, sa_func.count(Question.id))
+            .where(Question.book_id.in_(book_ids))
+            .group_by(Question.book_id)
+        )
+        q_counts = dict(count_result.all())
+
+    items = []
+    for row in results:
+        book = row[0]
+        progress = row[1]
+
+        progress_dict = None
+        if progress:
+            progress_dict = {
+                "is_started": progress.is_started,
+                "is_completed": progress.is_completed,
+                "correct_count": progress.correct_count,
+                "skipped_count": progress.skipped_count,
+                "total_questions": progress.total_questions,
+                "score_percentage": progress.score_percentage,
+            }
+
+        items.append({
+            "id": str(book.id),
+            "title": book.title,
+            "description": book.description,
+            "thumbnail_url": book.thumbnail_url,
+            "standard": book.standard,
+            "subject_id": str(book.subject_id),
+            "question_count": q_counts.get(book.id, 0),
+            "progress": progress_dict,
+        })
+
+    return {"items": items}

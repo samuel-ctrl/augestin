@@ -124,14 +124,20 @@ class ReviewQuestionOut(BaseModel):
     """Question with correct answer + student's answer — for completed quiz review."""
     id: str
     question_text: str
+    question_image_url: str | None = None
     option_a: str
+    option_a_image_url: str | None = None
     option_b: str
+    option_b_image_url: str | None = None
     option_c: str
+    option_c_image_url: str | None = None
     option_d: str
+    option_d_image_url: str | None = None
     correct_option: str
     explanation: str | None = None
     selected_option: str | None = None  # what the student picked
     is_correct: bool = False
+    is_skipped: bool = False
 
     model_config = {"from_attributes": True}
 
