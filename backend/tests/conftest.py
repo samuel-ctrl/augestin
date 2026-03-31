@@ -1,7 +1,12 @@
 import asyncio
 import os
+import sqlite3
 import uuid
 from typing import AsyncGenerator
+
+# Register UUID adapter for SQLite BEFORE anything else
+sqlite3.register_adapter(uuid.UUID, lambda u: u.hex)
+sqlite3.register_converter("UUID", lambda b: uuid.UUID(b.decode()))
 
 # Set env vars BEFORE importing app modules
 os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
@@ -10,6 +15,7 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.pool import StaticPool
 
 from app.database import Base, get_db
 from app.models.user import User, UserType
@@ -20,11 +26,16 @@ from app.models.watch_progress import WatchProgress
 from app.utils.jwt import create_token
 from app.utils.password import hash_password
 
-# Use SQLite for testing
+# Use SQLite for testing — StaticPool ensures all connections share the same
+# in-memory database so the auth middleware can see fixture-created data.
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 
-
-engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+engine = create_async_engine(
+    TEST_DATABASE_URL,
+    echo=False,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
 TestSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
@@ -59,10 +70,24 @@ async def db() -> AsyncGenerator[AsyncSession, None]:
 @pytest_asyncio.fixture
 async def app():
     """Create a FastAPI app with overridden dependencies."""
+    import app.database as _db_module
+    import app.middleware.auth as _auth_module
     from app.main import app as _app
+
     _app.dependency_overrides[get_db] = override_get_db
+
+    # Patch async_session in both the database module and the auth middleware
+    # so all DB access (routes + middleware) uses the same test database.
+    original_db_session = _db_module.async_session
+    original_auth_session = _auth_module.async_session
+    _db_module.async_session = TestSessionLocal
+    _auth_module.async_session = TestSessionLocal
+
     yield _app
+
     _app.dependency_overrides.clear()
+    _db_module.async_session = original_db_session
+    _auth_module.async_session = original_auth_session
 
 
 @pytest_asyncio.fixture
@@ -103,7 +128,7 @@ async def student(db: AsyncSession, tutor: User) -> User:
         user_type=UserType.student,
         standard="5",
         must_change_password=False,
-        created_by=tutor.id,
+        created_by=str(tutor.id),
     )
     db.add(user)
     await db.commit()
@@ -122,7 +147,7 @@ async def student_must_change(db: AsyncSession, tutor: User) -> User:
         password_hash=hash_password("Stu@temp"),
         user_type=UserType.student,
         must_change_password=True,
-        created_by=tutor.id,
+        created_by=str(tutor.id),
     )
     db.add(user)
     await db.commit()
@@ -137,7 +162,7 @@ async def subject(db: AsyncSession, tutor: User) -> Subject:
         id=uuid.uuid4(),
         name="Mathematics",
         icon="calculator",
-        created_by=tutor.id,
+        created_by=str(tutor.id),
     )
     db.add(subj)
     await db.commit()
@@ -156,7 +181,7 @@ async def book(db: AsyncSession, subject: Subject, tutor: User) -> Book:
         standard="5",
         sort_order=1,
         subject_id=subject.id,
-        created_by=tutor.id,
+        created_by=str(tutor.id),
     )
     db.add(b)
     await db.commit()

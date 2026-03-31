@@ -320,7 +320,10 @@ async def reorder_quiz_set_questions(
     require_tutor(request)
 
     try:
-        await reorder_questions(db, quiz_set_id=quiz_set_id, question_ids=body.question_ids)
+        await reorder_questions(
+            db, quiz_set_id=quiz_set_id,
+            question_ids=[uuid.UUID(qid) for qid in body.question_ids],
+        )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return {"status": "ok"}
@@ -484,7 +487,10 @@ async def get_quiz_set_quiz_session(
     """Get quiz session for a student."""
     student = require_student(request)
 
-    return await get_quiz_session(db, student.id, "quiz_set", quiz_set_id)
+    try:
+        return await get_quiz_session(db, student.id, "quiz_set", quiz_set_id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.post("/api/quiz-sets/{quiz_set_id}/quiz/start")
@@ -496,7 +502,10 @@ async def start_quiz_set_quiz(
     """Start or resume a quiz set quiz."""
     student = require_student(request)
 
-    return await start_quiz(db, student.id, "quiz_set", quiz_set_id)
+    try:
+        return await start_quiz(db, student.id, "quiz_set", quiz_set_id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.post("/api/quiz-sets/{quiz_set_id}/quiz/submit")
@@ -512,7 +521,7 @@ async def submit_quiz_set_answer(
     try:
         return await submit_answer(
             db, student.id, "quiz_set", quiz_set_id,
-            question_id=body.question_id,
+            question_id=uuid.UUID(body.question_id),
             selected_option=body.selected_option,
             is_skipped=body.is_skipped,
             time_taken_seconds=body.time_taken_seconds,
@@ -530,7 +539,10 @@ async def complete_quiz_set_quiz(
     """Complete a quiz set quiz."""
     student = require_student(request)
 
-    return await complete_quiz(db, student.id, "quiz_set", quiz_set_id)
+    try:
+        return await complete_quiz(db, student.id, "quiz_set", quiz_set_id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 @router.get("/api/quiz-sets/{quiz_set_id}/quiz/progress")
@@ -542,7 +554,10 @@ async def get_quiz_set_quiz_progress(
     """Get current progress only."""
     student = require_student(request)
 
-    return await get_quiz_progress(db, student.id, "quiz_set", quiz_set_id)
+    try:
+        return await get_quiz_progress(db, student.id, "quiz_set", quiz_set_id)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
 
 # ============================================================================

@@ -485,8 +485,12 @@ async def submit_answer(
     if progress.is_completed:
         raise ValueError("Quiz already completed")
 
-    # Check time expired
-    elapsed = (datetime.now(timezone.utc) - progress.started_at).total_seconds()
+    # Check time expired — handle both naive and aware datetimes (SQLite vs PostgreSQL)
+    now = datetime.now(timezone.utc)
+    started = progress.started_at
+    if started.tzinfo is None:
+        started = started.replace(tzinfo=timezone.utc)
+    elapsed = (now - started).total_seconds()
     if elapsed > progress.total_time_seconds:
         await _finalize_quiz(db, progress)
         raise ValueError("Quiz time expired")
