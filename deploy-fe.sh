@@ -12,8 +12,8 @@ echo "========================================"
 # Step 1: Sync shared-ui
 echo ""
 echo "[1/4] Syncing shared-ui to both portals..."
-rm -rf tutor-portal/shared-ui && cp -r shared-ui tutor-portal/shared-ui
-rm -rf student-portal/shared-ui && cp -r shared-ui student-portal/shared-ui
+rm -rf tutor-portal/shared-ui && cp -r shared-ui tutor-portal/shared-ui && rm -rf tutor-portal/shared-ui/node_modules
+rm -rf student-portal/shared-ui && cp -r shared-ui student-portal/shared-ui && rm -rf student-portal/shared-ui/node_modules
 echo "  Done."
 
 # Step 2: Set production env

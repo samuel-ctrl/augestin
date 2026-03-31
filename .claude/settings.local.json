@@ -10,7 +10,8 @@
       "Bash(python -c \":*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(python -m pytest tests/test_test.py -x --tb=short)"
     ]
   }
 }

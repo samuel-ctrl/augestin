@@ -1,12 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { VideoPlayer, Breadcrumb, LoadingSpinner, EmptyState, extractErrorMessage } from "@shared";
+import { VideoPlayer, Breadcrumb, LoadingSpinner, EmptyState, RecapViewer, extractErrorMessage } from "@shared";
 import type { Book, Subject, BreadcrumbSegment } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
 import QuizPanel from "./QuizPanel";
 
-type Tab = "record" | "quiz" | "test";
+type Tab = "record" | "quiz" | "recap" | "test";
 
 export default function BookView() {
   const { id: bookId } = useParams<{ id: string }>();
@@ -16,6 +16,7 @@ export default function BookView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>("record");
+  const [recap, setRecap] = useState<any | null>(null);
   const [test, setTest] = useState<any | null>(null);
   const [testLoading, setTestLoading] = useState(false);
   const [testSubmitted, setTestSubmitted] = useState(false);
@@ -44,8 +45,12 @@ export default function BookView() {
       const bookData = bookRes.data;
       setBook(bookData);
 
-      const subjectRes = await api.get(`/subjects/${bookData.subject_id}`);
+      const [subjectRes, recapRes] = await Promise.all([
+        api.get(`/subjects/${bookData.subject_id}`),
+        api.get(`/books/${bookId}/recap`).catch(() => ({ data: null })),
+      ]);
       setSubject(subjectRes.data);
+      setRecap(recapRes.data);
 
       // Fetch test data in parallel
       if (bookId) {
@@ -135,6 +140,18 @@ export default function BookView() {
             Quiz
           </button>
         )}
+        {recap && (
+          <button
+            onClick={() => setActiveTab("recap")}
+            className={`px-4 py-2 text-sm rounded-lg font-medium transition-colors ${
+              activeTab === "recap"
+                ? "bg-primary-600 text-white"
+                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+            }`}
+          >
+            Recap
+          </button>
+        )}
         {test && !testLoading ? (
           <button
             onClick={() => setActiveTab("test")}
@@ -176,6 +193,12 @@ export default function BookView() {
 
       {activeTab === "quiz" && (
         <QuizPanel quizSource="book" quizId={bookId!} />
+      )}
+
+      {activeTab === "recap" && recap && (
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <RecapViewer content={recap.content} title={recap.title} />
+        </div>
       )}
 
       {activeTab === "test" && test && (

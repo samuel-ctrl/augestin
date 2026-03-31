@@ -179,7 +179,6 @@ async def book(db: AsyncSession, subject: Subject, tutor: User) -> Book:
         description="Introduction to algebra",
         video_url="https://drive.google.com/file/d/abc123/view",
         standard="5",
-        sort_order=1,
         subject_id=subject.id,
         created_by=str(tutor.id),
     )
