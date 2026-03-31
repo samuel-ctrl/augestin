@@ -132,7 +132,7 @@ export function DataTable<T>({
                 <tr
                   key={rowKey ? rowKey(row) : idx}
                   className={`${onRowClick ? "cursor-pointer" : ""} hover:bg-gray-50 transition-colors duration-150`}
-                  style={{ backgroundColor: idx % 2 === 0 ? "rgb(205, 205, 205)" : "rgb(173, 200, 255)" }}
+                  style={{ backgroundColor: idx % 2 === 0 ? "#fff" : "rgb(226 226 226 / 85%)" }}
                   onClick={() => onRowClick?.(row)}
                 >
                   {columns.map((col) => {
