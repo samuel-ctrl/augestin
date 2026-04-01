@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useBlocker } from "react-router-dom";
 import { LoadingSpinner, EmptyState, Toast, useToast, ConfirmDialog, Breadcrumb, RecapViewer, Button } from "@shared";
 import api from "../../api/client";
 import RecapEditor from "../../components/RecapEditor";
@@ -30,7 +30,21 @@ export default function BookRecap() {
   const [deleting, setDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const titleRef = useRef<string>("");
+
+  // Block in-app navigation when there are unsaved changes
+  const blocker = useBlocker(hasUnsavedChanges);
+
+  // Block browser tab close/refresh when there are unsaved changes
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   // Detect mobile on mount and on resize
   useEffect(() => {
@@ -175,10 +189,22 @@ export default function BookRecap() {
           bookId={bookId!}
           onSave={handleSave}
           onTitleChange={handleTitleChange}
+          onDirtyChange={setHasUnsavedChanges}
           initialTitle={recap?.title}
           initialContent={recap?.content}
         />
       )}
+
+      {/* Unsaved Changes Confirmation */}
+      <ConfirmDialog
+        open={blocker.state === "blocked"}
+        title="Unsaved Changes"
+        message="Have you saved your changes?"
+        confirmLabel="Yes, leave"
+        cancelLabel="No, stay"
+        onConfirm={() => blocker.proceed?.()}
+        onCancel={() => blocker.reset?.()}
+      />
 
       {/* Delete Confirmation */}
       <ConfirmDialog

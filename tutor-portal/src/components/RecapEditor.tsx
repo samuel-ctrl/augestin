@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Image from "@tiptap/extension-image";
@@ -6,39 +6,13 @@ import Link from "@tiptap/extension-link";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
 import Blockquote from "@tiptap/extension-blockquote";
 import CodeBlock from "@tiptap/extension-code-block";
-import { LoadingSpinner } from "@shared";
-
-// Debounce helper function
-function useDebounce(callback: (...args: any[]) => void, delay: number) {
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
-
-  const debouncedCallback = useCallback(
-    (...args: any[]) => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-      timeoutRef.current = setTimeout(() => {
-        callback(...args);
-      }, delay);
-    },
-    [callback, delay]
-  );
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, []);
-
-  return debouncedCallback;
-}
+import { LoadingSpinner, Button } from "@shared";
 
 interface RecapEditorProps {
   bookId: string;
   onSave: (content: any) => Promise<void>;
   onTitleChange?: (title: string) => void;
+  onDirtyChange?: (dirty: boolean) => void;
   initialTitle?: string;
   initialContent?: any;
 }
@@ -47,6 +21,7 @@ export default function RecapEditor({
   bookId,
   onSave,
   onTitleChange,
+  onDirtyChange,
   initialTitle,
   initialContent,
 }: RecapEditorProps) {
@@ -55,8 +30,7 @@ export default function RecapEditor({
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Debounced save function
-  const performSave = useCallback(async (editorInstance: any) => {
+  const handleSave = useCallback(async (editorInstance: any) => {
     if (!editorInstance || editorInstance.getHTML().trim() === "<p></p>") {
       return;
     }
@@ -75,17 +49,15 @@ export default function RecapEditor({
         return;
       }
 
-      // Save both content and title
       await onSave(content);
       setLastSaved(new Date().toLocaleTimeString());
+      onDirtyChange?.(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to save");
     } finally {
       setSaving(false);
     }
-  }, [onSave]);
-
-  const debouncedSave = useDebounce(performSave, 2000);
+  }, [onSave, onDirtyChange]);
 
   const editor = useEditor({
     extensions: [
@@ -110,9 +82,8 @@ export default function RecapEditor({
     ],
     content: initialContent || "<p>Start typing your recap notes here...</p>",
     autofocus: "end",
-    onUpdate: ({ editor: editorInstance }) => {
-      // Debounced autosave: waits 2 seconds after last edit to save
-      debouncedSave(editorInstance as any);
+    onUpdate: () => {
+      onDirtyChange?.(true);
     },
   });
 
@@ -335,7 +306,13 @@ export default function RecapEditor({
             </>
           )}
         </div>
-        <span className="text-gray-400">Auto-saves 2 seconds after you stop editing</span>
+        <Button
+          color="primary"
+          onClick={() => handleSave(editor)}
+          disabled={saving}
+        >
+          {saving ? "Saving..." : "Save"}
+        </Button>
       </div>
     </div>
   );
