@@ -12,6 +12,11 @@ import SubjectView from "./pages/SelfStudy/SubjectView";
 import BookView from "./pages/SelfStudy/BookView";
 import QuizSetDashboard from "./pages/QuizSets/QuizSetDashboard";
 import QuizSetView from "./pages/QuizSets/QuizSetView";
+import TestSetDashboard from "./pages/TestSets/TestSetDashboard";
+import TestSetView from "./pages/TestSets/TestSetView";
+import DoubtList from "./pages/Doubts/DoubtList";
+import DoubtCreate from "./pages/Doubts/DoubtCreate";
+import DoubtDetail from "./pages/Doubts/DoubtDetail";
 import Profile from "./pages/Profile";
 
 function AuthenticatedApp() {
@@ -38,6 +43,11 @@ function AuthenticatedApp() {
           <Route path="/self-study/books/:id" element={<BookView />} />
           <Route path="/quiz-sets" element={<QuizSetDashboard />} />
           <Route path="/quiz-sets/:id" element={<QuizSetView />} />
+          <Route path="/test-sets" element={<TestSetDashboard />} />
+          <Route path="/test-sets/:id" element={<TestSetView />} />
+          <Route path="/doubts" element={<DoubtList />} />
+          <Route path="/doubts/new" element={<DoubtCreate />} />
+          <Route path="/doubts/:id" element={<DoubtDetail />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

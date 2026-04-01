@@ -29,6 +29,16 @@ export const sidebarItems: NavItem[] = [
     icon: "🧩",
   },
   {
+    path: "/test-sets",
+    label: "Test Sets",
+    icon: "📝",
+  },
+  {
+    path: "/doubts",
+    label: "Doubts",
+    icon: "💬",
+  },
+  {
     path: "/profile",
     label: "Profile",
     icon: createElement(ProfileIcon),

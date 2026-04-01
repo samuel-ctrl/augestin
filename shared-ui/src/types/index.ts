@@ -225,3 +225,84 @@ export interface TestSubmissionStatus {
   has_submitted: boolean;
   submitted_at?: string;
 }
+
+// ============================================================================
+// Test Sets (Standalone)
+// ============================================================================
+
+export interface TestSet {
+  id: string;
+  name: string;
+  description?: string;
+  thumbnail_url?: string;
+  created_by: string;
+  file_count: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface TestSetFile {
+  id: string;
+  test_set_id: string;
+  file_name: string;
+  drive_link: string;
+  instructions?: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface TestSetDetail extends TestSet {
+  files: TestSetFile[];
+}
+
+export interface TestSetAssignment {
+  id: string;
+  test_set_id: string;
+  student_id: string;
+  student_name: string;
+  student_login_id: string;
+  created_at: string;
+}
+
+export interface AssignedTestSet {
+  id: string;
+  name: string;
+  description?: string;
+  thumbnail_url?: string;
+  file_count: number;
+  files: TestSetFile[];
+  submission_status?: { has_submitted: boolean; submitted_at?: string };
+}
+
+// ============================================================================
+// Doubts
+// ============================================================================
+
+export interface Doubt {
+  id: string;
+  title: string;
+  description: string;
+  status: "open" | "resolved" | "closed";
+  student_id: string;
+  student_name: string;
+  book_id?: string;
+  book_title?: string;
+  comment_count: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface DoubtComment {
+  id: string;
+  doubt_id: string;
+  user_id: string;
+  user_name: string;
+  user_type: "student" | "tutor";
+  content: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface DoubtDetail extends Doubt {
+  comments: DoubtComment[];
+}

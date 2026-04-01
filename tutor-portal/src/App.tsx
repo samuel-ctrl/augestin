@@ -18,6 +18,13 @@ import QuizSetList from "./pages/QuizSets/QuizSetList";
 import QuizSetForm from "./pages/QuizSets/QuizSetForm";
 import QuizSetQuestions from "./pages/QuizSets/QuizSetQuestions";
 import QuizSetAssign from "./pages/QuizSets/QuizSetAssign";
+import TestSetList from "./pages/TestSets/TestSetList";
+import TestSetForm from "./pages/TestSets/TestSetForm";
+import TestSetFiles from "./pages/TestSets/TestSetFiles";
+import TestSetAssign from "./pages/TestSets/TestSetAssign";
+import TestSetSubmissions from "./pages/TestSets/TestSetSubmissions";
+import DoubtList from "./pages/Doubts/DoubtList";
+import DoubtDetail from "./pages/Doubts/DoubtDetail";
 import StudentList from "./pages/Students/StudentList";
 import StudentCreate from "./pages/Students/StudentCreate";
 import StudentDetail from "./pages/Students/StudentDetail";
@@ -57,6 +64,14 @@ function AuthenticatedApp() {
           <Route path="/quiz-sets/:id/questions" element={<QuizSetQuestions />} />
           <Route path="/quiz-sets/:quizSetId/questions/new" element={<QuestionForm />} />
           <Route path="/quiz-sets/:id/assign" element={<QuizSetAssign />} />
+          <Route path="/test-sets" element={<TestSetList />} />
+          <Route path="/test-sets/new" element={<TestSetForm />} />
+          <Route path="/test-sets/:id/edit" element={<TestSetForm />} />
+          <Route path="/test-sets/:id/files" element={<TestSetFiles />} />
+          <Route path="/test-sets/:id/assign" element={<TestSetAssign />} />
+          <Route path="/test-sets/:id/submissions" element={<TestSetSubmissions />} />
+          <Route path="/doubts" element={<DoubtList />} />
+          <Route path="/doubts/:id" element={<DoubtDetail />} />
           <Route path="/students" element={<StudentList />} />
           <Route path="/students/new" element={<StudentCreate />} />
           <Route path="/students/:id" element={<StudentDetail />} />

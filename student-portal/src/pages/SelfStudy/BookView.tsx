@@ -1,12 +1,12 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
 import { VideoPlayer, LoadingSpinner, EmptyState, RecapViewer, PageHeader, extractErrorMessage } from "@shared";
-import type { Book, Subject } from "@shared";
+import type { Book, Subject, Doubt, PaginatedResponse } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
 import QuizPanel from "./QuizPanel";
 
-type Tab = "record" | "quiz" | "recap" | "test";
+type Tab = "record" | "quiz" | "recap" | "test" | "doubts";
 
 export default function BookView() {
   const { id: bookId } = useParams<{ id: string }>();
@@ -20,6 +20,8 @@ export default function BookView() {
   const [test, setTest] = useState<any | null>(null);
   const [testLoading, setTestLoading] = useState(false);
   const [testSubmitted, setTestSubmitted] = useState(false);
+  const [bookDoubts, setBookDoubts] = useState<Doubt[]>([]);
+  const [doubtsCount, setDoubtsCount] = useState(0);
 
   const fetchTestData = useCallback(async () => {
     if (!bookId) return;
@@ -52,9 +54,12 @@ export default function BookView() {
       setSubject(subjectRes.data);
       setRecap(recapRes.data);
 
-      // Fetch test data in parallel
+      // Fetch test data and doubts in parallel
       if (bookId) {
         fetchTestData();
+        api.get<PaginatedResponse<Doubt>>(`/books/${bookId}/doubts`, { params: { page: 1, page_size: 10 } })
+          .then((res) => { setBookDoubts(res.data.items); setDoubtsCount(res.data.total); })
+          .catch(() => {});
       }
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
@@ -163,6 +168,25 @@ export default function BookView() {
             )}
           </button>
         ) : null}
+        <button
+          onClick={() => setActiveTab("doubts")}
+          className={`px-4 py-2 text-sm rounded-lg font-medium transition-colors flex items-center gap-1.5 ${
+            activeTab === "doubts"
+              ? "bg-primary-600 text-white"
+              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+          }`}
+        >
+          Doubts
+          {doubtsCount > 0 && (
+            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+              activeTab === "doubts"
+                ? "bg-white/20 text-white"
+                : "bg-primary-100 text-primary-600"
+            }`}>
+              {doubtsCount}
+            </span>
+          )}
+        </button>
       </div>
 
       {activeTab === "record" && (
@@ -235,6 +259,60 @@ export default function BookView() {
               {testSubmitted ? "✓ Submitted" : "Mark as Submitted"}
             </button>
           </div>
+        </div>
+      )}
+
+      {activeTab === "doubts" && (
+        <div className="bg-white rounded-lg border border-gray-200 p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">
+              Doubts ({doubtsCount})
+            </h2>
+            <button
+              onClick={() => navigate(`/doubts/new?book_id=${bookId}`)}
+              className="px-4 py-1.5 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              + Ask a Doubt
+            </button>
+          </div>
+
+          {bookDoubts.length === 0 ? (
+            <p className="text-sm text-gray-500">No doubts for this book yet. Be the first to ask!</p>
+          ) : (
+            <div className="space-y-3">
+              {bookDoubts.map((doubt) => (
+                <div
+                  key={doubt.id}
+                  onClick={() => navigate(`/doubts/${doubt.id}`)}
+                  className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="text-sm font-medium text-gray-900">{doubt.title}</h3>
+                    <span className={`px-1.5 py-0.5 text-[10px] rounded-full ${
+                      doubt.status === "open" ? "bg-yellow-100 text-yellow-800" :
+                      doubt.status === "resolved" ? "bg-green-100 text-green-800" :
+                      "bg-gray-100 text-gray-600"
+                    }`}>
+                      {doubt.status}
+                    </span>
+                  </div>
+                  <p className="text-xs text-gray-600 line-clamp-1">{doubt.description}</p>
+                  <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
+                    <span>{doubt.student_name}</span>
+                    <span>{doubt.comment_count} comments</span>
+                  </div>
+                </div>
+              ))}
+              {doubtsCount > bookDoubts.length && (
+                <button
+                  onClick={() => navigate(`/doubts?book_id=${bookId}`)}
+                  className="text-sm text-primary-600 hover:underline"
+                >
+                  View all {doubtsCount} doubts
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

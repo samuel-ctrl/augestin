@@ -11,9 +11,13 @@ from app.models.quiz_set import QuizSet
 from app.models.quiz_set_assignment import QuizSetAssignment
 from app.models.book_recap import BookRecap
 from app.models.test import BookTest, TestSubmission
+from app.models.test_set import TestSet, TestSetFile, TestSetAssignment, TestSetSubmission
+from app.models.doubt import Doubt, DoubtComment
 
 __all__ = [
     "AuditBase", "User", "Subject", "Book", "BookAssignment", "WatchProgress",
     "Question", "QuizProgress", "QuizAttempt", "QuizSet", "QuizSetAssignment",
     "BookRecap", "BookTest", "TestSubmission",
+    "TestSet", "TestSetFile", "TestSetAssignment", "TestSetSubmission",
+    "Doubt", "DoubtComment",
 ]
