@@ -23,6 +23,14 @@ export type {
   AssignedQuizSet,
   BookTest,
   TestSubmissionStatus,
+  TestSet,
+  TestSetFile,
+  TestSetDetail,
+  TestSetAssignment,
+  AssignedTestSet,
+  Doubt,
+  DoubtComment,
+  DoubtDetail,
 } from "./types";
 
 // Constants
