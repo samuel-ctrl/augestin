@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 
 # Supported Tiptap extensions
 SUPPORTED_NODE_TYPES = {
+    "doc",
     "document",
     "paragraph",
     "text",
@@ -29,6 +30,7 @@ SUPPORTED_NODE_TYPES = {
     "link",
     "horizontalRule",
     "blockquote",
+    "hardBreak",
 }
 
 # Maximum content size: 5MB

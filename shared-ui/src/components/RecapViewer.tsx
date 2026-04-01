@@ -7,6 +7,7 @@ interface RecapViewerProps {
 
 // Supported Tiptap node types for recap content
 const SUPPORTED_NODE_TYPES = new Set([
+  "doc",
   "document",
   "paragraph",
   "text",
@@ -76,6 +77,7 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
           const key = `${node.type}-${idx}`;
 
           switch (node.type) {
+            case "doc":
             case "document":
               return renderNodes(node.content || []);
 
@@ -172,6 +174,11 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
           if (!node || !node.type) return null;
 
           const key = `inline-${node.type}-${idx}`;
+
+          if (node.type === "hardBreak") {
+            return <br key={key} />;
+          }
+
           const text = node.text || "";
           const isMarked = node.marks && node.marks.length > 0;
 

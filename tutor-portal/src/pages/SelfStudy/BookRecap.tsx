@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useParams, useBlocker } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { LoadingSpinner, EmptyState, Toast, useToast, ConfirmDialog, Breadcrumb, RecapViewer, Button } from "@shared";
 import api from "../../api/client";
 import RecapEditor from "../../components/RecapEditor";
@@ -22,6 +22,7 @@ interface Recap {
 
 export default function BookRecap() {
   const { id: bookId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const { toast, showApiError, showSuccess, dismiss } = useToast();
 
   const [book, setBook] = useState<Book | null>(null);
@@ -31,10 +32,32 @@ export default function BookRecap() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showNavConfirm, setShowNavConfirm] = useState(false);
+  const [pendingNavPath, setPendingNavPath] = useState<string | null>(null);
   const titleRef = useRef<string>("");
+  const hasUnsavedRef = useRef(false);
 
-  // Block in-app navigation when there are unsaved changes
-  const blocker = useBlocker(hasUnsavedChanges);
+  // Keep ref in sync for use in event handlers
+  useEffect(() => {
+    hasUnsavedRef.current = hasUnsavedChanges;
+  }, [hasUnsavedChanges]);
+
+  // Intercept in-app link clicks when there are unsaved changes
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (!hasUnsavedRef.current) return;
+      const anchor = (e.target as HTMLElement).closest("a");
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (href && href.startsWith("/")) {
+        e.preventDefault();
+        setPendingNavPath(href);
+        setShowNavConfirm(true);
+      }
+    };
+    document.addEventListener("click", handleClick, true);
+    return () => document.removeEventListener("click", handleClick, true);
+  }, []);
 
   // Block browser tab close/refresh when there are unsaved changes
   useEffect(() => {
@@ -197,13 +220,23 @@ export default function BookRecap() {
 
       {/* Unsaved Changes Confirmation */}
       <ConfirmDialog
-        open={blocker.state === "blocked"}
+        open={showNavConfirm}
         title="Unsaved Changes"
         message="Have you saved your changes?"
         confirmLabel="Yes, leave"
         cancelLabel="No, stay"
-        onConfirm={() => blocker.proceed?.()}
-        onCancel={() => blocker.reset?.()}
+        onConfirm={() => {
+          setShowNavConfirm(false);
+          setHasUnsavedChanges(false);
+          if (pendingNavPath) {
+            navigate(pendingNavPath);
+            setPendingNavPath(null);
+          }
+        }}
+        onCancel={() => {
+          setShowNavConfirm(false);
+          setPendingNavPath(null);
+        }}
       />
 
       {/* Delete Confirmation */}
