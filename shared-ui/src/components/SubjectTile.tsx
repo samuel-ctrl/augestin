@@ -108,13 +108,13 @@ export function SubjectTile({
 
       {/* Round Icon */}
       <div
-        className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br ${theme.bg} border-2 ${theme.border} flex items-center justify-center text-xl sm:text-2xl shadow-sm group-hover:shadow-md transition-shadow`}
+        className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br ${theme.bg} border-2 ${theme.border} flex items-center justify-center text-4xl sm:text-5xl shadow-sm group-hover:shadow-md transition-shadow`}
       >
         {iconMap[icon] || iconMap.book}
       </div>
 
       {/* Title */}
-      <h3 className="text-sm font-semibold text-gray-800 mt-2 truncate max-w-[100px]" title={name}>
+      <h3 className="text-sm font-semibold text-gray-800 mt-2 truncate max-w-[120px]" title={name}>
         {name}
       </h3>
 
