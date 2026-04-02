@@ -15,14 +15,18 @@ export function DropdownMenu({ items }: DropdownMenuProps) {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState({ top: 0, right: 0 });
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
 
   const updatePos = useCallback(() => {
     if (buttonRef.current) {
       const rect = buttonRef.current.getBoundingClientRect();
+      const menuWidth = 144; // w-36 = 9rem = 144px
+      let left = rect.right - menuWidth;
+      if (left < 8) left = rect.left;
+      if (left + menuWidth > window.innerWidth - 8) left = window.innerWidth - menuWidth - 8;
       setPos({
         top: rect.bottom + 4,
-        right: window.innerWidth - rect.right,
+        left,
       });
     }
   }, []);
@@ -63,7 +67,7 @@ export function DropdownMenu({ items }: DropdownMenuProps) {
         <div
           ref={menuRef}
           className="fixed w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
-          style={{ top: pos.top, right: pos.right }}
+          style={{ top: pos.top, left: pos.left }}
         >
           {items.map((item, idx) => (
             <button
