@@ -87,7 +87,7 @@ export function SubjectTile({
       {/* Actions */}
       {actions && (
         <div
-          className="absolute -top-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+          className="absolute -top-1 -right-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10"
           onClick={(e) => e.stopPropagation()}
         >
           {actions}

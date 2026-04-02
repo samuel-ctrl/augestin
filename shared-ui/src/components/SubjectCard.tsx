@@ -31,7 +31,7 @@ export function SubjectCard({
         {actions && (
           <div
             onClick={(e) => e.stopPropagation()}
-            className="opacity-0 group-hover:opacity-100 transition-opacity"
+            className="sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
           >
             {actions}
           </div>
