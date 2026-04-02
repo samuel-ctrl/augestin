@@ -254,9 +254,11 @@ export default function TestSetFiles() {
       <ConfirmDialog
         open={!!deleteTarget}
         title="Delete File"
-        message="Are you sure you want to delete this file? This action cannot be undone."
+        alertMessage="This action cannot be undone."
+        message="Are you sure you want to delete this file?"
         confirmLabel="Delete"
         variant="danger"
+        countdownSeconds={5}
         onConfirm={handleDeleteFile}
         onCancel={() => setDeleteTarget(null)}
       />

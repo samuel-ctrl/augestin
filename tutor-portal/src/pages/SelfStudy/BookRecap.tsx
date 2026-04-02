@@ -243,8 +243,10 @@ export default function BookRecap() {
       <ConfirmDialog
         open={showDeleteConfirm}
         title="Delete Recap"
-        message="Are you sure you want to delete this recap? This action cannot be undone."
+        alertMessage="This action cannot be undone."
+        message="Are you sure you want to delete this recap?"
         variant="danger"
+        countdownSeconds={5}
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteConfirm(false)}
         confirmLabel="Delete"

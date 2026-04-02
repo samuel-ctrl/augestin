@@ -169,9 +169,11 @@ export default function QuizSetList() {
       <ConfirmDialog
         open={!!deleteTarget}
         title="Delete Quiz Set"
-        message="Are you sure you want to delete this quiz set? This action cannot be undone."
+        alertMessage="This action cannot be undone."
+        message="Are you sure you want to delete this quiz set?"
         confirmLabel="Delete"
         variant="danger"
+        countdownSeconds={5}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />

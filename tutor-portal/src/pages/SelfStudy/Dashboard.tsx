@@ -185,9 +185,11 @@ export default function Dashboard() {
       <ConfirmDialog
         open={!!deleteTarget}
         title="Delete Subject"
-        message={`Delete "${deleteTarget?.name}"? All books, assignments, and progress under this subject will be permanently removed.`}
+        alertMessage="All books, assignments, and progress under this subject will be permanently removed."
+        message={`Are you sure you want to delete "${deleteTarget?.name}"?`}
         confirmLabel="Delete"
         variant="danger"
+        countdownSeconds={5}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />

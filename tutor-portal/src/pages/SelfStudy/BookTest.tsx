@@ -346,8 +346,10 @@ export default function BookTestPage() {
       <ConfirmDialog
         open={showDeleteConfirm}
         title="Delete Test"
-        message="Are you sure you want to delete this test? This action cannot be undone."
+        alertMessage="This action cannot be undone."
+        message="Are you sure you want to delete this test?"
         variant="danger"
+        countdownSeconds={5}
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteConfirm(false)}
         confirmLabel="Delete"

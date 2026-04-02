@@ -170,9 +170,11 @@ export default function TestSetList() {
       <ConfirmDialog
         open={!!deleteTarget}
         title="Delete Test Set"
-        message="Are you sure you want to delete this test set? This action cannot be undone."
+        alertMessage="This action cannot be undone."
+        message="Are you sure you want to delete this test set?"
         confirmLabel="Delete"
         variant="danger"
+        countdownSeconds={5}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />

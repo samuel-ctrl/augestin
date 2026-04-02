@@ -165,9 +165,11 @@ export default function StudentDetail() {
       <ConfirmDialog
         open={showResetConfirm}
         title="Reset Password"
-        message={`Generate a new password for "${student.name}"? Their current password will stop working.`}
+        alertMessage="The student's current password will stop working immediately."
+        message={`Generate a new password for "${student.name}"?`}
         confirmLabel="Reset"
         variant="danger"
+        countdownSeconds={5}
         onConfirm={handleResetPassword}
         onCancel={() => setShowResetConfirm(false)}
       />

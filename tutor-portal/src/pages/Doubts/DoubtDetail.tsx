@@ -355,9 +355,11 @@ export default function DoubtDetail() {
       <ConfirmDialog
         open={!!deleteTarget}
         title="Delete Comment"
+        alertMessage="This action cannot be undone."
         message="Are you sure you want to delete this comment?"
         confirmLabel="Delete"
         variant="danger"
+        countdownSeconds={5}
         onConfirm={handleDeleteComment}
         onCancel={() => setDeleteTarget(null)}
       />
@@ -365,9 +367,11 @@ export default function DoubtDetail() {
       <ConfirmDialog
         open={showDeleteDoubt}
         title="Delete Doubt"
-        message="Are you sure you want to delete this doubt and all its comments? This cannot be undone."
+        alertMessage="This will delete the doubt and all its comments permanently."
+        message="Are you sure you want to proceed?"
         confirmLabel="Delete"
         variant="danger"
+        countdownSeconds={5}
         onConfirm={handleDeleteDoubt}
         onCancel={() => setShowDeleteDoubt(false)}
       />

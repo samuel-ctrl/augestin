@@ -86,9 +86,11 @@ export default function StudentList() {
       <ConfirmDialog
         open={!!deleteTarget}
         title="Delete Student"
-        message={`Are you sure you want to delete "${deleteTarget?.name}"? This will also remove all their assignments and progress.`}
+        alertMessage="This will permanently remove the student and all their assignments, progress, and data."
+        message={`Are you sure you want to delete "${deleteTarget?.name}"?`}
         confirmLabel="Delete"
         variant="danger"
+        countdownSeconds={5}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />

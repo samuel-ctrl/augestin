@@ -221,9 +221,11 @@ export default function SubjectBooks() {
       <ConfirmDialog
         open={!!deleteTarget}
         title="Delete Book"
-        message={`Delete "${deleteTarget?.title}"? The video, assignments, and progress will be permanently removed.`}
+        alertMessage="The video, assignments, and progress will be permanently removed."
+        message={`Are you sure you want to delete "${deleteTarget?.title}"?`}
         confirmLabel="Delete"
         variant="danger"
+        countdownSeconds={5}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
