@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage, PageHeader } from "@shared";
+import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage, PageHeader, BookCard } from "@shared";
 import type { Book, AssignedQuizSet, QuizProgress } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
@@ -17,6 +17,7 @@ interface PendingQuiz {
   title: string;
   question_count: number;
   thumbnail_url?: string;
+  standard: string;
 }
 
 interface ContinueWatching {
@@ -70,6 +71,7 @@ export default function HomeDashboard() {
               title: book.title,
               question_count: book.question_count || 0,
               thumbnail_url: book.thumbnail_url,
+              standard: book.standard || "",
             });
           }
         });
@@ -191,29 +193,16 @@ export default function HomeDashboard() {
           {pendingQuizzes.length > 0 && (
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Available Books</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {pendingQuizzes.map((book) => (
-                  <button
+                  <BookCard
                     key={book.id}
+                    title={book.title}
+                    standard={book.standard}
+                    thumbnailUrl={assetUrl(book.thumbnail_url)}
+                    questionCount={book.question_count}
                     onClick={() => navigate(`/self-study/books/${book.id}`)}
-                    className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-shadow text-left"
-                  >
-                    {book.thumbnail_url && (
-                      <div className="mb-3 h-24 bg-gray-200 rounded overflow-hidden">
-                        <img
-                          src={assetUrl(book.thumbnail_url)}
-                          alt={book.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
-                      {book.title}
-                    </h3>
-                    <p className="text-xs text-gray-500 mt-2">
-                      {book.question_count} question{book.question_count !== 1 ? "s" : ""}
-                    </p>
-                  </button>
+                  />
                 ))}
               </div>
             </section>
