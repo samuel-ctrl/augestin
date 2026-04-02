@@ -287,6 +287,7 @@ export interface Doubt {
   student_name: string;
   book_id?: string;
   book_title?: string;
+  attachment_links?: string[];
   comment_count: number;
   created_at: string;
   updated_at?: string;

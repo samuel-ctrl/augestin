@@ -81,6 +81,7 @@ async def create_doubt_endpoint(
             db, student_id=student.id,
             title=body.title, description=body.description,
             book_id=book_uuid,
+            attachment_links=body.attachment_links,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -94,6 +95,7 @@ async def create_doubt_endpoint(
         student_name=student.name,
         book_id=str(doubt.book_id) if doubt.book_id else None,
         book_title=None,
+        attachment_links=doubt.attachment_links or [],
         comment_count=0,
         created_at=doubt.created_at,
         updated_at=doubt.updated_at,
@@ -135,6 +137,7 @@ async def get_doubt_endpoint(
         student_name=doubt.student.name if doubt.student else "",
         book_id=str(doubt.book_id) if doubt.book_id else None,
         book_title=doubt.book.title if doubt.book else None,
+        attachment_links=doubt.attachment_links or [],
         comment_count=len(doubt.comments),
         created_at=doubt.created_at,
         updated_at=doubt.updated_at,
@@ -173,6 +176,7 @@ async def update_doubt_endpoint(
         student_name=doubt.student.name if doubt.student else "",
         book_id=str(doubt.book_id) if doubt.book_id else None,
         book_title=doubt.book.title if doubt.book else None,
+        attachment_links=doubt.attachment_links or [],
         comment_count=len(doubt.comments),
         created_at=doubt.created_at,
         updated_at=doubt.updated_at,
@@ -225,6 +229,7 @@ async def update_doubt_status_endpoint(
         student_name=doubt.student.name if doubt.student else "",
         book_id=str(doubt.book_id) if doubt.book_id else None,
         book_title=doubt.book.title if doubt.book else None,
+        attachment_links=doubt.attachment_links or [],
         comment_count=len(doubt.comments),
         created_at=doubt.created_at,
         updated_at=doubt.updated_at,

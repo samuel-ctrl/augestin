@@ -8,6 +8,7 @@ class DoubtCreate(BaseModel):
     title: str
     description: str
     book_id: str | None = None
+    attachment_links: list[str] = []
 
 
 class DoubtUpdate(BaseModel):
@@ -49,6 +50,7 @@ class DoubtOut(BaseModel):
     student_name: str
     book_id: str | None = None
     book_title: str | None = None
+    attachment_links: list[str] = []
     comment_count: int = 0
     created_at: datetime
     updated_at: datetime | None = None

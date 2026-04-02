@@ -134,6 +134,26 @@ export default function DoubtDetail() {
               )}
               <span>{new Date(doubt.created_at).toLocaleString()}</span>
             </div>
+
+            {doubt.attachment_links && doubt.attachment_links.length > 0 && (
+              <div className="mt-4 pt-3 border-t border-gray-100">
+                <h3 className="text-xs font-medium text-gray-500 mb-2">Attachments</h3>
+                <div className="space-y-1">
+                  {doubt.attachment_links.map((link, idx) => (
+                    <a
+                      key={idx}
+                      href={link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 hover:underline"
+                    >
+                      <span>📎</span>
+                      <span className="truncate">{link}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

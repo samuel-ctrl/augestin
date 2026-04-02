@@ -16,6 +16,7 @@ export default function DoubtCreate() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [bookId, setBookId] = useState(preselectedBookId);
+  const [links, setLinks] = useState<string[]>([""]);
   const [books, setBooks] = useState<BookOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -50,9 +51,11 @@ export default function DoubtCreate() {
 
     setSaving(true);
     try {
+      const filteredLinks = links.map(l => l.trim()).filter(Boolean);
       const payload: Record<string, any> = {
         title: title.trim(),
         description: description.trim(),
+        attachment_links: filteredLinks,
       };
       if (bookId) payload.book_id = bookId;
 
@@ -117,6 +120,47 @@ export default function DoubtCreate() {
                 <option key={book.id} value={book.id}>{book.title}</option>
               ))}
             </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Attachment Links (Optional)
+            </label>
+            <p className="text-xs text-gray-400 mb-2">Add Google Drive links to screenshots or proof</p>
+            <div className="space-y-2">
+              {links.map((link, idx) => (
+                <div key={idx} className="flex items-center gap-2">
+                  <input
+                    type="url"
+                    value={link}
+                    onChange={(e) => {
+                      const updated = [...links];
+                      updated[idx] = e.target.value;
+                      setLinks(updated);
+                    }}
+                    placeholder="https://drive.google.com/..."
+                    className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                  />
+                  {links.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setLinks(links.filter((_, i) => i !== idx))}
+                      className="text-red-400 hover:text-red-600 text-lg px-1"
+                      title="Remove link"
+                    >
+                      &times;
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setLinks([...links, ""])}
+              className="mt-2 text-sm text-primary-600 hover:text-primary-700 font-medium"
+            >
+              + Add another link
+            </button>
           </div>
         </div>
 

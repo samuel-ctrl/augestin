@@ -15,6 +15,7 @@ async def create_doubt(
     title: str,
     description: str,
     book_id: uuid.UUID | None = None,
+    attachment_links: list[str] | None = None,
 ) -> Doubt:
     if book_id:
         result = await db.execute(select(Book).where(Book.id == book_id))
@@ -27,6 +28,7 @@ async def create_doubt(
         title=title,
         description=description,
         status="open",
+        attachment_links=attachment_links or [],
     )
     db.add(doubt)
     await db.commit()
@@ -94,6 +96,7 @@ async def list_doubts(
             "student_name": student_name,
             "book_id": str(doubt.book_id) if doubt.book_id else None,
             "book_title": book_title,
+            "attachment_links": doubt.attachment_links or [],
             "comment_count": cc or 0,
             "created_at": doubt.created_at,
             "updated_at": doubt.updated_at,
