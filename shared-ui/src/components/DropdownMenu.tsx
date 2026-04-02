@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 
 export interface DropdownMenuItem {
   label: string;
@@ -12,11 +12,26 @@ interface DropdownMenuProps {
 
 export function DropdownMenu({ items }: DropdownMenuProps) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: 0, right: 0 });
+
+  const updatePos = useCallback(() => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      setPos({
+        top: rect.bottom + 4,
+        right: window.innerWidth - rect.right,
+      });
+    }
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
+      if (
+        buttonRef.current && !buttonRef.current.contains(e.target as Node) &&
+        menuRef.current && !menuRef.current.contains(e.target as Node)
+      ) {
         setOpen(false);
       }
     };
@@ -24,14 +39,18 @@ export function DropdownMenu({ items }: DropdownMenuProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!open) updatePos();
+    setOpen(!open);
+  };
+
   return (
-    <div ref={ref} className="relative">
+    <>
       <button
+        ref={buttonRef}
         type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen(!open);
-        }}
+        onClick={handleToggle}
         className="p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -40,7 +59,11 @@ export function DropdownMenu({ items }: DropdownMenuProps) {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-1 w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-20">
+        <div
+          ref={menuRef}
+          className="fixed w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+          style={{ top: pos.top, right: pos.right }}
+        >
           {items.map((item, idx) => (
             <button
               key={idx}
@@ -61,6 +84,6 @@ export function DropdownMenu({ items }: DropdownMenuProps) {
           ))}
         </div>
       )}
-    </div>
+    </>
   );
 }
