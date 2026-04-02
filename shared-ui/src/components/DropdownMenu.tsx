@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 
 export interface DropdownMenuItem {
   label: string;
@@ -58,7 +59,7 @@ export function DropdownMenu({ items }: DropdownMenuProps) {
         </svg>
       </button>
 
-      {open && (
+      {open && createPortal(
         <div
           ref={menuRef}
           className="fixed w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
@@ -82,7 +83,8 @@ export function DropdownMenu({ items }: DropdownMenuProps) {
               {item.label}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
