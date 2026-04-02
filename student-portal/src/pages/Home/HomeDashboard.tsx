@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage, PageHeader } from "@shared";
 import type { Book, AssignedQuizSet, QuizProgress } from "@shared";
 import api from "../../api/client";
+import { assetUrl } from "../../api/config";
 
 interface AssignedBook {
   id: string;
@@ -130,7 +131,7 @@ export default function HomeDashboard() {
                     {book.thumbnail_url && (
                       <div className="mb-3 h-24 bg-gray-200 rounded overflow-hidden">
                         <img
-                          src={book.thumbnail_url}
+                          src={assetUrl(book.thumbnail_url)}
                           alt={book.title}
                           className="w-full h-full object-cover"
                         />
@@ -168,7 +169,7 @@ export default function HomeDashboard() {
                     {qs.thumbnail_url && (
                       <div className="mb-3 h-24 bg-gray-200 rounded overflow-hidden">
                         <img
-                          src={qs.thumbnail_url}
+                          src={assetUrl(qs.thumbnail_url)}
                           alt={qs.name}
                           className="w-full h-full object-cover"
                         />
@@ -200,7 +201,7 @@ export default function HomeDashboard() {
                     {book.thumbnail_url && (
                       <div className="mb-3 h-24 bg-gray-200 rounded overflow-hidden">
                         <img
-                          src={book.thumbnail_url}
+                          src={assetUrl(book.thumbnail_url)}
                           alt={book.title}
                           className="w-full h-full object-cover"
                         />
