@@ -1,5 +1,7 @@
 import React from "react";
 import { iconMap } from "../constants/icons";
+import { DropdownMenu } from "./DropdownMenu";
+import type { DropdownMenuItem } from "./DropdownMenu";
 
 interface SubjectCardProps {
   name: string;
@@ -7,6 +9,7 @@ interface SubjectCardProps {
   bookCount: number;
   onClick?: () => void;
   actions?: React.ReactNode;
+  menuItems?: DropdownMenuItem[];
 }
 
 export function SubjectCard({
@@ -15,6 +18,7 @@ export function SubjectCard({
   bookCount,
   onClick,
   actions,
+  menuItems,
 }: SubjectCardProps) {
   return (
     <div
@@ -28,7 +32,12 @@ export function SubjectCard({
         <div className="w-12 h-12 rounded-lg bg-primary-50 flex items-center justify-center text-2xl mb-3">
           {iconMap[icon] || iconMap.book}
         </div>
-        {actions && (
+        {menuItems && menuItems.length > 0 && (
+          <div onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu items={menuItems} />
+          </div>
+        )}
+        {!menuItems && actions && (
           <div
             onClick={(e) => e.stopPropagation()}
             className="sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"

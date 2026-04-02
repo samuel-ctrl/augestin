@@ -70,6 +70,8 @@ export { ConfirmDialog } from "./components/ConfirmDialog";
 export { AlertCard } from "./components/AlertCard";
 export type { AlertCardVariant } from "./components/AlertCard";
 export { ProgressBar } from "./components/ProgressBar";
+export { DropdownMenu } from "./components/DropdownMenu";
+export type { DropdownMenuItem } from "./components/DropdownMenu";
 
 // Content Components
 export { SubjectCard } from "./components/SubjectCard";

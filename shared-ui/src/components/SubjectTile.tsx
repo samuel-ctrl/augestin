@@ -1,5 +1,7 @@
 import React from "react";
 import { iconMap } from "../constants/icons";
+import { DropdownMenu } from "./DropdownMenu";
+import type { DropdownMenuItem } from "./DropdownMenu";
 
 const colorThemes = [
   {
@@ -65,6 +67,7 @@ interface SubjectTileProps {
   colorIndex: number;
   onClick?: () => void;
   actions?: React.ReactNode;
+  menuItems?: DropdownMenuItem[];
 }
 
 export function SubjectTile({
@@ -74,6 +77,7 @@ export function SubjectTile({
   colorIndex,
   onClick,
   actions,
+  menuItems,
 }: SubjectTileProps) {
   const theme = colorThemes[colorIndex % colorThemes.length];
 
@@ -85,7 +89,15 @@ export function SubjectTile({
       onClick={onClick}
     >
       {/* Actions */}
-      {actions && (
+      {menuItems && menuItems.length > 0 && (
+        <div
+          className="absolute -top-1 -right-1 z-10"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <DropdownMenu items={menuItems} />
+        </div>
+      )}
+      {!menuItems && actions && (
         <div
           className="absolute -top-1 -right-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity z-10"
           onClick={(e) => e.stopPropagation()}
