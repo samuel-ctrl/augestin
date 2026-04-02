@@ -57,8 +57,8 @@ export function DataTable<T>({
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-visible">
       {/* Toolbar */}
-      <div className="flex items-center gap-3 p-4 rounded-t-xl" style={{ backgroundColor: "rgb(44, 62, 80)" }}>
-        <div className="flex-1 max-w-sm">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-4 rounded-t-xl" style={{ backgroundColor: "rgb(44, 62, 80)" }}>
+        <div className="flex-1 w-full sm:max-w-sm">
           <TableSearch
             value={search}
             onChange={handlers.setSearch}
@@ -75,7 +75,7 @@ export function DataTable<T>({
       </div>
 
       {/* Table */}
-      <div className="overflow-visible">
+      <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr style={{ backgroundColor: "rgb(44, 62, 80)" }}>

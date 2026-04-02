@@ -9,7 +9,7 @@ interface TableFiltersProps {
 
 export function TableFilters({ filters, values, onChange }: TableFiltersProps) {
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
       {filters.map((filter) => (
         <select
           key={filter.key}

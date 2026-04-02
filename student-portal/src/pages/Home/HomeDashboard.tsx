@@ -193,7 +193,7 @@ export default function HomeDashboard() {
           {pendingQuizzes.length > 0 && (
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-4">Available Books</h2>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {pendingQuizzes.map((book) => (
                   <BookCard
                     key={book.id}

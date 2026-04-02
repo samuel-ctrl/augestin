@@ -105,7 +105,7 @@ export default function QuizSetList() {
               key={qs.id}
               className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow"
             >
-              <div className="flex items-start justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm font-semibold text-gray-900">
                     {qs.name}
@@ -121,7 +121,7 @@ export default function QuizSetList() {
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 ml-4 shrink-0">
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
                   <Button variant="ghost" color="primary" size="xs" onClick={() => navigate(`/quiz-sets/${qs.id}/questions`)}>
                     Questions
                   </Button>

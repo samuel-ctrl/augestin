@@ -26,22 +26,22 @@ function CopyButton({ text }: { text: string }) {
 
 export function CredentialCard({ loginId, password }: CredentialCardProps) {
   return (
-    <div className="bg-green-50 border border-green-200 rounded-lg p-5">
+    <div className="bg-green-50 border border-green-200 rounded-lg p-3 sm:p-5">
       <h3 className="text-sm font-semibold text-green-800 mb-3">
         Student credentials created successfully
       </h3>
       <div className="space-y-3">
-        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 border border-green-100">
-          <div>
+        <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 border border-green-100">
+          <div className="min-w-0 flex-1 mr-2">
             <span className="text-xs text-gray-400 block">Login ID</span>
-            <span className="text-sm font-mono font-medium text-gray-800">{loginId}</span>
+            <span className="text-sm font-mono font-medium text-gray-800 break-all">{loginId}</span>
           </div>
           <CopyButton text={loginId} />
         </div>
-        <div className="flex items-center justify-between bg-white rounded-lg px-4 py-2.5 border border-green-100">
-          <div>
+        <div className="flex items-center justify-between bg-white rounded-lg px-3 py-2 sm:px-4 sm:py-2.5 border border-green-100">
+          <div className="min-w-0 flex-1 mr-2">
             <span className="text-xs text-gray-400 block">Password</span>
-            <span className="text-sm font-mono font-medium text-gray-800">{password}</span>
+            <span className="text-sm font-mono font-medium text-gray-800 break-all">{password}</span>
           </div>
           <CopyButton text={password} />
         </div>

@@ -53,7 +53,7 @@ export default function Dashboard() {
         />
       ) : (
         <div>
-          <div className="flex flex-wrap gap-8">
+          <div className="flex flex-wrap gap-4 sm:gap-6 md:gap-8">
             {subjects.map((subject, index) => (
               <SubjectTile
                 key={subject.id}

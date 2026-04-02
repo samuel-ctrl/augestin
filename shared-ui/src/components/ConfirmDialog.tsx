@@ -62,7 +62,7 @@ export function ConfirmDialog({
           />
         )}
         <p className="text-sm text-gray-600 mb-6">{message}</p>
-        <div className="flex justify-end gap-3">
+        <div className="flex flex-wrap justify-end gap-3">
           <Button variant="outline" color="secondary" onClick={onCancel}>
             {cancelLabel}
           </Button>

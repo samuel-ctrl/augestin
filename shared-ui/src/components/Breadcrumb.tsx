@@ -8,7 +8,7 @@ interface BreadcrumbProps {
 
 export function Breadcrumb({ segments }: BreadcrumbProps) {
   return (
-    <nav className="flex items-center text-sm text-gray-500">
+    <nav className="flex items-center text-sm text-gray-500 overflow-x-auto whitespace-nowrap">
       {segments.map((segment, index) => {
         const isLast = index === segments.length - 1;
         return (

@@ -36,7 +36,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
 
       {open && (
         <div className="absolute z-10 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-3 w-full max-h-60 overflow-y-auto">
-          <div className="grid grid-cols-5 gap-2">
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
             {iconKeys.map((key) => (
               <button
                 key={key}

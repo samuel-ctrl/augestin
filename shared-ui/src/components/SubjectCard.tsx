@@ -18,7 +18,7 @@ export function SubjectCard({
 }: SubjectCardProps) {
   return (
     <div
-      className={`group relative bg-white rounded-xl border border-gray-200 p-5 transition-all duration-200 hover:shadow-lg hover:border-primary-200 hover:-translate-y-0.5 ${
+      className={`group relative bg-white rounded-xl border border-gray-200 p-3 sm:p-5 transition-all duration-200 hover:shadow-lg hover:border-primary-200 hover:-translate-y-0.5 ${
         onClick ? "cursor-pointer" : ""
       }`}
       onClick={onClick}

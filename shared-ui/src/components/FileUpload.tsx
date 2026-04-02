@@ -68,7 +68,7 @@ export function FileUpload({
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
       <div
-        className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+        className={`border-2 border-dashed rounded-lg p-4 sm:p-6 text-center cursor-pointer transition-colors ${
           dragOver
             ? "border-primary-500 bg-primary-50"
             : "border-gray-300 hover:border-gray-400"

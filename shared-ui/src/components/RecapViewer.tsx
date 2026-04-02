@@ -91,9 +91,9 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
             case "heading": {
               const level = (node.attrs?.level || 1) as number;
               const headingClasses: Record<number, string> = {
-                1: "text-3xl font-bold mb-4",
-                2: "text-2xl font-bold mb-3",
-                3: "text-xl font-bold mb-2",
+                1: "text-2xl sm:text-3xl font-bold mb-4",
+                2: "text-xl sm:text-2xl font-bold mb-3",
+                3: "text-lg sm:text-xl font-bold mb-2",
               };
               const className = headingClasses[level] || "text-lg font-bold mb-2";
 
@@ -218,8 +218,8 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
   }, [content]);
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
-      {title && <h2 className="text-2xl font-bold mb-6">{title}</h2>}
+    <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-6">
+      {title && <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">{title}</h2>}
       <div className="prose prose-sm max-w-none">
         {rendered}
       </div>

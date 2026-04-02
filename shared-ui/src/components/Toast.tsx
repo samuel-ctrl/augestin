@@ -53,7 +53,7 @@ export function Toast({ message, type = "error", onDismiss, duration = 5000 }: T
 
   return (
     <div
-      className={`fixed top-4 right-4 z-50 max-w-sm transition-all duration-300 ${
+      className={`fixed top-4 left-4 right-4 sm:left-auto z-50 sm:max-w-sm transition-all duration-300 ${
         visible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
       }`}
     >

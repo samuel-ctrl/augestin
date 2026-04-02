@@ -96,7 +96,7 @@ export function SubjectTile({
 
       {/* Round Icon */}
       <div
-        className={`w-16 h-16 rounded-full bg-gradient-to-br ${theme.bg} border-2 ${theme.border} flex items-center justify-center text-2xl shadow-sm group-hover:shadow-md transition-shadow`}
+        className={`w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br ${theme.bg} border-2 ${theme.border} flex items-center justify-center text-xl sm:text-2xl shadow-sm group-hover:shadow-md transition-shadow`}
       >
         {iconMap[icon] || iconMap.book}
       </div>

@@ -15,7 +15,7 @@ interface EmptyStateProps {
 export function EmptyState({ icon, title, description, action, variant = "default" }: EmptyStateProps) {
   const isError = variant === "error";
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+    <div className="flex flex-col items-center justify-center py-8 sm:py-16 px-4 text-center">
       {icon && (
         <div
           className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-5 ${

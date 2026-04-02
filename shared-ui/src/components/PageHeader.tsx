@@ -18,7 +18,7 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <div
-      className="mb-6 -mx-6 -mt-6 px-6 pt-5 pb-5 relative overflow-hidden"
+      className="mb-6 -mx-3 -mt-3 px-3 pt-4 pb-4 sm:-mx-4 sm:-mt-4 sm:px-4 md:-mx-6 md:-mt-6 md:px-6 md:pt-5 md:pb-5 relative overflow-hidden"
       style={{ background: "linear-gradient(135deg, #312e81 0%, rgba(88, 28, 135, 0.7) 50%, #312e81 100%)" }}
     >
       {/* Decorative bubbles — centered */}
@@ -39,14 +39,14 @@ export function PageHeader({
             {backButton.label}
           </button>
         )}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h1 className="text-2xl font-bold text-white">{title}</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-white">{title}</h1>
             {subtitle && (
               <p className="text-sm text-gray-300 mt-1">{subtitle}</p>
             )}
           </div>
-          {actions && <div className="flex items-center gap-3">{actions}</div>}
+          {actions && <div className="flex flex-wrap items-center gap-2 sm:gap-3">{actions}</div>}
         </div>
       </div>
     </div>

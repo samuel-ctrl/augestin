@@ -21,12 +21,12 @@ export function TablePagination({
   const end = Math.min(page * pageSize, total);
 
   return (
-    <div className="flex items-center justify-between px-4 py-3">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-4 py-3">
       <div className="text-sm text-white">
         Showing {start}–{end} of {total}
       </div>
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+        <div className="hidden sm:flex items-center gap-2">
           <span className="text-sm text-white">Rows per page:</span>
           <select
             value={pageSize}

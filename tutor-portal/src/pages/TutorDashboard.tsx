@@ -37,7 +37,7 @@ function StatCard({
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-500">{label}</p>
-          <p className="text-3xl font-bold text-gray-900 mt-1">{value}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{value}</p>
         </div>
         <div className="w-12 h-12 rounded-lg bg-primary-50 text-primary-500 flex items-center justify-center text-xl">
           {icon}
@@ -99,7 +99,7 @@ export default function TutorDashboard() {
       />
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard
           label="Students"
           value={stats.students}
