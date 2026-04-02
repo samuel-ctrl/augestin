@@ -14,6 +14,7 @@ class DoubtCreate(BaseModel):
 class DoubtUpdate(BaseModel):
     title: str | None = None
     description: str | None = None
+    attachment_links: list[str] | None = None
 
 
 class DoubtStatusUpdate(BaseModel):

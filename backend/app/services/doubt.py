@@ -122,11 +122,14 @@ async def update_doubt(
     doubt: Doubt,
     title: str | None = None,
     description: str | None = None,
+    attachment_links: list[str] | None = None,
 ) -> Doubt:
     if title is not None:
         doubt.title = title
     if description is not None:
         doubt.description = description
+    if attachment_links is not None:
+        doubt.attachment_links = attachment_links
     await db.commit()
     await db.refresh(doubt)
     return doubt

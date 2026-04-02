@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage, standardOptions, Button } from "@shared";
+import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage, standardOptions, Button, ConfirmDialog } from "@shared";
 import type { Book, Student, Assignment } from "@shared";
 import api from "../../api/client";
 
@@ -17,6 +17,7 @@ export default function BookAssign() {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState("");
   const [standardFilter, setStandardFilter] = useState("");
+  const [showUnassignConfirm, setShowUnassignConfirm] = useState(false);
   const { toast, showApiError, showSuccess, dismiss } = useToast();
 
   const fetchData = useCallback(async () => {
@@ -71,19 +72,26 @@ export default function BookAssign() {
     });
   };
 
+  const handleSaveClick = () => {
+    const toUnassign = [...originalAssignedIds].filter((id) => !assignedIds.has(id));
+    if (toUnassign.length > 0) {
+      setShowUnassignConfirm(true);
+    } else {
+      handleSave();
+    }
+  };
+
   const handleSave = async () => {
+    setShowUnassignConfirm(false);
     setSaving(true);
     try {
-      // Find newly assigned
       const toAssign = [...assignedIds].filter(
         (id) => !originalAssignedIds.has(id)
       );
-      // Find unassigned
       const toUnassign = [...originalAssignedIds].filter(
         (id) => !assignedIds.has(id)
       );
 
-      // Assign new students
       if (toAssign.length > 0) {
         await api.post("/assignments", {
           book_id: bookId,
@@ -91,7 +99,6 @@ export default function BookAssign() {
         });
       }
 
-      // Unassign removed students
       for (const studentId of toUnassign) {
         const assignmentId = assignmentMap.get(studentId);
         if (assignmentId) {
@@ -219,10 +226,22 @@ export default function BookAssign() {
         <Button variant="outline" color="secondary" onClick={() => navigate(`/self-study/subjects/${book.subject_id}`)}>
           Cancel
         </Button>
-        <Button color="primary" onClick={handleSave} disabled={saving}>
+        <Button color="primary" onClick={handleSaveClick} disabled={saving}>
           {saving ? "Saving..." : "Save Assignments"}
         </Button>
       </div>
+
+      <ConfirmDialog
+        open={showUnassignConfirm}
+        title="Unassign Students"
+        alertMessage="This will remove student access to this book. Any in-progress work may be lost."
+        message={`Are you sure you want to unassign ${[...originalAssignedIds].filter((id) => !assignedIds.has(id)).length} student(s) from this book?`}
+        confirmLabel="Unassign"
+        variant="danger"
+        countdownSeconds={5}
+        onConfirm={handleSave}
+        onCancel={() => setShowUnassignConfirm(false)}
+      />
     </div>
   );
 }

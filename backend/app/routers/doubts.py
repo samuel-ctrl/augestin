@@ -162,7 +162,7 @@ async def update_doubt_endpoint(
     if user.user_type == UserType.student and str(doubt.student_id) != str(user.id):
         raise HTTPException(status_code=403, detail="You can only edit your own doubts")
 
-    await update_doubt(db, doubt, title=body.title, description=body.description)
+    await update_doubt(db, doubt, title=body.title, description=body.description, attachment_links=body.attachment_links)
 
     # Re-fetch with eager-loaded relationships (commit expires them)
     doubt = await get_doubt(db, doubt_id)

@@ -67,12 +67,15 @@ export { Toast } from "./components/Toast";
 export type { ToastType } from "./components/Toast";
 export { EmptyState } from "./components/EmptyState";
 export { ConfirmDialog } from "./components/ConfirmDialog";
+export { AlertCard } from "./components/AlertCard";
+export type { AlertCardVariant } from "./components/AlertCard";
 export { ProgressBar } from "./components/ProgressBar";
 
 // Content Components
 export { SubjectCard } from "./components/SubjectCard";
 export { SubjectTile } from "./components/SubjectTile";
 export { BookCard } from "./components/BookCard";
+export { AttachmentGallery } from "./components/AttachmentGallery";
 export { VideoPlayer } from "./components/VideoPlayer";
 export { IconPicker } from "./components/IconPicker";
 export { FileUpload } from "./components/FileUpload";

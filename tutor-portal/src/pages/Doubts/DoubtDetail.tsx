@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  LoadingSpinner, Toast, useToast, ConfirmDialog, Button,
+  LoadingSpinner, Toast, useToast, ConfirmDialog, Button, AttachmentGallery,
 } from "@shared";
 import type { DoubtDetail as DoubtDetailType, DoubtComment } from "@shared";
 import api from "../../api/client";
@@ -25,6 +25,13 @@ export default function DoubtDetail() {
   const [showDeleteDoubt, setShowDeleteDoubt] = useState(false);
   const { toast, showApiError, showSuccess, dismiss } = useToast();
 
+  // Doubt edit state
+  const [editingDoubt, setEditingDoubt] = useState(false);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editLinks, setEditLinks] = useState<string[]>([]);
+  const [savingDoubt, setSavingDoubt] = useState(false);
+
   const fetchDoubt = useCallback(async () => {
     try {
       const res = await api.get(`/doubts/${doubtId}`);
@@ -40,6 +47,41 @@ export default function DoubtDetail() {
   useEffect(() => {
     fetchDoubt();
   }, [fetchDoubt]);
+
+  const startEditingDoubt = () => {
+    if (!doubt) return;
+    setEditTitle(doubt.title);
+    setEditDescription(doubt.description);
+    setEditLinks(doubt.attachment_links && doubt.attachment_links.length > 0 ? [...doubt.attachment_links] : [""]);
+    setEditingDoubt(true);
+  };
+
+  const handleSaveDoubt = async () => {
+    if (!editTitle.trim()) {
+      showApiError(null, "Title is required");
+      return;
+    }
+    if (!editDescription.trim()) {
+      showApiError(null, "Description is required");
+      return;
+    }
+    setSavingDoubt(true);
+    try {
+      const filteredLinks = editLinks.map(l => l.trim()).filter(Boolean);
+      await api.put(`/doubts/${doubtId}`, {
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+        attachment_links: filteredLinks,
+      });
+      setEditingDoubt(false);
+      showSuccess("Doubt updated");
+      fetchDoubt();
+    } catch (err) {
+      showApiError(err, "Failed to update doubt.");
+    } finally {
+      setSavingDoubt(false);
+    }
+  };
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
@@ -118,66 +160,122 @@ export default function DoubtDetail() {
 
       {/* Doubt Header */}
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
-              <h1 className="text-xl font-semibold text-gray-900">{doubt.title}</h1>
-              <span className={`px-2 py-0.5 text-xs rounded-full ${statusColors[doubt.status] || ""}`}>
-                {doubt.status}
-              </span>
+        {editingDoubt ? (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+              <input
+                type="text"
+                value={editTitle}
+                onChange={(e) => setEditTitle(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
             </div>
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">{doubt.description}</p>
-            <div className="flex items-center gap-3 mt-3 text-xs text-gray-500">
-              <span>By {doubt.student_name}</span>
-              {doubt.book_title && (
-                <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded">{doubt.book_title}</span>
-              )}
-              <span>{new Date(doubt.created_at).toLocaleString()}</span>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+              <textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                rows={5}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+              />
             </div>
-
-            {doubt.attachment_links && doubt.attachment_links.length > 0 && (
-              <div className="mt-4 pt-3 border-t border-gray-100">
-                <h3 className="text-xs font-medium text-gray-500 mb-2">Attachments</h3>
-                <div className="space-y-1">
-                  {doubt.attachment_links.map((link, idx) => (
-                    <a
-                      key={idx}
-                      href={link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 hover:underline"
-                    >
-                      <span>📎</span>
-                      <span className="truncate">{link}</span>
-                    </a>
-                  ))}
-                </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Attachment Links</label>
+              <div className="space-y-2">
+                {editLinks.map((link, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <input
+                      type="url"
+                      value={link}
+                      onChange={(e) => {
+                        const updated = [...editLinks];
+                        updated[idx] = e.target.value;
+                        setEditLinks(updated);
+                      }}
+                      placeholder="https://drive.google.com/..."
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                    />
+                    {editLinks.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setEditLinks(editLinks.filter((_, i) => i !== idx))}
+                        className="text-red-400 hover:text-red-600 text-lg px-1"
+                      >
+                        &times;
+                      </button>
+                    )}
+                  </div>
+                ))}
               </div>
-            )}
+              <button
+                type="button"
+                onClick={() => setEditLinks([...editLinks, ""])}
+                className="mt-2 text-sm text-primary-600 hover:text-primary-700 font-medium"
+              >
+                + Add another link
+              </button>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <Button size="sm" color="primary" onClick={handleSaveDoubt} disabled={savingDoubt}>
+                {savingDoubt ? "Saving..." : "Save"}
+              </Button>
+              <Button size="sm" variant="outline" color="secondary" onClick={() => setEditingDoubt(false)}>
+                Cancel
+              </Button>
+            </div>
           </div>
-        </div>
+        ) : (
+          <>
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <h1 className="text-xl font-semibold text-gray-900">{doubt.title}</h1>
+                  <span className={`px-2 py-0.5 text-xs rounded-full ${statusColors[doubt.status] || ""}`}>
+                    {doubt.status}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">{doubt.description}</p>
+                <div className="flex items-center gap-3 mt-3 text-xs text-gray-500">
+                  <span>By {doubt.student_name}</span>
+                  {doubt.book_title && (
+                    <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded">{doubt.book_title}</span>
+                  )}
+                  <span>{new Date(doubt.created_at).toLocaleString()}</span>
+                </div>
 
-        {/* Status Actions (Tutor) */}
-        <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
-          {doubt.status !== "resolved" && (
-            <Button size="xs" color="success" onClick={() => handleStatusChange("resolved")}>
-              Mark Resolved
-            </Button>
-          )}
-          {doubt.status !== "closed" && (
-            <Button size="xs" color="secondary" onClick={() => handleStatusChange("closed")}>
-              Close
-            </Button>
-          )}
-          {doubt.status !== "open" && (
-            <Button size="xs" variant="outline" color="primary" onClick={() => handleStatusChange("open")}>
-              Reopen
-            </Button>
-          )}
-          <Button size="xs" color="danger" onClick={() => setShowDeleteDoubt(true)}>
-            Delete Doubt
-          </Button>
-        </div>
+                {doubt.attachment_links && doubt.attachment_links.length > 0 && (
+                  <AttachmentGallery links={doubt.attachment_links} />
+                )}
+              </div>
+            </div>
+
+            {/* Status Actions (Tutor) */}
+            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
+              {doubt.status !== "resolved" && (
+                <Button size="xs" color="success" onClick={() => handleStatusChange("resolved")}>
+                  Mark Resolved
+                </Button>
+              )}
+              {doubt.status !== "closed" && (
+                <Button size="xs" color="secondary" onClick={() => handleStatusChange("closed")}>
+                  Close
+                </Button>
+              )}
+              {doubt.status !== "open" && (
+                <Button size="xs" variant="outline" color="primary" onClick={() => handleStatusChange("open")}>
+                  Reopen
+                </Button>
+              )}
+              <Button size="xs" color="primary" onClick={startEditingDoubt}>
+                Edit Doubt
+              </Button>
+              <Button size="xs" color="danger" onClick={() => setShowDeleteDoubt(true)}>
+                Delete Doubt
+              </Button>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Comments */}
