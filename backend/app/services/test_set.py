@@ -181,6 +181,7 @@ async def toggle_submission(
     db: AsyncSession,
     test_set_id: uuid.UUID,
     student_id: uuid.UUID,
+    submission_link: str | None = None,
 ) -> TestSetSubmission:
     result = await db.execute(
         select(TestSetSubmission).where(
@@ -197,6 +198,7 @@ async def toggle_submission(
             test_set_id=test_set_id,
             student_id=student_id,
             submitted_at=datetime.now(timezone.utc),
+            submission_link=submission_link,
         )
         db.add(submission)
     else:
@@ -204,6 +206,8 @@ async def toggle_submission(
             submission.submitted_at = datetime.now(timezone.utc)
         else:
             submission.submitted_at = None
+        if submission_link is not None:
+            submission.submission_link = submission_link
 
     await db.commit()
     await db.refresh(submission)

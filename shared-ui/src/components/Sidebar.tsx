@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
 import type { NavItem } from "../types";
+import logoSvg from "../assets/logo.svg";
 
 interface SidebarProps {
   navItems: NavItem[];
@@ -60,15 +61,12 @@ export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, o
         {!collapsed && (
           <div className="flex items-center gap-2">
             {logo || (
-              <span className="text-xl tracking-wide bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">
-                <span className="font-extrabold italic">A.J</span>
-                <span className="font-light ml-1.5">EduTrack</span>
-              </span>
+              <img src={logoSvg} alt="A.J EduTrack" className="h-10 w-auto brightness-0 invert" />
             )}
           </div>
         )}
         {collapsed && (
-          <span className="text-xl font-extrabold italic tracking-wide bg-gradient-to-r from-yellow-300 to-orange-300 bg-clip-text text-transparent">A.J</span>
+          <img src={logoSvg} alt="A.J" className="h-8 w-8 object-contain brightness-0 invert" title="A.J EduTrack" />
         )}
         <div className="flex items-center gap-1">
           {onClose && !collapsed && (

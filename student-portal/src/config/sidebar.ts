@@ -20,22 +20,22 @@ export const sidebarItems: NavItem[] = [
   },
   {
     path: "/self-study",
-    label: "Self-Study",
+    label: "Learn Zone",
     icon: "📚",
   },
   {
     path: "/quiz-sets",
-    label: "Quiz Sets",
+    label: "Quizzes",
     icon: "🧩",
   },
   {
     path: "/test-sets",
-    label: "Test Sets",
+    label: "Test Module",
     icon: "📝",
   },
   {
     path: "/doubts",
-    label: "Doubts",
+    label: "Doubt Hub",
     icon: "💬",
   },
   {

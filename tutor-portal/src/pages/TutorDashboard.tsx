@@ -8,6 +8,10 @@ interface DashboardStats {
   subjects: number;
   books: number;
   quizSets: number;
+  avgQuizScore: number;
+  assignmentCompletionRate: number;
+  topPerformers: number;
+  quizCompletionRate: number;
 }
 
 interface RecentStudent {
@@ -21,29 +25,34 @@ interface RecentStudent {
 function StatCard({
   label,
   value,
+  suffix,
   icon,
   onClick,
 }: {
   label: string;
   value: number;
+  suffix?: string;
   icon: React.ReactNode;
-  onClick: () => void;
+  onClick?: () => void;
 }) {
+  const Component = onClick ? "button" : "div";
   return (
-    <button
+    <Component
       onClick={onClick}
       className="bg-white rounded-xl border border-gray-200 p-5 hover:shadow-md transition-all text-left w-full"
     >
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-gray-500">{label}</p>
-          <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">{value}</p>
+          <p className="text-2xl sm:text-3xl font-bold text-gray-900 mt-1">
+            {value}{suffix && <span className="text-lg font-semibold text-gray-500">{suffix}</span>}
+          </p>
         </div>
         <div className="w-12 h-12 rounded-lg bg-primary-50 text-primary-500 flex items-center justify-center text-xl">
           {icon}
         </div>
       </div>
-    </button>
+    </Component>
   );
 }
 
@@ -54,6 +63,10 @@ export default function TutorDashboard() {
     subjects: 0,
     books: 0,
     quizSets: 0,
+    avgQuizScore: 0,
+    assignmentCompletionRate: 0,
+    topPerformers: 0,
+    quizCompletionRate: 0,
   });
   const [recentStudents, setRecentStudents] = useState<RecentStudent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -61,10 +74,11 @@ export default function TutorDashboard() {
   useEffect(() => {
     async function fetchDashboard() {
       try {
-        const [studentsRes, subjectsRes, quizSetsRes] = await Promise.all([
+        const [studentsRes, subjectsRes, quizSetsRes, dashRes] = await Promise.all([
           api.get("/students", { params: { page: 1, page_size: 5, sort_by: "created_at", sort_order: "desc" } }),
           api.get("/subjects", { params: { page: 1, page_size: 100 } }),
           api.get("/quiz-sets", { params: { page: 1, page_size: 1 } }),
+          api.get("/dashboard/stats").catch(() => ({ data: {} })),
         ]);
 
         const subjects = subjectsRes.data.items;
@@ -72,12 +86,17 @@ export default function TutorDashboard() {
           (sum: number, s: { book_count: number }) => sum + (s.book_count || 0),
           0
         );
+        const d = dashRes.data;
 
         setStats({
           students: studentsRes.data.total,
           subjects: subjects.length,
           books: totalBooks,
           quizSets: quizSetsRes.data.total,
+          avgQuizScore: d.avg_quiz_score ?? 0,
+          assignmentCompletionRate: d.assignment_completion_rate ?? 0,
+          topPerformers: d.top_performers ?? 0,
+          quizCompletionRate: d.quiz_completion_rate ?? 0,
         });
         setRecentStudents(studentsRes.data.items);
       } catch {
@@ -131,6 +150,34 @@ export default function TutorDashboard() {
           value={stats.quizSets}
           icon={<span>🧩</span>}
           onClick={() => navigate("/quiz-sets")}
+        />
+      </div>
+
+      {/* Performance Overview */}
+      <h2 className="text-lg font-semibold text-gray-900 mb-3">Performance Overview</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard
+          label="Avg Quiz Score"
+          value={stats.avgQuizScore}
+          suffix="%"
+          icon={<span>📊</span>}
+        />
+        <StatCard
+          label="Assignment Completion"
+          value={stats.assignmentCompletionRate}
+          suffix="%"
+          icon={<span>✅</span>}
+        />
+        <StatCard
+          label="Top Performers"
+          value={stats.topPerformers}
+          icon={<span>🏆</span>}
+        />
+        <StatCard
+          label="Quiz Completion Rate"
+          value={stats.quizCompletionRate}
+          suffix="%"
+          icon={<span>📈</span>}
         />
       </div>
 

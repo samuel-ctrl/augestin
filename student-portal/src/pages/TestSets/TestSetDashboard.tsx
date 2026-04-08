@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage, PageHeader } from "@shared";
 import type { AssignedTestSet } from "@shared";
 import api from "../../api/client";
+import { assetUrl } from "../../api/config";
 
 export default function TestSetDashboard() {
   const navigate = useNavigate();
@@ -64,9 +65,10 @@ export default function TestSetDashboard() {
                 {ts.thumbnail_url && (
                   <div className="mb-3 h-32 bg-gray-200 rounded overflow-hidden">
                     <img
-                      src={ts.thumbnail_url}
+                      src={assetUrl(ts.thumbnail_url)}
                       alt={ts.name}
                       className="w-full h-full object-cover"
+                      onError={(e) => { e.currentTarget.parentElement!.style.display = "none"; }}
                     />
                   </div>
                 )}

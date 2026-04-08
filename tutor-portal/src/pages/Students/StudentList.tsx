@@ -4,6 +4,14 @@ import { DataTable, ConfirmDialog, Toast, useToast, extractErrorMessage, standar
 import type { Student, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
 
+const sectionOptions = [
+  { value: "A", label: "Section A" },
+  { value: "B", label: "Section B" },
+  { value: "C", label: "Section C" },
+  { value: "D", label: "Section D" },
+  { value: "E", label: "Section E" },
+];
+
 const columns: ColumnDef<Student>[] = [
   { key: "name", label: "Name" },
   { key: "login_id", label: "Login ID" },
@@ -11,6 +19,11 @@ const columns: ColumnDef<Student>[] = [
     key: "standard",
     label: "Standard",
     render: (v) => (v ? `${v}th` : "\u2014"),
+  },
+  {
+    key: "section",
+    label: "Section",
+    render: (v) => (v ? String(v) : "\u2014"),
   },
   {
     key: "assignment_count",
@@ -27,6 +40,7 @@ const columns: ColumnDef<Student>[] = [
 
 const filters = [
   { key: "standard", label: "Standard", options: standardOptions },
+  { key: "section", label: "Section", options: sectionOptions },
 ];
 
 export default function StudentList() {

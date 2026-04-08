@@ -12,7 +12,7 @@ from app.schemas.test_sets import (
     TestSetCreate, TestSetUpdate, TestSetOut, TestSetDetailOut,
     TestSetFileCreate, TestSetFileUpdate, TestSetFileOut,
     TestSetAssignCreate, TestSetAssignOut,
-    TestSetSubmissionOut, TestSetSubmissionStatus,
+    TestSetSubmissionOut, TestSetSubmissionStatus, TestSetSubmitRequest,
     AssignedTestSetOut,
 )
 from app.schemas.pagination import PaginatedResponse
@@ -436,6 +436,7 @@ async def list_test_set_submissions(
             student_name=student_name,
             student_login_id=student_login_id,
             submitted_at=sub.submitted_at,
+            submission_link=sub.submission_link,
             created_at=sub.created_at,
         ))
 
@@ -530,6 +531,7 @@ async def get_my_test_set_submission(
     return TestSetSubmissionStatus(
         has_submitted=submission is not None and submission.submitted_at is not None,
         submitted_at=submission.submitted_at if submission else None,
+        submission_link=submission.submission_link if submission else None,
     )
 
 
@@ -537,6 +539,7 @@ async def get_my_test_set_submission(
 async def submit_test_set(
     test_set_id: uuid.UUID,
     request: Request,
+    body: TestSetSubmitRequest | None = None,
     db: AsyncSession = Depends(get_db),
 ):
     student = require_student(request)
@@ -553,9 +556,11 @@ async def submit_test_set(
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=403, detail="Not assigned to this test set")
 
-    submission = await toggle_submission(db, test_set_id, student.id)
+    submission_link = body.submission_link if body else None
+    submission = await toggle_submission(db, test_set_id, student.id, submission_link=submission_link)
 
     return TestSetSubmissionStatus(
         has_submitted=submission.submitted_at is not None,
         submitted_at=submission.submitted_at,
+        submission_link=submission.submission_link,
     )

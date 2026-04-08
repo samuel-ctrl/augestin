@@ -33,7 +33,7 @@ export default function QuizSetForm() {
       }
     };
     fetchData();
-  }, [id, isEdit, navigate]);
+  }, [id, isEdit, navigate, showApiError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,12 +116,29 @@ export default function QuizSetForm() {
               Thumbnail URL
             </label>
             <input
-              type="text"
+              type="url"
               value={thumbnailUrl}
               onChange={(e) => setThumbnailUrl(e.target.value)}
-              placeholder="https://..."
+              onPaste={(e) => {
+                const pasted = e.clipboardData.getData("text");
+                if (pasted) {
+                  e.preventDefault();
+                  setThumbnailUrl(pasted.trim());
+                }
+              }}
+              placeholder="https://... (paste a link here)"
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             />
+            {thumbnailUrl && (
+              <div className="mt-2 h-20 w-32 bg-gray-100 rounded overflow-hidden border border-gray-200">
+                <img
+                  src={thumbnailUrl}
+                  alt="Preview"
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.currentTarget.style.display = "none"; }}
+                />
+              </div>
+            )}
           </div>
         </div>
 

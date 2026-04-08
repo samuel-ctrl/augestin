@@ -57,6 +57,40 @@ function validateRecapContent(node: any): any {
   return node;
 }
 
+// Convert Google Drive sharing links to direct viewable/embeddable URLs
+function toDirectImageUrl(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+
+  // Google Drive file link: https://drive.google.com/file/d/FILE_ID/view...
+  const driveFileMatch = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if (driveFileMatch) {
+    return `https://drive.google.com/thumbnail?id=${driveFileMatch[1]}&sz=w1000`;
+  }
+
+  // Google Drive open link: https://drive.google.com/open?id=FILE_ID
+  const driveOpenMatch = url.match(/drive\.google\.com\/open\?id=([^&]+)/);
+  if (driveOpenMatch) {
+    return `https://drive.google.com/thumbnail?id=${driveOpenMatch[1]}&sz=w1000`;
+  }
+
+  // Google Drive uc link: https://drive.google.com/uc?id=FILE_ID
+  const driveUcMatch = url.match(/drive\.google\.com\/uc\?.*id=([^&]+)/);
+  if (driveUcMatch) {
+    return `https://drive.google.com/thumbnail?id=${driveUcMatch[1]}&sz=w1000`;
+  }
+
+  return url;
+}
+
+// Check if a URL points to an image (by extension or known image host)
+function isImageUrl(url: string): boolean {
+  const imageExtensions = /\.(jpg|jpeg|png|gif|webp|svg|bmp)(\?.*)?$/i;
+  if (imageExtensions.test(url)) return true;
+  if (url.includes("drive.google.com/file/d/")) return true;
+  if (url.includes("drive.google.com/thumbnail")) return true;
+  return false;
+}
+
 export default function RecapViewer({ content, title }: RecapViewerProps) {
   const rendered = useMemo(() => {
     try {
@@ -138,7 +172,7 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
             }
 
             case "image": {
-              const src = node.attrs?.src;
+              const src = toDirectImageUrl(node.attrs?.src);
               const alt = node.attrs?.alt || "Image";
               return src ? (
                 <img
@@ -146,6 +180,14 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
                   src={src}
                   alt={alt}
                   className="max-w-full h-auto rounded-lg mb-4"
+                  loading="lazy"
+                  onError={(e) => {
+                    const img = e.currentTarget;
+                    // If direct URL fails, try the original
+                    if (img.src !== node.attrs?.src) {
+                      img.src = node.attrs?.src;
+                    }
+                  }}
                 />
               ) : null;
             }
@@ -200,6 +242,38 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
                     </code>
                   );
                   break;
+                case "link": {
+                  const href = mark.attrs?.href || "";
+                  // If the link points to an image, render it as an inline image
+                  if (isImageUrl(href)) {
+                    element = (
+                      <img
+                        key={key}
+                        src={toDirectImageUrl(href)}
+                        alt={text || "Image"}
+                        className="max-w-full h-auto rounded-lg my-2 inline-block"
+                        loading="lazy"
+                        onError={(e) => {
+                          const img = e.currentTarget;
+                          if (img.src !== href) img.src = href;
+                        }}
+                      />
+                    );
+                  } else {
+                    element = (
+                      <a
+                        key={key}
+                        href={href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary-600 underline hover:text-primary-700"
+                      >
+                        {element}
+                      </a>
+                    );
+                  }
+                  break;
+                }
                 default:
                   break;
               }

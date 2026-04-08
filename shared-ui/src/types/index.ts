@@ -16,6 +16,7 @@ export interface Student {
   email?: string;
   phone?: string;
   standard?: string;
+  section?: string;
   must_change_password: boolean;
   assignment_count: number;
   created_at: string;

@@ -8,6 +8,7 @@ class StudentCreate(BaseModel):
     email: str | None = None
     phone: str | None = None
     standard: str | None = None
+    section: str | None = None
 
 
 class StudentCreateResponse(BaseModel):
@@ -24,6 +25,7 @@ class StudentOut(BaseModel):
     email: str | None = None
     phone: str | None = None
     standard: str | None = None
+    section: str | None = None
     must_change_password: bool
     assignment_count: int = 0
     created_at: datetime
@@ -47,6 +49,7 @@ class StudentUpdate(BaseModel):
     email: str | None = None
     phone: str | None = None
     standard: str | None = None
+    section: str | None = None
 
 
 class ResetPasswordResponse(BaseModel):

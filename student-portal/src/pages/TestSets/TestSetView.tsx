@@ -17,8 +17,10 @@ export default function TestSetView() {
   const [testSet, setTestSet] = useState<TestSetDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitted, setSubmitted] = useState(false);
+  const [submissionLink, setSubmissionLink] = useState("");
+  const [savedLink, setSavedLink] = useState("");
   const [toggling, setToggling] = useState(false);
-  const { toast, showApiError, dismiss } = useToast();
+  const { toast, showApiError, showSuccess, dismiss } = useToast();
 
   const fetchData = useCallback(async () => {
     try {
@@ -29,6 +31,10 @@ export default function TestSetView() {
 
       setTestSet(tsRes.data);
       setSubmitted(subRes.data.has_submitted);
+      if (subRes.data.submission_link) {
+        setSubmissionLink(subRes.data.submission_link);
+        setSavedLink(subRes.data.submission_link);
+      }
     } catch (err) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 403 || status === 404) {
@@ -45,11 +51,19 @@ export default function TestSetView() {
     fetchData();
   }, [fetchData]);
 
-  const handleToggleSubmission = async () => {
+  const handleSubmit = async () => {
     setToggling(true);
     try {
-      const res = await api.put(`/test-sets/${testSetId}/submit`);
+      const res = await api.put(`/test-sets/${testSetId}/submit`, {
+        submission_link: submissionLink.trim() || null,
+      });
       setSubmitted(res.data.has_submitted);
+      if (res.data.submission_link) {
+        setSavedLink(res.data.submission_link);
+      }
+      if (res.data.has_submitted) {
+        showSuccess("Test submitted successfully!");
+      }
     } catch (err) {
       showApiError(err, "Failed to update submission.");
     } finally {
@@ -101,22 +115,60 @@ export default function TestSetView() {
         )}
       </div>
 
-      {/* Submission Toggle */}
+      {/* Submission */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-3">Submission</h2>
         <p className="text-sm text-gray-600 mb-4">
-          After completing the test, mark it as submitted.
+          Submit your completed test by pasting a Google Drive link or PDF link below, then mark as submitted.
         </p>
+
+        {/* Link Input */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Submission Link (Google Drive / PDF)
+          </label>
+          <input
+            type="url"
+            value={submissionLink}
+            onChange={(e) => setSubmissionLink(e.target.value)}
+            onPaste={(e) => {
+              const pasted = e.clipboardData.getData("text");
+              if (pasted) {
+                e.preventDefault();
+                setSubmissionLink(pasted.trim());
+              }
+            }}
+            placeholder="https://drive.google.com/file/d/... or PDF link"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            disabled={submitted}
+          />
+          {savedLink && submitted && (
+            <a
+              href={savedLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-700 mt-1"
+            >
+              View submitted link
+            </a>
+          )}
+        </div>
+
+        {/* Submit Button */}
         <button
-          onClick={handleToggleSubmission}
+          onClick={handleSubmit}
           disabled={toggling}
           className={`px-6 py-2 rounded-lg font-medium transition-colors ${
             submitted
               ? "bg-green-100 text-green-700 hover:bg-green-200"
-              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              : "bg-primary-600 text-white hover:bg-primary-700"
           }`}
         >
-          {toggling ? "Updating..." : submitted ? "✓ Submitted" : "Mark as Submitted"}
+          {toggling
+            ? "Updating..."
+            : submitted
+            ? "Submitted — Click to Undo"
+            : "Submit Test"}
         </button>
       </div>
     </div>

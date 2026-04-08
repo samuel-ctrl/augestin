@@ -82,6 +82,7 @@ class TestSetSubmission(AuditBase):
     submitted_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    submission_link: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Relationships
     test_set = relationship("TestSet", back_populates="submissions")

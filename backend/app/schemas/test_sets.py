@@ -72,9 +72,14 @@ class TestSetAssignOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class TestSetSubmitRequest(BaseModel):
+    submission_link: str | None = None
+
+
 class TestSetSubmissionStatus(BaseModel):
     has_submitted: bool
     submitted_at: datetime | None = None
+    submission_link: str | None = None
 
 
 class TestSetSubmissionOut(BaseModel):
@@ -84,6 +89,7 @@ class TestSetSubmissionOut(BaseModel):
     student_name: str
     student_login_id: str
     submitted_at: datetime | None = None
+    submission_link: str | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

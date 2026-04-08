@@ -41,6 +41,7 @@ async def _student_to_out(db: AsyncSession, student: User) -> StudentOut:
         email=student.email,
         phone=student.phone,
         standard=student.standard,
+        section=student.section,
         must_change_password=student.must_change_password,
         assignment_count=assignment_count,
         created_at=student.created_at,
@@ -57,12 +58,14 @@ async def list_students_endpoint(
     sort_by: str = Query("created_at"),
     sort_order: str = Query("desc"),
     standard: str | None = Query(None),
+    section: str | None = Query(None),
     db: AsyncSession = Depends(get_db),
 ):
     require_tutor(request)
     students, total, pg, ps, total_pages = await list_students(
         db, page=page, page_size=page_size, search=search,
         sort_by=sort_by, sort_order=sort_order, standard=standard,
+        section=section,
     )
     items = []
     for s in students:
@@ -86,6 +89,7 @@ async def create_student_endpoint(
             email=body.email,
             phone=body.phone,
             standard=body.standard,
+            section=body.section,
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
@@ -126,6 +130,7 @@ async def update_student_endpoint(
             db, student,
             name=body.name, email=body.email,
             phone=body.phone, standard=body.standard,
+            section=body.section,
         )
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))

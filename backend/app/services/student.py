@@ -41,6 +41,7 @@ async def create_student(
     email: str | None = None,
     phone: str | None = None,
     standard: str | None = None,
+    section: str | None = None,
 ) -> tuple[User, str]:
     validated_standard = _validate_standard(standard)
     login_id = await _generate_unique_login_id(db, email, phone)
@@ -64,6 +65,7 @@ async def create_student(
         password_hash=hash_password(plain_password),
         user_type=UserType.student,
         standard=validated_standard,
+        section=section.strip().upper() if section else None,
         must_change_password=True,
     )
     db.add(student)
@@ -80,6 +82,7 @@ async def list_students(
     sort_by: str = "created_at",
     sort_order: str = "desc",
     standard: str | None = None,
+    section: str | None = None,
 ) -> tuple[list[User], int, int, int, int]:
     query = select(User).where(User.user_type == UserType.student)
 
@@ -98,6 +101,10 @@ async def list_students(
     # Filter by standard
     if standard:
         query = query.where(User.standard == standard)
+
+    # Filter by section
+    if section:
+        query = query.where(User.section == section)
 
     # Count total
     count_query = select(func.count()).select_from(query.subquery())
@@ -138,6 +145,7 @@ async def update_student(
     email: str | None = None,
     phone: str | None = None,
     standard: str | None = None,
+    section: str | None = None,
 ) -> User:
     if name is not None:
         student.name = name
@@ -159,6 +167,8 @@ async def update_student(
         student.phone = phone if phone else None
     if standard is not None:
         student.standard = _validate_standard(standard) if standard else None
+    if section is not None:
+        student.section = section.strip().upper() if section else None
     await db.commit()
     await db.refresh(student)
     return student

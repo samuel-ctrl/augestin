@@ -44,6 +44,7 @@ async def list_doubts(
     status_filter: str | None = None,
     book_id: uuid.UUID | None = None,
     student_id: uuid.UUID | None = None,
+    standard: str | None = None,
 ) -> tuple[list[dict], int, int, int, int]:
     """List doubts with student name, book title, and comment count."""
     comment_count = (
@@ -75,6 +76,9 @@ async def list_doubts(
 
     if student_id:
         query = query.where(Doubt.student_id == student_id)
+
+    if standard:
+        query = query.where(User.standard == standard)
 
     count_query = select(func.count()).select_from(query.subquery())
     total = (await db.execute(count_query)).scalar() or 0

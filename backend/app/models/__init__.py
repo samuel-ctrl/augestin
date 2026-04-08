@@ -13,11 +13,12 @@ from app.models.book_recap import BookRecap
 from app.models.test import BookTest, TestSubmission
 from app.models.test_set import TestSet, TestSetFile, TestSetAssignment, TestSetSubmission
 from app.models.doubt import Doubt, DoubtComment
+from app.models.notification import Notification
 
 __all__ = [
     "AuditBase", "User", "Subject", "Book", "BookAssignment", "WatchProgress",
     "Question", "QuizProgress", "QuizAttempt", "QuizSet", "QuizSetAssignment",
     "BookRecap", "BookTest", "TestSubmission",
     "TestSet", "TestSetFile", "TestSetAssignment", "TestSetSubmission",
-    "Doubt", "DoubtComment",
+    "Doubt", "DoubtComment", "Notification",
 ]

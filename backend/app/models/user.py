@@ -24,6 +24,7 @@ class User(AuditBase):
     password_hash: Mapped[str] = mapped_column(String, nullable=False)
     user_type: Mapped[UserType] = mapped_column(Enum(UserType), nullable=False)
     standard: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    section: Mapped[str | None] = mapped_column(String(5), nullable=True)
     must_change_password: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Relationships

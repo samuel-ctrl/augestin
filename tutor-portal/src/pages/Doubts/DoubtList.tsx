@@ -22,6 +22,7 @@ export default function DoubtList() {
   const [total, setTotal] = useState(0);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [standardFilter, setStandardFilter] = useState("");
   const { toast, dismiss } = useToast();
 
   const fetchDoubts = useCallback(async () => {
@@ -33,6 +34,7 @@ export default function DoubtList() {
         search,
       };
       if (statusFilter) params.status = statusFilter;
+      if (standardFilter) params.standard = standardFilter;
 
       const res = await api.get<PaginatedResponse<Doubt>>("/doubts", { params });
       setDoubts(res.data.items);
@@ -42,7 +44,7 @@ export default function DoubtList() {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, search, statusFilter]);
+  }, [page, pageSize, search, statusFilter, standardFilter]);
 
   useEffect(() => {
     fetchDoubts();
@@ -85,6 +87,16 @@ export default function DoubtList() {
           <option value="open">Open</option>
           <option value="resolved">Resolved</option>
           <option value="closed">Closed</option>
+        </select>
+        <select
+          value={standardFilter}
+          onChange={(e) => { setStandardFilter(e.target.value); setPage(1); }}
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        >
+          <option value="">All Grades</option>
+          {Array.from({ length: 12 }, (_, i) => i + 1).map((g) => (
+            <option key={g} value={String(g)}>Grade {g}</option>
+          ))}
         </select>
       </div>
 

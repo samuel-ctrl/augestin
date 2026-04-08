@@ -14,6 +14,7 @@ export default function StudentCreate() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [standard, setStandard] = useState("");
+  const [section, setSection] = useState("");
   const [loading, setLoading] = useState(false);
   const [credentials, setCredentials] = useState<Credentials | null>(null);
   const { toast, showApiError, dismiss } = useToast();
@@ -25,7 +26,8 @@ export default function StudentCreate() {
       const payload: Record<string, string> = { name };
       if (email) payload.email = email;
       if (phone) payload.phone = phone;
-      if (standard) payload.standard = standard;
+      payload.standard = standard;
+      if (section) payload.section = section;
 
       const res = await api.post("/students", payload);
       setCredentials(res.data);
@@ -55,6 +57,7 @@ export default function StudentCreate() {
               setEmail("");
               setPhone("");
               setStandard("");
+              setSection("");
             }}
           >
             Create Another
@@ -115,11 +118,12 @@ export default function StudentCreate() {
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Standard
+            Standard *
           </label>
           <select
             value={standard}
             onChange={(e) => setStandard(e.target.value)}
+            required
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="">Select standard</option>
@@ -127,6 +131,21 @@ export default function StudentCreate() {
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Section
+          </label>
+          <select
+            value={section}
+            onChange={(e) => setSection(e.target.value)}
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          >
+            <option value="">Select section (optional)</option>
+            {["A", "B", "C", "D", "E"].map((s) => (
+              <option key={s} value={s}>{s}</option>
             ))}
           </select>
         </div>
