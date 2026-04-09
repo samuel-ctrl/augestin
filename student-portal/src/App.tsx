@@ -1,7 +1,10 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { AppLayout, ProtectedRoute } from "@shared";
+import { WebSocketProvider, useWS } from "./context/WebSocketContext";
+import { AppLayout, ProtectedRoute, NotificationToast, NotificationsPage } from "@shared";
 import { sidebarItems } from "./config/sidebar";
+import api from "./api/client";
 import Login from "./pages/Login";
 import ChangePassword from "./pages/ChangePassword";
 import NotFound from "./pages/NotFound";
@@ -19,22 +22,38 @@ import DoubtCreate from "./pages/Doubts/DoubtCreate";
 import DoubtDetail from "./pages/Doubts/DoubtDetail";
 import Profile from "./pages/Profile";
 
-function AuthenticatedApp() {
-  const { user, isAuthenticated, logout } = useAuth();
+function AppShell() {
+  const { user, logout } = useAuth();
+  const { on } = useWS();
+  const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    api.get<{ count: number }>("/notifications/unread-count")
+      .then(({ data }) => setUnreadCount(data.count))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    return on("notification:created", () => {
+      setUnreadCount((c) => c + 1);
+    });
+  }, [on]);
+
+  const handleCountChange = useCallback((count: number) => {
+    setUnreadCount(count);
+  }, []);
 
   return (
-    <ProtectedRoute
-      isAuthenticated={isAuthenticated}
-      requiredRole="student"
-      userRole={user?.user_type}
-      mustChangePassword={user?.must_change_password}
-      changePasswordPath="/change-password"
-    >
+    <>
+      <NotificationToast on={on} />
       <AppLayout
         navItems={sidebarItems}
         userName={user?.name || ""}
         userRole="Student"
         onLogout={logout}
+        notificationCount={unreadCount}
+        onNotificationClick={() => navigate("/notifications")}
       >
         <Routes>
           <Route path="/" element={<HomeDashboard />} />
@@ -48,11 +67,30 @@ function AuthenticatedApp() {
           <Route path="/doubts" element={<DoubtList />} />
           <Route path="/doubts/new" element={<DoubtCreate />} />
           <Route path="/doubts/:id" element={<DoubtDetail />} />
+          <Route path="/notifications" element={<NotificationsPage api={api} navigate={navigate} onCountChange={handleCountChange} on={on} />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>
+    </>
+  );
+}
+
+function AuthenticatedApp() {
+  const { user, isAuthenticated } = useAuth();
+
+  return (
+    <WebSocketProvider>
+    <ProtectedRoute
+      isAuthenticated={isAuthenticated}
+      requiredRole="student"
+      userRole={user?.user_type}
+      mustChangePassword={user?.must_change_password}
+      changePasswordPath="/change-password"
+    >
+      <AppShell />
     </ProtectedRoute>
+    </WebSocketProvider>
   );
 }
 

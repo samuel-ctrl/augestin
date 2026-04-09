@@ -1,7 +1,10 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect, useCallback } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
-import { AppLayout, ProtectedRoute } from "@shared";
+import { WebSocketProvider, useWS } from "./context/WebSocketContext";
+import { AppLayout, ProtectedRoute, NotificationToast, NotificationsPage } from "@shared";
 import { sidebarItems } from "./config/sidebar";
+import api from "./api/client";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import TutorDashboard from "./pages/TutorDashboard";
@@ -30,20 +33,38 @@ import StudentCreate from "./pages/Students/StudentCreate";
 import StudentDetail from "./pages/Students/StudentDetail";
 import DevComponents from "./pages/DevComponents";
 
-function AuthenticatedApp() {
-  const { user, isAuthenticated, logout } = useAuth();
+function AppShell() {
+  const { user, logout } = useAuth();
+  const { on } = useWS();
+  const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    api.get<{ count: number }>("/notifications/unread-count")
+      .then(({ data }) => setUnreadCount(data.count))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    return on("notification:created", () => {
+      setUnreadCount((c) => c + 1);
+    });
+  }, [on]);
+
+  const handleCountChange = useCallback((count: number) => {
+    setUnreadCount(count);
+  }, []);
 
   return (
-    <ProtectedRoute
-      isAuthenticated={isAuthenticated}
-      requiredRole="tutor"
-      userRole={user?.user_type}
-    >
+    <>
+      <NotificationToast on={on} />
       <AppLayout
         navItems={sidebarItems}
         userName={user?.name || ""}
         userRole="Tutor"
         onLogout={logout}
+        notificationCount={unreadCount}
+        onNotificationClick={() => navigate("/notifications")}
       >
         <Routes>
           <Route path="/dashboard" element={<TutorDashboard />} />
@@ -72,6 +93,7 @@ function AuthenticatedApp() {
           <Route path="/test-sets/:id/submissions" element={<TestSetSubmissions />} />
           <Route path="/doubts" element={<DoubtList />} />
           <Route path="/doubts/:id" element={<DoubtDetail />} />
+          <Route path="/notifications" element={<NotificationsPage api={api} navigate={navigate} onCountChange={handleCountChange} on={on} />} />
           <Route path="/students" element={<StudentList />} />
           <Route path="/students/new" element={<StudentCreate />} />
           <Route path="/students/:id" element={<StudentDetail />} />
@@ -79,7 +101,23 @@ function AuthenticatedApp() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>
+    </>
+  );
+}
+
+function AuthenticatedApp() {
+  const { user, isAuthenticated } = useAuth();
+
+  return (
+    <WebSocketProvider>
+    <ProtectedRoute
+      isAuthenticated={isAuthenticated}
+      requiredRole="tutor"
+      userRole={user?.user_type}
+    >
+      <AppShell />
     </ProtectedRoute>
+    </WebSocketProvider>
   );
 }
 

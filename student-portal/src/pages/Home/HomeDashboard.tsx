@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoadingSpinner, EmptyState, Toast, useToast, PageHeader, BookCard } from "@shared";
 import type { AssignedQuizSet, QuizProgress } from "@shared";
+import { useWS } from "../../context/WebSocketContext";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
 
@@ -42,6 +43,7 @@ type TaskFilter = "all" | "todo" | "in_progress" | "done";
 export default function HomeDashboard() {
   const navigate = useNavigate();
   const { toast, showApiError, dismiss } = useToast();
+  const { on } = useWS();
 
   const [pendingQuizzes, setPendingQuizzes] = useState<PendingQuiz[]>([]);
   const [continueWatching, setContinueWatching] = useState<ContinueWatching[]>([]);
@@ -147,6 +149,13 @@ export default function HomeDashboard() {
 
     fetchDashboardData();
   }, [showApiError]);
+
+  useEffect(() => {
+    return on("notification:created", (event) => {
+      const notif = event.payload as unknown as Notification;
+      setNotifications((prev) => [notif, ...prev]);
+    });
+  }, [on]);
 
   if (loading) return <LoadingSpinner fullPage />;
 

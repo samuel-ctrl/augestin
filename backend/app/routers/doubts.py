@@ -5,7 +5,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, get_current_user, require_student, require_tutor
-from app.models.doubt import Doubt as DoubtModel
+from app.models.doubt import Doubt as DoubtModel, DoubtComment as DoubtCommentModel
 from app.models.user import User, UserType, VALID_STANDARDS
 from app.schemas.doubt import (
     DoubtCreate, DoubtUpdate, DoubtStatusUpdate,
@@ -17,6 +17,8 @@ from app.services.doubt import (
     create_doubt, list_doubts, get_doubt, update_doubt, delete_doubt,
     update_doubt_status, create_comment, get_comment, update_comment, delete_comment,
 )
+from app.services.notification_service import create_and_notify
+from app.websocket_manager import manager
 
 router = APIRouter(tags=["doubts"])
 
@@ -93,7 +95,7 @@ async def create_doubt_endpoint(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    return DoubtOut(
+    out = DoubtOut(
         id=str(doubt.id),
         title=doubt.title,
         description=doubt.description,
@@ -107,6 +109,24 @@ async def create_doubt_endpoint(
         created_at=doubt.created_at,
         updated_at=doubt.updated_at,
     )
+
+    # Notify all tutors about the new doubt
+    tutor_result = await db.execute(
+        select(User.id).where(User.user_type == UserType.tutor)
+    )
+    tutor_ids = [str(uid) for uid in tutor_result.scalars().all()]
+
+    for tid in tutor_ids:
+        await create_and_notify(
+            db,
+            recipient_id=uuid.UUID(tid),
+            sender_id=student.id,
+            message=f"{student.name} posted a new doubt: '{doubt.title}'",
+            notification_type="doubt_created",
+            reference_id=doubt.id,
+        )
+
+    return out
 
 
 @router.get("/api/doubts/{doubt_id}", response_model=DoubtDetailOut)
@@ -216,7 +236,7 @@ async def update_doubt_status_endpoint(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    require_tutor(request)
+    tutor = require_tutor(request)
 
     doubt = await get_doubt(db, doubt_id)
     if not doubt:
@@ -226,6 +246,16 @@ async def update_doubt_status_endpoint(
 
     # Re-fetch with eager-loaded relationships (commit expires them)
     doubt = await get_doubt(db, doubt_id)
+
+    # Notify the student who raised the doubt
+    await create_and_notify(
+        db,
+        recipient_id=doubt.student_id,
+        sender_id=tutor.id,
+        message=f"Your doubt '{doubt.title}' was marked as {body.status}",
+        notification_type="doubt_status",
+        reference_id=doubt_id,
+    )
 
     return DoubtOut(
         id=str(doubt.id),
@@ -256,13 +286,14 @@ async def create_comment_endpoint(
 ):
     user = get_current_user(request)
 
-    result = await db.execute(select(DoubtModel).where(DoubtModel.id == doubt_id))
-    if not result.scalar_one_or_none():
+    doubt_result = await db.execute(select(DoubtModel).where(DoubtModel.id == doubt_id))
+    doubt_obj = doubt_result.scalar_one_or_none()
+    if not doubt_obj:
         raise HTTPException(status_code=404, detail="Doubt not found")
 
     comment = await create_comment(db, doubt_id, user.id, body.content)
 
-    return DoubtCommentOut(
+    out = DoubtCommentOut(
         id=str(comment.id),
         doubt_id=str(comment.doubt_id),
         user_id=str(comment.user_id),
@@ -272,6 +303,39 @@ async def create_comment_endpoint(
         created_at=comment.created_at,
         updated_at=comment.updated_at,
     )
+
+    # Gather all participants (doubt owner + all commenters) except the current user
+    participant_result = await db.execute(
+        select(DoubtCommentModel.user_id)
+        .where(DoubtCommentModel.doubt_id == doubt_id)
+        .distinct()
+    )
+    participant_ids = {str(uid) for uid in participant_result.scalars().all()}
+    participant_ids.add(str(doubt_obj.student_id))
+    participant_ids.discard(str(user.id))
+
+    if participant_ids:
+        # Real-time comment update for doubt detail page
+        await manager.send_to_users(
+            list(participant_ids),
+            {
+                "type": "doubt_comment:created",
+                "payload": out.model_dump(mode="json"),
+            },
+        )
+
+        # Create persistent notification records for each participant
+        for pid in participant_ids:
+            await create_and_notify(
+                db,
+                recipient_id=uuid.UUID(pid),
+                sender_id=user.id,
+                message=f"{user.name} commented on '{doubt_obj.title}'",
+                notification_type="doubt_comment",
+                reference_id=doubt_id,
+            )
+
+    return out
 
 
 @router.put("/api/doubts/{doubt_id}/comments/{comment_id}", response_model=DoubtCommentOut)

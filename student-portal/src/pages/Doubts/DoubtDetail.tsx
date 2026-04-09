@@ -4,6 +4,7 @@ import {
   LoadingSpinner, Toast, useToast, ConfirmDialog, Button, AttachmentGallery,
 } from "@shared";
 import { useAuth } from "../../context/AuthContext";
+import { useWS } from "../../context/WebSocketContext";
 import type { DoubtDetail as DoubtDetailType, DoubtComment } from "@shared";
 import api from "../../api/client";
 
@@ -27,6 +28,7 @@ export default function DoubtDetail() {
   const [showDeleteDoubt, setShowDeleteDoubt] = useState(false);
   const [showContact, setShowContact] = useState(false);
   const { toast, showApiError, showSuccess, dismiss } = useToast();
+  const { on } = useWS();
 
   // Doubt edit state
   const [editingDoubt, setEditingDoubt] = useState(false);
@@ -50,6 +52,22 @@ export default function DoubtDetail() {
   useEffect(() => {
     fetchDoubt();
   }, [fetchDoubt]);
+
+  useEffect(() => {
+    return on("doubt_comment:created", (event) => {
+      const newComment = event.payload as unknown as DoubtComment;
+      if (newComment.doubt_id === doubtId) {
+        setDoubt((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            comments: [...prev.comments, newComment],
+            comment_count: prev.comment_count + 1,
+          };
+        });
+      }
+    });
+  }, [on, doubtId]);
 
   const startEditingDoubt = () => {
     if (!doubt) return;
@@ -387,7 +405,7 @@ export default function DoubtDetail() {
                 <span className="text-xl">📧</span>
                 <div>
                   <p className="text-sm font-medium text-blue-900">Email</p>
-                  <p className="text-xs text-blue-700">admin@ajedutrack.com</p>
+                  <p className="text-xs text-blue-700">xyz@xyz.xyz</p>
                 </div>
               </a>
               <a
@@ -399,7 +417,7 @@ export default function DoubtDetail() {
                 <span className="text-xl">💬</span>
                 <div>
                   <p className="text-sm font-medium text-green-900">WhatsApp</p>
-                  <p className="text-xs text-green-700">+91 98765 43210</p>
+                  <p className="text-xs text-green-700">+91 xxxxx xxxxx</p>
                 </div>
               </a>
             </div>

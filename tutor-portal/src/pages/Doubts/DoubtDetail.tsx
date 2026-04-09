@@ -4,6 +4,7 @@ import {
   LoadingSpinner, Toast, useToast, ConfirmDialog, Button, AttachmentGallery,
 } from "@shared";
 import type { DoubtDetail as DoubtDetailType, DoubtComment } from "@shared";
+import { useWS } from "../../context/WebSocketContext";
 import api from "../../api/client";
 
 const statusColors: Record<string, string> = {
@@ -24,6 +25,7 @@ export default function DoubtDetail() {
   const [deleteTarget, setDeleteTarget] = useState<DoubtComment | null>(null);
   const [showDeleteDoubt, setShowDeleteDoubt] = useState(false);
   const { toast, showApiError, showSuccess, dismiss } = useToast();
+  const { on } = useWS();
 
   // Doubt edit state
   const [editingDoubt, setEditingDoubt] = useState(false);
@@ -47,6 +49,22 @@ export default function DoubtDetail() {
   useEffect(() => {
     fetchDoubt();
   }, [fetchDoubt]);
+
+  useEffect(() => {
+    return on("doubt_comment:created", (event) => {
+      const newComment = event.payload as unknown as DoubtComment;
+      if (newComment.doubt_id === doubtId) {
+        setDoubt((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            comments: [...prev.comments, newComment],
+            comment_count: prev.comment_count + 1,
+          };
+        });
+      }
+    });
+  }, [on, doubtId]);
 
   const startEditingDoubt = () => {
     if (!doubt) return;

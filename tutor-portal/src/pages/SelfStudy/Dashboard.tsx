@@ -100,7 +100,7 @@ export default function Dashboard() {
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
 
       <PageHeader
-        title="Self-Study"
+        title="Learn Zone"
         subtitle={
           subjects.length > 0
             ? `${subjects.length} subject${subjects.length !== 1 ? "s" : ""}`

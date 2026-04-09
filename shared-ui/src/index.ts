@@ -44,6 +44,8 @@ export { useDebounce } from "./hooks/useDebounce";
 export { useServerTable } from "./hooks/useServerTable";
 export { useApi } from "./hooks/useApi";
 export { useToast, extractErrorMessage } from "./hooks/useToast";
+export { useWebSocket } from "./hooks/useWebSocket";
+export type { WSEvent } from "./hooks/useWebSocket";
 
 // Layout Components
 export { AppLayout } from "./components/AppLayout";
@@ -67,6 +69,9 @@ export { Toast } from "./components/Toast";
 export type { ToastType } from "./components/Toast";
 export { EmptyState } from "./components/EmptyState";
 export { ConfirmDialog } from "./components/ConfirmDialog";
+export { NotificationBell } from "./components/NotificationBell";
+export { NotificationToast } from "./components/NotificationToast";
+export { NotificationsPage } from "./components/NotificationsPage";
 export { AlertCard } from "./components/AlertCard";
 export type { AlertCardVariant } from "./components/AlertCard";
 export { ProgressBar } from "./components/ProgressBar";

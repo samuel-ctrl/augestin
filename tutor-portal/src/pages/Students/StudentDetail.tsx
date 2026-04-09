@@ -116,7 +116,7 @@ export default function StudentDetail() {
     setSendingReminder(true);
     try {
       await api.post("/notifications", {
-        student_id: id,
+        recipient_id: id,
         message: reminderMessage.trim(),
       });
       showSuccess("Reminder sent successfully!");

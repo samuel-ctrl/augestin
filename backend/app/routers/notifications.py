@@ -1,13 +1,14 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy import select, func
+from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, get_current_user, require_tutor
 from app.models.notification import Notification
 from app.models.user import User, UserType
 from app.schemas.notification import NotificationCreate, NotificationOut
+from app.services.notification_service import create_and_notify
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 
@@ -17,12 +18,12 @@ async def list_notifications(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    """List notifications for the current student (most recent first)."""
+    """List notifications for the current user (most recent first)."""
     user = get_current_user(request)
 
     query = (
         select(Notification)
-        .where(Notification.student_id == user.id)
+        .where(Notification.recipient_id == user.id)
         .order_by(Notification.created_at.desc())
         .limit(50)
     )
@@ -32,14 +33,34 @@ async def list_notifications(
     return [
         NotificationOut(
             id=str(n.id),
-            student_id=str(n.student_id),
+            recipient_id=str(n.recipient_id),
             sender_id=str(n.sender_id),
             message=n.message,
             is_read=n.is_read,
+            notification_type=n.notification_type,
+            reference_id=str(n.reference_id) if n.reference_id else None,
             created_at=n.created_at,
         )
         for n in notifications
     ]
+
+
+@router.get("/unread-count")
+async def unread_count(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Return the number of unread notifications for the current user."""
+    user = get_current_user(request)
+
+    result = await db.execute(
+        select(func.count(Notification.id)).where(
+            Notification.recipient_id == user.id,
+            Notification.is_read == False,
+        )
+    )
+    count = result.scalar_one()
+    return {"count": count}
 
 
 @router.post("", response_model=NotificationOut, status_code=status.HTTP_201_CREATED)
@@ -48,38 +69,45 @@ async def send_notification(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    """Send a notification to a student (tutor only)."""
+    """Send a notification to a user (tutor only)."""
     tutor = require_tutor(request)
 
     try:
-        student_id = uuid.UUID(body.student_id)
+        recipient_id = uuid.UUID(body.recipient_id)
     except ValueError:
-        raise HTTPException(status_code=400, detail="Invalid student_id")
+        raise HTTPException(status_code=400, detail="Invalid recipient_id")
 
-    # Verify student exists
-    result = await db.execute(
-        select(User).where(User.id == student_id, User.user_type == UserType.student)
-    )
+    # Verify recipient exists
+    result = await db.execute(select(User).where(User.id == recipient_id))
     if not result.scalar_one_or_none():
-        raise HTTPException(status_code=404, detail="Student not found")
+        raise HTTPException(status_code=404, detail="User not found")
 
-    notification = Notification(
-        student_id=student_id,
+    out = await create_and_notify(
+        db,
+        recipient_id=recipient_id,
         sender_id=tutor.id,
         message=body.message,
+        notification_type="manual",
     )
-    db.add(notification)
-    await db.commit()
-    await db.refresh(notification)
 
-    return NotificationOut(
-        id=str(notification.id),
-        student_id=str(notification.student_id),
-        sender_id=str(notification.sender_id),
-        message=notification.message,
-        is_read=notification.is_read,
-        created_at=notification.created_at,
+    return out
+
+
+@router.put("/read-all")
+async def mark_all_read(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Mark all notifications as read for the current user."""
+    user = get_current_user(request)
+
+    await db.execute(
+        update(Notification)
+        .where(Notification.recipient_id == user.id, Notification.is_read == False)
+        .values(is_read=True)
     )
+    await db.commit()
+    return {"ok": True}
 
 
 @router.put("/{notification_id}/read")
@@ -94,7 +122,7 @@ async def mark_as_read(
     result = await db.execute(
         select(Notification).where(
             Notification.id == notification_id,
-            Notification.student_id == user.id,
+            Notification.recipient_id == user.id,
         )
     )
     notification = result.scalar_one_or_none()

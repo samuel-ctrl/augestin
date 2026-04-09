@@ -187,7 +187,7 @@ export default function BookTestPage() {
       {/* Breadcrumb */}
       <Breadcrumb
         segments={[
-          { label: "Self-Study", path: "/self-study" },
+          { label: "Learn Zone", path: "/self-study" },
           { label: book.title, path: `/self-study/books/${bookId}/preview` },
           { label: "Manage Test" },
         ]}

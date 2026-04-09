@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { extractErrorMessage, Button } from "@shared";
 import loginImage from "../assets/login.webp";
+import logo from "../../shared-ui/src/assets/logo.svg";
 
 export default function Login() {
   const [loginId, setLoginId] = useState("");
@@ -47,8 +48,8 @@ export default function Login() {
       <div className="w-full md:w-1/2 flex items-center justify-center px-4 relative z-10">
         <div className="max-w-sm w-full">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-primary-600">A.J EduTrack</h1>
-            <p className="text-sm text-gray-500 mt-1">Tutor Portal</p>
+            <img src={logo} alt="A.J EduTrack" className="h-16 mx-auto" />
+            <p className="text-sm text-gray-500 mt-2">Tutor Portal</p>
           </div>
           <form
             onSubmit={handleSubmit}

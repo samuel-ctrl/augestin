@@ -103,7 +103,7 @@ export default function SubjectView() {
       <PageHeader
         title={subject.name}
         subtitle={`${books.length} book${books.length !== 1 ? "s" : ""}`}
-        backButton={{ label: "Self-Study", onClick: () => navigate("/self-study") }}
+        backButton={{ label: "Learn Zone", onClick: () => navigate("/self-study") }}
         actions={
           <div className="flex border-b border-white/20">
             <button

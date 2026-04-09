@@ -336,7 +336,7 @@ export default function DevComponents() {
           <Breadcrumb
             segments={[
               { label: "Home", path: "/" },
-              { label: "Self-Study", path: "/self-study" },
+              { label: "Learn Zone", path: "/self-study" },
               { label: "Mathematics" },
             ]}
           />

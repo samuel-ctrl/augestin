@@ -42,7 +42,7 @@ export default function Dashboard() {
 
   return (
     <div>
-      <PageHeader title="Self-Study" subtitle="Select a subject to start learning" />
+      <PageHeader title="Learn Zone" subtitle="Select a subject to start learning" />
 
       {/* Subject Grid */}
       {subjects.length === 0 ? (

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
 import type { NavItem } from "../types";
+import { NotificationBell } from "./NotificationBell";
 import logoSvg from "../assets/logo.svg";
 
 interface SidebarProps {
@@ -12,9 +13,11 @@ interface SidebarProps {
   userName?: string;
   userRole?: string;
   onLogout?: () => void;
+  notificationCount?: number;
+  onNotificationClick?: () => void;
 }
 
-export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, onClose, userName, userRole, onLogout }: SidebarProps) {
+export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, onClose, userName, userRole, onLogout, notificationCount = 0, onNotificationClick }: SidebarProps) {
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -58,16 +61,19 @@ export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, o
 
       {/* Logo / Header */}
       <div className={`py-5 flex items-center border-b border-white/20 relative z-10 ${collapsed ? "px-2 justify-center" : "px-4 justify-between"}`}>
-        {!collapsed && (
-          <div className="flex items-center gap-2">
-            {logo || (
-              <img src={logoSvg} alt="A.J EduTrack" className="h-10 w-auto brightness-0 invert" />
-            )}
-          </div>
-        )}
-        {collapsed && (
-          <img src={logoSvg} alt="A.J" className="h-8 w-8 object-contain brightness-0 invert" title="A.J EduTrack" />
-        )}
+        <div className="flex items-center gap-2">
+          {logo || (
+            <>
+              <img src={logoSvg} alt="A.J EduTrack" className={`brightness-0 invert ${collapsed ? "h-8 w-8 object-contain" : "h-10 w-auto"}`} />
+              {!collapsed && (
+                <span className="text-xl tracking-wide" style={{ fontFamily: "'Poppins', 'Segoe UI', sans-serif" }}>
+                  <span className="font-bold text-yellow-300">Edu</span>
+                  <span className="font-light text-cyan-300">Track</span>
+                </span>
+              )}
+            </>
+          )}
+        </div>
         <div className="flex items-center gap-1">
           {onClose && !collapsed && (
             <button
@@ -119,6 +125,17 @@ export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, o
           );
         })}
       </nav>
+
+      {/* Notification bell */}
+      {onNotificationClick && (
+        <div className={`relative z-10 border-t border-white/10 ${collapsed ? "px-2 pt-2" : "px-3 pt-2"}`}>
+          <NotificationBell
+            unreadCount={notificationCount}
+            onClick={() => { onNotificationClick(); onClose?.(); }}
+            collapsed={collapsed}
+          />
+        </div>
+      )}
 
       {/* User profile with dropdown */}
       <div className={`border-t border-white/10 relative z-20 ${collapsed ? "px-2 py-3" : "px-3 py-3"}`} ref={dropdownRef}>

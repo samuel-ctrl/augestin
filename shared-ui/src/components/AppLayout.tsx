@@ -11,6 +11,8 @@ interface AppLayoutProps {
   userRole: string;
   onLogout: () => void;
   logo?: React.ReactNode;
+  notificationCount?: number;
+  onNotificationClick?: () => void;
 }
 
 export function AppLayout({
@@ -21,6 +23,8 @@ export function AppLayout({
   userRole,
   onLogout,
   logo,
+  notificationCount,
+  onNotificationClick,
 }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -50,6 +54,8 @@ export function AppLayout({
           userName={userName}
           userRole={userRole}
           onLogout={onLogout}
+          notificationCount={notificationCount}
+          onNotificationClick={onNotificationClick}
         />
       </div>
 

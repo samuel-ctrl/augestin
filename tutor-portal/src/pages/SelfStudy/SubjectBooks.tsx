@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   BookCard,
   DataTable,
@@ -130,7 +131,7 @@ export default function SubjectBooks() {
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <PageHeader
         title={subject.name}
-        backButton={{ label: "Self-Study", onClick: () => navigate("/self-study") }}
+        backButton={{ label: "Learn Zone", onClick: () => navigate("/self-study") }}
         actions={
           <>
             <div className="flex border border-gray-500 rounded-lg overflow-hidden">
@@ -248,11 +249,13 @@ function BookMenu({
 }) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0 });
 
   useEffect(() => {
     if (!open) return;
     const handleClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node) && !btnRef.current?.contains(e.target as Node)) {
         setOpen(false);
       }
     };
@@ -260,15 +263,24 @@ function BookMenu({
     return () => document.removeEventListener("mousedown", handleClick);
   }, [open]);
 
+  const handleToggle = () => {
+    if (!open && btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      setPos({ top: rect.bottom + 4, left: rect.right });
+    }
+    setOpen((v) => !v);
+  };
+
   const handleAction = (action: () => void) => {
     setOpen(false);
     action();
   };
 
   return (
-    <div ref={menuRef} className="relative">
+    <div className="relative">
       <button
-        onClick={() => setOpen((v) => !v)}
+        ref={btnRef}
+        onClick={handleToggle}
         className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
       >
         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -276,8 +288,8 @@ function BookMenu({
         </svg>
       </button>
 
-      {open && (
-        <div className="absolute right-0 top-8 z-20 w-36 bg-white rounded-lg border border-gray-200 shadow-lg py-1">
+      {open && createPortal(
+        <div ref={menuRef} className="fixed z-[9999] w-36 bg-white rounded-lg border border-gray-200 shadow-lg py-1" style={{ top: pos.top, left: pos.left - 144 }}>
           <button
             onClick={() => handleAction(onPreview)}
             className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
@@ -325,7 +337,8 @@ function BookMenu({
             </svg>
             Delete
           </button>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
