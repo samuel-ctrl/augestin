@@ -407,7 +407,7 @@ export default function DoubtDetail() {
             </p>
             <div className="space-y-3">
               <a
-                href="mailto:admin@ajedutrack.com"
+                href="mailto:admin@edutrack.com"
                 className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
               >
                 <span className="text-xl">📧</span>
