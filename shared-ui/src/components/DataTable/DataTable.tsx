@@ -23,6 +23,7 @@ interface DataTableProps<T> {
   onRowClick?: (row: T) => void;
   actions?: (row: T) => React.ReactNode;
   rowKey?: (row: T) => string;
+  maxHeight?: string;
 }
 
 export function DataTable<T>({
@@ -36,6 +37,7 @@ export function DataTable<T>({
   onRowClick,
   actions,
   rowKey,
+  maxHeight,
 }: DataTableProps<T>) {
   const {
     data,
@@ -75,9 +77,9 @@ export function DataTable<T>({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" style={maxHeight ? { maxHeight, overflowY: "auto" } : undefined}>
         <table className="w-full">
-          <thead>
+          <thead className={maxHeight ? "sticky top-0 z-10" : ""}>
             <tr style={{ backgroundColor: "rgb(44, 62, 80)" }}>
               {columns.map((col) => (
                 <TableSortHeader
