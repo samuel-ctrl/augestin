@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { BookCard, DataTable, LoadingSpinner, PageHeader, extractErrorMessage } from "@shared";
+import { BookCard, DataTable, EmptyState, LoadingSpinner, PageHeader, extractErrorMessage } from "@shared";
 import type { Subject, Book, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
