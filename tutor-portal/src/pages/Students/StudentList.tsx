@@ -69,14 +69,7 @@ export default function StudentList() {
   return (
     <div>
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
-      <PageHeader
-        title="Students"
-        actions={
-          <Button color="success" onClick={() => navigate("/students/new")}>
-            + Add Student
-          </Button>
-        }
-      />
+      <PageHeader title="Students" />
 
       <DataTable<Student>
         key={refreshKey}
@@ -87,6 +80,8 @@ export default function StudentList() {
         defaultSortBy="created_at"
         onRowClick={(student) => navigate(`/students/${student.id}`)}
         rowKey={(s) => s.id}
+        addButtonLabel="+ Add Student"
+        onAddClick={() => navigate("/students/new")}
         actions={(student) => (
           <Button variant="ghost" color="danger" size="xs" onClick={() => setDeleteTarget(student)}>
             Delete

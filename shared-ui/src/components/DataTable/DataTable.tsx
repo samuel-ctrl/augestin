@@ -11,6 +11,7 @@ import { TableFilters } from "./TableFilters";
 import { TableSortHeader } from "./TableSortHeader";
 import { TablePagination } from "./TablePagination";
 import { LoadingSpinner } from "../LoadingSpinner";
+import { Button } from "../Button";
 
 interface DataTableProps<T> {
   fetchFn: (params: TableQueryParams) => Promise<PaginatedResponse<T>>;
@@ -23,6 +24,8 @@ interface DataTableProps<T> {
   onRowClick?: (row: T) => void;
   actions?: (row: T) => React.ReactNode;
   rowKey?: (row: T) => string;
+  addButtonLabel?: string;
+  onAddClick?: () => void;
 }
 
 // Fixed height: header (~40px) + 6 rows (~48px each) + buffer
@@ -39,6 +42,8 @@ export function DataTable<T>({
   onRowClick,
   actions,
   rowKey,
+  addButtonLabel,
+  onAddClick,
 }: DataTableProps<T>) {
   const {
     data,
@@ -61,7 +66,7 @@ export function DataTable<T>({
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-visible">
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-4 rounded-t-xl" style={{ backgroundColor: "rgb(44, 62, 80)" }}>
-        <div className="flex-1 w-full sm:max-w-sm">
+        <div className="w-full sm:max-w-sm">
           <TableSearch
             value={search}
             onChange={handlers.setSearch}
@@ -75,13 +80,18 @@ export function DataTable<T>({
             onChange={handlers.setFilter}
           />
         )}
+        {addButtonLabel && onAddClick && (
+          <Button color="success" size="md" className="sm:ml-auto whitespace-nowrap" onClick={onAddClick}>
+            {addButtonLabel}
+          </Button>
+        )}
       </div>
 
       {/* Table */}
       <div className="overflow-auto" style={{ maxHeight: TABLE_MAX_HEIGHT }}>
         <table className="w-full">
           <thead className="sticky top-0 z-10">
-            <tr style={{ backgroundColor: "rgb(44, 62, 80)" }}>
+            <tr style={{ backgroundColor: "rgb(44, 62, 80)", borderTop: "1.5px solid white" }}>
               {columns.map((col) => (
                 <TableSortHeader
                   key={col.key}

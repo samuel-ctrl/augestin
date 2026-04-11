@@ -156,9 +156,6 @@ export default function SubjectBooks() {
                 Cards
               </button>
             </div>
-            <Button color="success" onClick={() => navigate(`/self-study/books/new?subject_id=${subjectId}`)}>
-              + Add Book
-            </Button>
           </>
         }
       />
@@ -172,6 +169,8 @@ export default function SubjectBooks() {
           defaultSortOrder="asc"
           onRowClick={(book) => navigate(`/self-study/books/${book.id}/preview`)}
           rowKey={(book) => book.id}
+          addButtonLabel="+ Add Book"
+          onAddClick={() => navigate(`/self-study/books/new?subject_id=${subjectId}`)}
           actions={(book) => (
             <BookMenu
               onPreview={() => navigate(`/self-study/books/${book.id}/preview`)}
