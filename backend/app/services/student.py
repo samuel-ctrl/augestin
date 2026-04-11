@@ -4,17 +4,10 @@ import uuid
 from sqlalchemy import String, cast, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.user import VALID_STANDARDS, User, UserType
+from app.models.user import User, UserType
+from app.services.lookup import validate_section, validate_standard
 from app.utils.id_generator import generate_password, generate_student_id
 from app.utils.password import hash_password
-
-
-def _validate_standard(standard: str | None) -> str | None:
-    if standard is None:
-        return None
-    if standard not in VALID_STANDARDS:
-        raise ValueError(f"Invalid standard '{standard}'. Must be one of: {', '.join(VALID_STANDARDS)}")
-    return standard
 
 
 async def _generate_unique_login_id(db: AsyncSession, email: str | None, phone: str | None) -> str:
@@ -43,7 +36,9 @@ async def create_student(
     standard: str | None = None,
     section: str | None = None,
 ) -> tuple[User, str]:
-    validated_standard = _validate_standard(standard)
+    validated_standard = await validate_standard(db, standard)
+    if section:
+        await validate_section(db, section)
     login_id = await _generate_unique_login_id(db, email, phone)
     plain_password = generate_password()
 
@@ -166,8 +161,10 @@ async def update_student(
                 raise ValueError(f"A student with phone '{phone}' already exists")
         student.phone = phone if phone else None
     if standard is not None:
-        student.standard = _validate_standard(standard) if standard else None
+        student.standard = await validate_standard(db, standard) if standard else None
     if section is not None:
+        if section:
+            await validate_section(db, section)
         student.section = section.strip().upper() if section else None
     await db.commit()
     await db.refresh(student)

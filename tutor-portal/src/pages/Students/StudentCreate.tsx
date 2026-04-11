@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { CredentialCard, Toast, useToast, standardOptions, Button } from "@shared";
+import { CredentialCard, Toast, useToast, Button } from "@shared";
 import api from "../../api/client";
+import { useLookups } from "../../context/LookupContext";
 
 interface Credentials {
   login_id: string;
@@ -10,6 +11,7 @@ interface Credentials {
 
 export default function StudentCreate() {
   const navigate = useNavigate();
+  const { standards, sections } = useLookups();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -127,7 +129,7 @@ export default function StudentCreate() {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="">Select standard</option>
-            {standardOptions.map((opt) => (
+            {standards.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
               </option>
@@ -144,8 +146,8 @@ export default function StudentCreate() {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
           >
             <option value="">Select section (optional)</option>
-            {["A", "B", "C", "D", "E"].map((s) => (
-              <option key={s} value={s}>{s}</option>
+            {sections.map((opt) => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
             ))}
           </select>
         </div>

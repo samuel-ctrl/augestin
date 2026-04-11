@@ -11,9 +11,6 @@ class UserType(str, enum.Enum):
     tutor = "tutor"
 
 
-VALID_STANDARDS = [str(i) for i in range(1, 13)]
-
-
 class User(AuditBase):
     __tablename__ = "users"
 

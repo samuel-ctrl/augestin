@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
-import { LoadingSpinner, Toast, useToast, standardOptions, Button } from "@shared";
+import { LoadingSpinner, Toast, useToast, Button } from "@shared";
 import api from "../../api/client";
+import { useLookups } from "../../context/LookupContext";
 
 interface BookData {
   title: string;
@@ -16,6 +17,7 @@ export default function BookForm() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { standards } = useLookups();
   const isEdit = !!id;
 
   const [title, setTitle] = useState("");
@@ -159,7 +161,7 @@ export default function BookForm() {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
             >
               <option value="">Select</option>
-              {standardOptions.map((opt) => (
+              {standards.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>

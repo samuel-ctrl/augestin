@@ -5,6 +5,7 @@ import {
 } from "@shared";
 import type { Doubt, PaginatedResponse } from "@shared";
 import api from "../../api/client";
+import { useLookups } from "../../context/LookupContext";
 
 const statusColors: Record<string, string> = {
   open: "bg-yellow-100 text-yellow-800",
@@ -14,6 +15,7 @@ const statusColors: Record<string, string> = {
 
 export default function DoubtList() {
   const navigate = useNavigate();
+  const { standards, sections } = useLookups();
   const [doubts, setDoubts] = useState<Doubt[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +25,7 @@ export default function DoubtList() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [standardFilter, setStandardFilter] = useState("");
+  const [sectionFilter, setSectionFilter] = useState("");
   const { toast, dismiss } = useToast();
 
   const fetchDoubts = useCallback(async () => {
@@ -35,6 +38,7 @@ export default function DoubtList() {
       };
       if (statusFilter) params.status = statusFilter;
       if (standardFilter) params.standard = standardFilter;
+      if (sectionFilter) params.section = sectionFilter;
 
       const res = await api.get<PaginatedResponse<Doubt>>("/doubts", { params });
       setDoubts(res.data.items);
@@ -44,7 +48,7 @@ export default function DoubtList() {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, search, statusFilter, standardFilter]);
+  }, [page, pageSize, search, statusFilter, standardFilter, sectionFilter]);
 
   useEffect(() => {
     fetchDoubts();
@@ -93,9 +97,19 @@ export default function DoubtList() {
           onChange={(e) => { setStandardFilter(e.target.value); setPage(1); }}
           className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         >
-          <option value="">All Grades</option>
-          {Array.from({ length: 12 }, (_, i) => i + 1).map((g) => (
-            <option key={g} value={String(g)}>Grade {g}</option>
+          <option value="">All Standards</option>
+          {standards.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          ))}
+        </select>
+        <select
+          value={sectionFilter}
+          onChange={(e) => { setSectionFilter(e.target.value); setPage(1); }}
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        >
+          <option value="">All Sections</option>
+          {sections.map((opt) => (
+            <option key={opt.value} value={opt.value}>{opt.label}</option>
           ))}
         </select>
       </div>

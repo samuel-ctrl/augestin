@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, get_current_user, require_student, require_tutor
 from app.models.doubt import Doubt as DoubtModel, DoubtComment as DoubtCommentModel
-from app.models.user import User, UserType, VALID_STANDARDS
+from app.models.user import User, UserType
 from app.schemas.doubt import (
     DoubtCreate, DoubtUpdate, DoubtStatusUpdate,
     DoubtOut, DoubtDetailOut,
@@ -38,6 +38,7 @@ async def list_doubts_endpoint(
     book_id: str = Query(""),
     my_doubts: bool = Query(False),
     standard: str = Query(""),
+    section: str = Query(""),
 ):
     user = get_current_user(request)
 
@@ -52,8 +53,9 @@ async def list_doubts_endpoint(
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid book_id")
 
-    # Students only see doubts from their own grade
+    # Students only see doubts from their own standard
     effective_standard = standard or None
+    effective_section = section or None
     if user.user_type == UserType.student and user.standard:
         effective_standard = user.standard
 
@@ -61,7 +63,7 @@ async def list_doubts_endpoint(
         db, page=page, page_size=page_size, search=search,
         status_filter=status_filter or None,
         book_id=book_uuid, student_id=student_id,
-        standard=effective_standard,
+        standard=effective_standard, section=effective_section,
     )
 
     return PaginatedResponse(

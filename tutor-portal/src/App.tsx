@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { LookupProvider } from "./context/LookupContext";
 import { WebSocketProvider, useWS } from "./context/WebSocketContext";
 import { AppLayout, ProtectedRoute, NotificationToast, NotificationsPage } from "@shared";
 import { sidebarItems } from "./config/sidebar";
@@ -31,6 +32,7 @@ import DoubtDetail from "./pages/Doubts/DoubtDetail";
 import StudentList from "./pages/Students/StudentList";
 import StudentCreate from "./pages/Students/StudentCreate";
 import StudentDetail from "./pages/Students/StudentDetail";
+import ManageLookups from "./pages/Settings/ManageLookups";
 import DevComponents from "./pages/DevComponents";
 
 function AppShell() {
@@ -98,6 +100,7 @@ function AppShell() {
           <Route path="/students" element={<StudentList />} />
           <Route path="/students/new" element={<StudentCreate />} />
           <Route path="/students/:id" element={<StudentDetail />} />
+          <Route path="/settings/lookups" element={<ManageLookups />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
@@ -111,6 +114,7 @@ function AuthenticatedApp() {
 
   return (
     <WebSocketProvider>
+    <LookupProvider>
     <ProtectedRoute
       isAuthenticated={isAuthenticated}
       requiredRole="tutor"
@@ -118,6 +122,7 @@ function AuthenticatedApp() {
     >
       <AppShell />
     </ProtectedRoute>
+    </LookupProvider>
     </WebSocketProvider>
   );
 }

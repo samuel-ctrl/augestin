@@ -6,6 +6,7 @@ export interface User {
   phone?: string;
   user_type: "student" | "tutor";
   standard?: string;
+  section?: string;
   must_change_password: boolean;
 }
 
@@ -307,4 +308,18 @@ export interface DoubtComment {
 
 export interface DoubtDetail extends Doubt {
   comments: DoubtComment[];
+}
+
+// ============================================================================
+// Lookups
+// ============================================================================
+
+export interface LookupOption {
+  value: string;
+  label: string;
+}
+
+export interface LookupOptions {
+  standards: LookupOption[];
+  sections: LookupOption[];
 }

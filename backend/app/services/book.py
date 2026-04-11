@@ -9,7 +9,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.book import Book
 from app.models.book_assignment import BookAssignment
-from app.models.user import VALID_STANDARDS, User, UserType
+from app.models.user import User, UserType
+from app.services.lookup import validate_standard
 
 
 def validate_url(url: str) -> str:
@@ -63,8 +64,7 @@ async def create_book(
     description: str | None = None,
     thumbnail_url: str | None = None,
 ) -> Book:
-    if standard not in VALID_STANDARDS:
-        raise ValueError(f"Invalid standard '{standard}'")
+    await validate_standard(db, standard)
     validate_url(video_url)
     if thumbnail_url:
         validate_url(thumbnail_url)
@@ -101,8 +101,7 @@ async def update_book(
     if description is not None:
         book.description = description
     if standard is not None:
-        if standard not in VALID_STANDARDS:
-            raise ValueError(f"Invalid standard '{standard}'")
+        await validate_standard(db, standard)
         book.standard = standard
     if video_url is not None:
         validate_url(video_url)

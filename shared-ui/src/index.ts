@@ -31,10 +31,12 @@ export type {
   Doubt,
   DoubtComment,
   DoubtDetail,
+  LookupOption,
+  LookupOptions,
 } from "./types";
 
 // Constants
-export { iconMap, iconKeys, standardOptions } from "./constants/icons";
+export { iconMap, iconKeys } from "./constants/icons";
 
 // Utils
 export { extractFileId, isGoogleDriveUrl, toEmbedUrl, toDirectImageUrl } from "./utils/googleDrive";

@@ -1,12 +1,14 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage, standardOptions, Button, ConfirmDialog } from "@shared";
+import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage, Button, ConfirmDialog } from "@shared";
 import type { Book, Student, Assignment } from "@shared";
 import api from "../../api/client";
+import { useLookups } from "../../context/LookupContext";
 
 export default function BookAssign() {
   const { id: bookId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { standards } = useLookups();
   const [book, setBook] = useState<Book | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [assignedIds, setAssignedIds] = useState<Set<string>>(new Set());
@@ -170,7 +172,7 @@ export default function BookAssign() {
           className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         >
           <option value="">All Standards</option>
-          {standardOptions.map((opt) => (
+          {standards.map((opt) => (
             <option key={opt.value} value={opt.value}>
               {opt.label}
             </option>

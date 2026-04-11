@@ -14,6 +14,7 @@ class UserOut(BaseModel):
     phone: str | None = None
     user_type: str
     standard: str | None = None
+    section: str | None = None
     must_change_password: bool
 
     model_config = {"from_attributes": True}

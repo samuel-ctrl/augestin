@@ -1,16 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { DataTable, ConfirmDialog, Toast, useToast, extractErrorMessage, standardOptions, Button, PageHeader } from "@shared";
+import { DataTable, ConfirmDialog, Toast, useToast, extractErrorMessage, Button, PageHeader } from "@shared";
 import type { Student, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
-
-const sectionOptions = [
-  { value: "A", label: "Section A" },
-  { value: "B", label: "Section B" },
-  { value: "C", label: "Section C" },
-  { value: "D", label: "Section D" },
-  { value: "E", label: "Section E" },
-];
+import { useLookups } from "../../context/LookupContext";
 
 const columns: ColumnDef<Student>[] = [
   { key: "name", label: "Name" },
@@ -38,13 +31,14 @@ const columns: ColumnDef<Student>[] = [
   },
 ];
 
-const filters = [
-  { key: "standard", label: "Standard", options: standardOptions },
-  { key: "section", label: "Section", options: sectionOptions },
-];
-
 export default function StudentList() {
   const navigate = useNavigate();
+  const { standards, sections } = useLookups();
+
+  const filters = [
+    { key: "standard", label: "Standard", options: standards },
+    { key: "section", label: "Section", options: sections },
+  ];
   const [deleteTarget, setDeleteTarget] = useState<Student | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
