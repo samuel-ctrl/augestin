@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import {
-  PageHeader, DataTable, Toast, useToast, Button, ConfirmDialog, FormDialog,
+  PageHeader, DataTable, Toast, useToast, Button, ConfirmDialog, FormDialog, DropdownMenu,
 } from "@shared";
 import type { ColumnDef, PaginatedResponse, TableQueryParams, DropdownMenuItem } from "@shared";
 import api from "../../api/client";
@@ -250,6 +250,26 @@ export default function ManageLookups() {
             const idx = stdItems.findIndex((i) => i.id === row.id);
             return renderActions(stdItems, row, idx);
           }}
+          renderCard={(row, cardActions) => (
+            <div className="bg-[rgb(191_189_207_/_38%)] rounded-lg border border-gray-200 p-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-gray-800 text-sm">{row.name}</h4>
+                {cardActions && (
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu items={cardActions} />
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 mt-2">
+                <span className="px-2 py-0.5 bg-primary-50 text-primary-600 text-xs rounded">
+                  {row.student_count} student{row.student_count !== 1 ? "s" : ""}
+                </span>
+                <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded">
+                  {row.book_count} book{row.book_count !== 1 ? "s" : ""}
+                </span>
+              </div>
+            </div>
+          )}
         />
       ) : (
         <DataTable<SectionItem>
@@ -265,6 +285,23 @@ export default function ManageLookups() {
             const idx = secItems.findIndex((i) => i.id === row.id);
             return renderActions(secItems, row, idx);
           }}
+          renderCard={(row, cardActions) => (
+            <div className="bg-[rgb(191_189_207_/_38%)] rounded-lg border border-gray-200 p-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium text-gray-800 text-sm">{row.name}</h4>
+                {cardActions && (
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenu items={cardActions} />
+                  </div>
+                )}
+              </div>
+              <div className="mt-2">
+                <span className="px-2 py-0.5 bg-primary-50 text-primary-600 text-xs rounded">
+                  {row.student_count} student{row.student_count !== 1 ? "s" : ""}
+                </span>
+              </div>
+            </div>
+          )}
         />
       )}
 

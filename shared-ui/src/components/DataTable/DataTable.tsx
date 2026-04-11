@@ -28,6 +28,7 @@ interface DataTableProps<T> {
   rowKey?: (row: T) => string;
   addButtonLabel?: string;
   onAddClick?: () => void;
+  renderCard?: (row: T, actions?: DropdownMenuItem[]) => React.ReactNode;
 }
 
 // Fixed height: header (~40px) + 6 rows (~48px each) + buffer
@@ -47,7 +48,10 @@ export function DataTable<T>({
   rowKey,
   addButtonLabel,
   onAddClick,
+  renderCard,
 }: DataTableProps<T>) {
+  const [viewMode, setViewMode] = React.useState<"table" | "card">("table");
+
   const {
     data,
     loading,
@@ -161,64 +165,119 @@ export function DataTable<T>({
             onChange={handlers.setFilter}
           />
         )}
+        {renderCard && (
+          <div className={`flex border border-gray-500 rounded-lg overflow-hidden ${!addButtonLabel ? "sm:ml-auto" : "sm:ml-auto"}`}>
+            <button
+              onClick={() => setViewMode("table")}
+              className={`p-2 transition-colors ${
+                viewMode === "table"
+                  ? "bg-white/20 text-white"
+                  : "text-gray-300 hover:text-white hover:bg-white/10"
+              }`}
+              title="Table view"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="3" width="14" height="2" rx="0.5" fill="currentColor"/>
+                <rect x="2" y="8" width="14" height="2" rx="0.5" fill="currentColor"/>
+                <rect x="2" y="13" width="14" height="2" rx="0.5" fill="currentColor"/>
+              </svg>
+            </button>
+            <button
+              onClick={() => setViewMode("card")}
+              className={`p-2 transition-colors ${
+                viewMode === "card"
+                  ? "bg-white/20 text-white"
+                  : "text-gray-300 hover:text-white hover:bg-white/10"
+              }`}
+              title="Card view"
+            >
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="2" y="2" width="6" height="6" rx="1" fill="currentColor"/>
+                <rect x="10" y="2" width="6" height="6" rx="1" fill="currentColor"/>
+                <rect x="2" y="10" width="6" height="6" rx="1" fill="currentColor"/>
+                <rect x="10" y="10" width="6" height="6" rx="1" fill="currentColor"/>
+              </svg>
+            </button>
+          </div>
+        )}
         {addButtonLabel && onAddClick && (
-          <Button color="success" size="md" className="sm:ml-auto whitespace-nowrap" onClick={onAddClick}>
+          <Button color="success" size="md" className={`${renderCard ? "" : "sm:ml-auto "}whitespace-nowrap`} onClick={onAddClick}>
             {addButtonLabel}
           </Button>
         )}
       </div>
 
-      {/* Table */}
-      <div className="overflow-auto" style={{ maxHeight: TABLE_MAX_HEIGHT, scrollbarWidth: "thin", scrollbarColor: "rgba(44,62,80,0.35) transparent" }}>
-        <table className="w-full">
-          <thead className="sticky top-0 z-10">
-            <tr style={{ backgroundColor: "rgb(44, 62, 80)", borderTop: "1.5px solid white" }}>
-              {renderHeaderCells()}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100">
-            {loading ? (
-              <tr>
-                <td
-                  colSpan={totalCols}
-                  className="px-4 py-12 text-center"
-                >
-                  <LoadingSpinner />
-                </td>
+      {/* Data area */}
+      {viewMode === "card" && renderCard ? (
+        <div className="p-4" style={{ minHeight: "12rem" }}>
+          {loading ? (
+            <div className="flex justify-center py-12"><LoadingSpinner /></div>
+          ) : error ? (
+            <div className="text-center text-red-500 py-12">{error}</div>
+          ) : data.length === 0 ? (
+            <div className="text-center text-gray-400 py-12">No results found</div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {data.map((row, idx) => (
+                <div key={rowKey ? rowKey(row) : idx}>
+                  {renderCard(row, actions ? actions(row) : undefined)}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="overflow-auto" style={{ maxHeight: TABLE_MAX_HEIGHT, scrollbarWidth: "thin", scrollbarColor: "rgba(44,62,80,0.35) transparent" }}>
+          <table className="w-full">
+            <thead className="sticky top-0 z-10">
+              <tr style={{ backgroundColor: "rgb(44, 62, 80)", borderTop: "1.5px solid white" }}>
+                {renderHeaderCells()}
               </tr>
-            ) : error ? (
-              <tr>
-                <td
-                  colSpan={totalCols}
-                  className="px-4 py-12 text-center text-red-500"
-                >
-                  {error}
-                </td>
-              </tr>
-            ) : data.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={totalCols}
-                  className="px-4 py-12 text-center text-gray-400"
-                >
-                  No results found
-                </td>
-              </tr>
-            ) : (
-              data.map((row, idx) => (
-                <tr
-                  key={rowKey ? rowKey(row) : idx}
-                  className={`${onRowClick ? "cursor-pointer" : ""} hover:bg-gray-50 transition-colors duration-150`}
-                  style={{ backgroundColor: idx % 2 === 0 ? "#fff" : "rgb(226 226 226 / 85%)" }}
-                  onClick={() => onRowClick?.(row)}
-                >
-                  {renderRowCells(row)}
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {loading ? (
+                <tr>
+                  <td
+                    colSpan={totalCols}
+                    className="px-4 py-12 text-center"
+                  >
+                    <LoadingSpinner />
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+              ) : error ? (
+                <tr>
+                  <td
+                    colSpan={totalCols}
+                    className="px-4 py-12 text-center text-red-500"
+                  >
+                    {error}
+                  </td>
+                </tr>
+              ) : data.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={totalCols}
+                    className="px-4 py-12 text-center text-gray-400"
+                  >
+                    No results found
+                  </td>
+                </tr>
+              ) : (
+                data.map((row, idx) => (
+                  <tr
+                    key={rowKey ? rowKey(row) : idx}
+                    className={`${onRowClick ? "cursor-pointer" : ""} hover:bg-gray-50 transition-colors duration-150`}
+                    style={{ backgroundColor: idx % 2 === 0 ? "#fff" : "rgb(226 226 226 / 85%)" }}
+                    onClick={() => onRowClick?.(row)}
+                  >
+                    {renderRowCells(row)}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* Pagination */}
       <div className="rounded-b-xl" style={{ backgroundColor: "rgb(44, 62, 80)" }}>

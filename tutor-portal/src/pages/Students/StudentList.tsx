@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { DataTable, ConfirmDialog, Toast, useToast, extractErrorMessage, PageHeader } from "@shared";
+import { DataTable, ConfirmDialog, Toast, useToast, extractErrorMessage, PageHeader, DropdownMenu } from "@shared";
 import type { Student, ColumnDef, PaginatedResponse, TableQueryParams, DropdownMenuItem } from "@shared";
 import api from "../../api/client";
 import { useLookups } from "../../context/LookupContext";
@@ -85,6 +85,37 @@ export default function StudentList() {
         actions={(student): DropdownMenuItem[] => [
           { label: "Delete", onClick: () => setDeleteTarget(student), variant: "danger" },
         ]}
+        renderCard={(row, cardActions) => (
+          <div
+            className="bg-[rgb(191_189_207_/_38%)] rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
+            onClick={() => navigate(`/students/${row.id}`)}
+          >
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-gray-800 text-sm truncate">{row.name}</h4>
+              {cardActions && (
+                <div onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu items={cardActions} />
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-1">{row.login_id}</p>
+            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+              {row.standard && (
+                <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded">
+                  Std: {row.standard}
+                </span>
+              )}
+              {row.section && (
+                <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded">
+                  {row.section}
+                </span>
+              )}
+              <span className="px-2 py-0.5 bg-primary-50 text-primary-600 text-xs rounded">
+                {row.assignment_count} assignment{row.assignment_count !== 1 ? "s" : ""}
+              </span>
+            </div>
+          </div>
+        )}
       />
 
       <ConfirmDialog

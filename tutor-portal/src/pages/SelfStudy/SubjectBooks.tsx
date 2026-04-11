@@ -3,43 +3,33 @@ import { useState, useEffect, useCallback } from "react";
 import {
   BookCard,
   DataTable,
+  DropdownMenu,
   EmptyState,
   LoadingSpinner,
   ConfirmDialog,
   Toast,
   useToast,
   extractErrorMessage,
-  Button,
   PageHeader,
 } from "@shared";
 import type { Subject, Book, ColumnDef, PaginatedResponse, TableQueryParams, DropdownMenuItem } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
 
-type ViewMode = "table" | "card";
-
 export default function SubjectBooks() {
   const { id: subjectId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [subject, setSubject] = useState<Subject | null>(null);
-  const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Book | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>("table");
   const { toast, showApiError, showSuccess, dismiss } = useToast();
 
   const fetchData = useCallback(async () => {
     setError(null);
     try {
-      const [subjectRes, booksRes] = await Promise.all([
-        api.get(`/subjects/${subjectId}`),
-        api.get(`/subjects/${subjectId}/books`, {
-          params: { page: 1, page_size: 100, sort_by: "created_at", sort_order: "asc" },
-        }),
-      ]);
+      const subjectRes = await api.get(`/subjects/${subjectId}`);
       setSubject(subjectRes.data);
-      setBooks(booksRes.data.items);
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 404) {
@@ -131,89 +121,42 @@ export default function SubjectBooks() {
       <PageHeader
         title={subject.name}
         backButton={{ label: "Learn Zone", onClick: () => navigate("/self-study") }}
-        actions={
-          <>
-            <div className="flex border border-gray-500 rounded-lg overflow-hidden">
-              <button
-                onClick={() => setViewMode("table")}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-                  viewMode === "table"
-                    ? "bg-white/20 text-white"
-                    : "text-gray-300 hover:text-white hover:bg-white/10"
-                }`}
-              >
-                Table
-              </button>
-              <button
-                onClick={() => setViewMode("card")}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors ${
-                  viewMode === "card"
-                    ? "bg-white/20 text-white"
-                    : "text-gray-300 hover:text-white hover:bg-white/10"
-                }`}
-              >
-                Cards
-              </button>
-            </div>
-          </>
-        }
       />
 
-      {viewMode === "table" ? (
-        <DataTable<Book>
-          fetchFn={fetchBooks}
-          columns={columns}
-          searchPlaceholder="Search books..."
-          defaultSortBy="created_at"
-          defaultSortOrder="asc"
-          onRowClick={(book) => navigate(`/self-study/books/${book.id}/preview`)}
-          rowKey={(book) => book.id}
-          addButtonLabel="+ Add Book"
-          onAddClick={() => navigate(`/self-study/books/new?subject_id=${subjectId}`)}
-          actions={(book): DropdownMenuItem[] => [
-            { label: "Preview", onClick: () => navigate(`/self-study/books/${book.id}/preview`) },
-            { label: "Quiz", onClick: () => navigate(`/self-study/books/${book.id}/questions`) },
-            { label: "Assign", onClick: () => navigate(`/self-study/books/${book.id}/assign`) },
-            { label: "Edit", onClick: () => navigate(`/self-study/books/${book.id}/edit`) },
-            { label: "Delete", onClick: () => setDeleteTarget(book), variant: "danger" },
-          ]}
-        />
-      ) : books.length === 0 ? (
-        <EmptyState
-          icon={<span>Book</span>}
-          title="No books yet"
-          description="Add books with videos to this subject."
-          action={{
-            label: "Add Book",
-            onClick: () =>
-              navigate(`/self-study/books/new?subject_id=${subjectId}`),
-          }}
-        />
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {books.map((book) => (
-            <BookCard
-              key={book.id}
-              title={book.title}
-              standard={book.standard}
-              thumbnailUrl={assetUrl(book.thumbnail_url)}
-              onClick={() =>
-                navigate(`/self-study/books/${book.id}/preview`)
-              }
-              questionCount={book.question_count}
-              actions={
-                <BookCardActions
-                  onPreview={() => navigate(`/self-study/books/${book.id}/preview`)}
-                  onQuiz={() => navigate(`/self-study/books/${book.id}/questions`)}
-                  onAssign={() => navigate(`/self-study/books/${book.id}/assign`)}
-                  onEdit={() => navigate(`/self-study/books/${book.id}/edit`)}
-                  onDelete={() => setDeleteTarget(book)}
-                />
-              }
-            />
-          ))}
-        </div>
-      )}
+      <DataTable<Book>
+        fetchFn={fetchBooks}
+        columns={columns}
+        searchPlaceholder="Search books..."
+        defaultSortBy="created_at"
+        defaultSortOrder="asc"
+        onRowClick={(book) => navigate(`/self-study/books/${book.id}/preview`)}
+        rowKey={(book) => book.id}
+        addButtonLabel="+ Add Book"
+        onAddClick={() => navigate(`/self-study/books/new?subject_id=${subjectId}`)}
+        actions={(book): DropdownMenuItem[] => [
+          { label: "Preview", onClick: () => navigate(`/self-study/books/${book.id}/preview`) },
+          { label: "Quiz", onClick: () => navigate(`/self-study/books/${book.id}/questions`) },
+          { label: "Assign", onClick: () => navigate(`/self-study/books/${book.id}/assign`) },
+          { label: "Edit", onClick: () => navigate(`/self-study/books/${book.id}/edit`) },
+          { label: "Delete", onClick: () => setDeleteTarget(book), variant: "danger" },
+        ]}
+        renderCard={(book, cardActions) => (
+          <BookCard
+            title={book.title}
+            standard={book.standard}
+            thumbnailUrl={assetUrl(book.thumbnail_url)}
+            onClick={() => navigate(`/self-study/books/${book.id}/preview`)}
+            questionCount={book.question_count}
+            actions={
+              cardActions && (
+                <div onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenu items={cardActions} />
+                </div>
+              )
+            }
+          />
+        )}
+      />
 
       <ConfirmDialog
         open={!!deleteTarget}
@@ -230,67 +173,3 @@ export default function SubjectBooks() {
   );
 }
 
-function BookCardActions({
-  onPreview,
-  onQuiz,
-  onAssign,
-  onEdit,
-  onDelete,
-}: {
-  onPreview: () => void;
-  onQuiz: () => void;
-  onAssign: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
-  return (
-    <div className="flex items-center gap-1">
-      <button
-        onClick={onPreview}
-        title="Preview"
-        className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-        </svg>
-      </button>
-      <button
-        onClick={onEdit}
-        title="Edit"
-        className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-        </svg>
-      </button>
-      <button
-        onClick={onQuiz}
-        title="Quiz"
-        className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-      </button>
-      <button
-        onClick={onAssign}
-        title="Assign"
-        className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
-      </button>
-      <button
-        onClick={onDelete}
-        title="Delete"
-        className="p-1 rounded hover:bg-red-50 text-gray-400 hover:text-red-500 transition-colors"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-        </svg>
-      </button>
-    </div>
-  );
-}
