@@ -25,8 +25,8 @@ interface DataTableProps<T> {
   rowKey?: (row: T) => string;
 }
 
-// Fixed height: header (~40px) + 5 rows (~48px each) + buffer
-const TABLE_MAX_HEIGHT = "17.5rem";
+// Fixed height: header (~40px) + 6 rows (~48px each) + buffer
+const TABLE_MAX_HEIGHT = "20.5rem";
 
 export function DataTable<T>({
   fetchFn,
