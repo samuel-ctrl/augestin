@@ -46,6 +46,10 @@ class SectionOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class ReorderRequest(BaseModel):
+    ids: list[str]
+
+
 class LookupOption(BaseModel):
     value: str
     label: str

@@ -6,6 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependencies import get_db, get_current_user, require_tutor
 from app.schemas.lookup import (
     LookupOptions,
+    ReorderRequest,
     SectionCreate,
     SectionOut,
     SectionUpdate,
@@ -23,6 +24,8 @@ from app.services.lookup import (
     get_standard,
     list_sections,
     list_standards,
+    reorder_sections,
+    reorder_standards,
     update_section,
     update_standard,
 )
@@ -94,6 +97,13 @@ async def update_standard_endpoint(
     )
 
 
+@router.post("/standards/reorder", status_code=status.HTTP_200_OK)
+async def reorder_standards_endpoint(body: ReorderRequest, request: Request, db: AsyncSession = Depends(get_db)):
+    require_tutor(request)
+    await reorder_standards(db, body.ids)
+    return {"detail": "Reordered"}
+
+
 @router.delete("/standards/{standard_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_standard_endpoint(
     standard_id: uuid.UUID, request: Request, db: AsyncSession = Depends(get_db),
@@ -158,6 +168,13 @@ async def update_section_endpoint(
         id=str(sec.id), name=sec.name, display_order=sec.display_order,
         created_at=sec.created_at, updated_at=sec.updated_at,
     )
+
+
+@router.post("/sections/reorder", status_code=status.HTTP_200_OK)
+async def reorder_sections_endpoint(body: ReorderRequest, request: Request, db: AsyncSession = Depends(get_db)):
+    require_tutor(request)
+    await reorder_sections(db, body.ids)
+    return {"detail": "Reordered"}
 
 
 @router.delete("/sections/{section_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -150,6 +150,16 @@ async def update_standard(db: AsyncSession, standard: Standard, name: str | None
     return standard
 
 
+async def reorder_standards(db: AsyncSession, ids: list[str]) -> None:
+    for idx, id_str in enumerate(ids):
+        uid = uuid.UUID(id_str)
+        result = await db.execute(select(Standard).where(Standard.id == uid))
+        std = result.scalar_one_or_none()
+        if std:
+            std.display_order = idx + 1
+    await db.commit()
+
+
 async def delete_standard(db: AsyncSession, standard: Standard) -> None:
     student_count = (await db.execute(
         select(func.count(User.id)).where(User.standard == standard.name, User.user_type == UserType.student)
@@ -245,6 +255,16 @@ async def update_section(db: AsyncSession, section: Section, name: str | None = 
     await db.commit()
     await db.refresh(section)
     return section
+
+
+async def reorder_sections(db: AsyncSession, ids: list[str]) -> None:
+    for idx, id_str in enumerate(ids):
+        uid = uuid.UUID(id_str)
+        result = await db.execute(select(Section).where(Section.id == uid))
+        sec = result.scalar_one_or_none()
+        if sec:
+            sec.display_order = idx + 1
+    await db.commit()
 
 
 async def delete_section(db: AsyncSession, section: Section) -> None:

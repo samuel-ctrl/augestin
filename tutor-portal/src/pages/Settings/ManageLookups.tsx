@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
-  PageHeader, LoadingSpinner, Toast, useToast, extractErrorMessage, EmptyState, Button, ConfirmDialog,
+  PageHeader, LoadingSpinner, Toast, useToast, EmptyState, Button, ConfirmDialog,
 } from "@shared";
 import api from "../../api/client";
 import { useLookups } from "../../context/LookupContext";
@@ -20,29 +20,36 @@ interface SectionItem {
   student_count: number;
 }
 
+type Tab = "standards" | "sections";
+
 export default function ManageLookups() {
   const { refetch } = useLookups();
   const { toast, showSuccess, showApiError, dismiss } = useToast();
+  const [activeTab, setActiveTab] = useState<Tab>("standards");
 
   // Standards state
   const [standards, setStandards] = useState<StandardItem[]>([]);
   const [stdLoading, setStdLoading] = useState(true);
-  const [stdForm, setStdForm] = useState({ name: "", display_order: "" });
+  const [stdName, setStdName] = useState("");
   const [stdEditing, setStdEditing] = useState<string | null>(null);
-  const [stdEditForm, setStdEditForm] = useState({ name: "", display_order: "" });
+  const [stdEditName, setStdEditName] = useState("");
   const [stdSaving, setStdSaving] = useState(false);
 
   // Sections state
   const [sections, setSections] = useState<SectionItem[]>([]);
   const [secLoading, setSecLoading] = useState(true);
-  const [secForm, setSecForm] = useState({ name: "", display_order: "" });
+  const [secName, setSecName] = useState("");
   const [secEditing, setSecEditing] = useState<string | null>(null);
-  const [secEditForm, setSecEditForm] = useState({ name: "", display_order: "" });
+  const [secEditName, setSecEditName] = useState("");
   const [secSaving, setSecSaving] = useState(false);
 
   // Delete confirmation
-  const [deleteConfirm, setDeleteConfirm] = useState<{ type: "standard" | "section"; id: string; name: string } | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: Tab; id: string; name: string } | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Drag state
+  const dragIdx = useRef<number | null>(null);
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null);
 
   const fetchStandards = useCallback(async () => {
     try {
@@ -71,17 +78,67 @@ export default function ManageLookups() {
     fetchSections();
   }, [fetchStandards, fetchSections]);
 
+  // ── Drag handlers ──
+
+  const handleDragStart = (idx: number) => {
+    dragIdx.current = idx;
+  };
+
+  const handleDragOver = (e: React.DragEvent, idx: number) => {
+    e.preventDefault();
+    setDragOverIdx(idx);
+  };
+
+  const handleDragEnd = () => {
+    dragIdx.current = null;
+    setDragOverIdx(null);
+  };
+
+  const handleDrop = async (targetIdx: number) => {
+    const sourceIdx = dragIdx.current;
+    if (sourceIdx === null || sourceIdx === targetIdx) {
+      handleDragEnd();
+      return;
+    }
+
+    if (activeTab === "standards") {
+      const reordered = [...standards];
+      const [moved] = reordered.splice(sourceIdx, 1);
+      reordered.splice(targetIdx, 0, moved);
+      setStandards(reordered);
+      handleDragEnd();
+      try {
+        await api.post("/lookups/standards/reorder", { ids: reordered.map((s) => s.id) });
+        await refetch();
+      } catch (err) {
+        showApiError(err, "Failed to reorder");
+        await fetchStandards();
+      }
+    } else {
+      const reordered = [...sections];
+      const [moved] = reordered.splice(sourceIdx, 1);
+      reordered.splice(targetIdx, 0, moved);
+      setSections(reordered);
+      handleDragEnd();
+      try {
+        await api.post("/lookups/sections/reorder", { ids: reordered.map((s) => s.id) });
+        await refetch();
+      } catch (err) {
+        showApiError(err, "Failed to reorder");
+        await fetchSections();
+      }
+    }
+  };
+
   // ── Standards handlers ──
 
   const handleCreateStandard = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!stdForm.name.trim()) return;
+    if (!stdName.trim()) return;
     setStdSaving(true);
     try {
-      const payload: Record<string, any> = { name: stdForm.name.trim() };
-      if (stdForm.display_order !== "") payload.display_order = Number(stdForm.display_order);
-      await api.post("/lookups/standards", payload);
-      setStdForm({ name: "", display_order: "" });
+      await api.post("/lookups/standards", { name: stdName.trim() });
+      setStdName("");
       await fetchStandards();
       await refetch();
       showSuccess("Standard created");
@@ -93,12 +150,10 @@ export default function ManageLookups() {
   };
 
   const handleUpdateStandard = async (id: string) => {
+    if (!stdEditName.trim()) return;
     setStdSaving(true);
     try {
-      const payload: Record<string, any> = {};
-      if (stdEditForm.name.trim()) payload.name = stdEditForm.name.trim();
-      if (stdEditForm.display_order !== "") payload.display_order = Number(stdEditForm.display_order);
-      await api.put(`/lookups/standards/${id}`, payload);
+      await api.put(`/lookups/standards/${id}`, { name: stdEditName.trim() });
       setStdEditing(null);
       await fetchStandards();
       await refetch();
@@ -114,13 +169,11 @@ export default function ManageLookups() {
 
   const handleCreateSection = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!secForm.name.trim()) return;
+    if (!secName.trim()) return;
     setSecSaving(true);
     try {
-      const payload: Record<string, any> = { name: secForm.name.trim() };
-      if (secForm.display_order !== "") payload.display_order = Number(secForm.display_order);
-      await api.post("/lookups/sections", payload);
-      setSecForm({ name: "", display_order: "" });
+      await api.post("/lookups/sections", { name: secName.trim() });
+      setSecName("");
       await fetchSections();
       await refetch();
       showSuccess("Section created");
@@ -132,12 +185,10 @@ export default function ManageLookups() {
   };
 
   const handleUpdateSection = async (id: string) => {
+    if (!secEditName.trim()) return;
     setSecSaving(true);
     try {
-      const payload: Record<string, any> = {};
-      if (secEditForm.name.trim()) payload.name = secEditForm.name.trim();
-      if (secEditForm.display_order !== "") payload.display_order = Number(secEditForm.display_order);
-      await api.put(`/lookups/sections/${id}`, payload);
+      await api.put(`/lookups/sections/${id}`, { name: secEditName.trim() });
       setSecEditing(null);
       await fetchSections();
       await refetch();
@@ -149,18 +200,18 @@ export default function ManageLookups() {
     }
   };
 
-  // ── Delete handler (shared) ──
+  // ── Delete handler ──
 
   const handleDelete = async () => {
     if (!deleteConfirm) return;
     setDeleting(true);
     try {
-      await api.delete(`/lookups/${deleteConfirm.type}s/${deleteConfirm.id}`);
+      await api.delete(`/lookups/${deleteConfirm.type}/${deleteConfirm.id}`);
       setDeleteConfirm(null);
-      if (deleteConfirm.type === "standard") await fetchStandards();
+      if (deleteConfirm.type === "standards") await fetchStandards();
       else await fetchSections();
       await refetch();
-      showSuccess(`${deleteConfirm.type === "standard" ? "Standard" : "Section"} deleted`);
+      showSuccess("Deleted successfully");
     } catch (err) {
       showApiError(err, "Cannot delete");
     } finally {
@@ -170,32 +221,54 @@ export default function ManageLookups() {
 
   const inputClass = "px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent";
   const cellClass = "px-4 py-3 text-sm";
+  const dragHandle = (
+    <svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="currentColor">
+      <circle cx="9" cy="5" r="1.5" /><circle cx="15" cy="5" r="1.5" />
+      <circle cx="9" cy="12" r="1.5" /><circle cx="15" cy="12" r="1.5" />
+      <circle cx="9" cy="19" r="1.5" /><circle cx="15" cy="19" r="1.5" />
+    </svg>
+  );
 
   return (
     <div>
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <PageHeader title="Manage Standards & Sections" />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* ── Standards ── */}
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Standards</h2>
+      {/* Tabs */}
+      <div className="flex border-b border-gray-200 mb-5">
+        <button
+          onClick={() => setActiveTab("standards")}
+          className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === "standards"
+              ? "border-primary-500 text-primary-600"
+              : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+          }`}
+        >
+          Standards
+        </button>
+        <button
+          onClick={() => setActiveTab("sections")}
+          className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === "sections"
+              ? "border-primary-500 text-primary-600"
+              : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+          }`}
+        >
+          Sections
+        </button>
+      </div>
 
+      {/* Standards Tab */}
+      {activeTab === "standards" && (
+        <div className="bg-white rounded-lg border border-gray-200 p-5">
           <form onSubmit={handleCreateStandard} className="flex gap-2 mb-4">
             <input
               type="text"
-              value={stdForm.name}
-              onChange={(e) => setStdForm({ ...stdForm, name: e.target.value })}
-              placeholder="Name (e.g. 13)"
+              value={stdName}
+              onChange={(e) => setStdName(e.target.value)}
+              placeholder="Standard name (e.g. 13)"
               className={`${inputClass} flex-1`}
               required
-            />
-            <input
-              type="number"
-              value={stdForm.display_order}
-              onChange={(e) => setStdForm({ ...stdForm, display_order: e.target.value })}
-              placeholder="Order"
-              className={`${inputClass} w-20`}
             />
             <Button type="submit" loading={stdSaving} size="sm">Add</Button>
           </form>
@@ -209,32 +282,38 @@ export default function ManageLookups() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-gray-200 text-xs text-gray-500 uppercase">
+                    <th className="px-2 py-2 w-8"></th>
                     <th className="px-4 py-2">Name</th>
-                    <th className="px-4 py-2">Order</th>
                     <th className="px-4 py-2">Students</th>
                     <th className="px-4 py-2">Books</th>
                     <th className="px-4 py-2 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {standards.map((s) => (
-                    <tr key={s.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  {standards.map((s, idx) => (
+                    <tr
+                      key={s.id}
+                      draggable={stdEditing !== s.id}
+                      onDragStart={() => handleDragStart(idx)}
+                      onDragOver={(e) => handleDragOver(e, idx)}
+                      onDragEnd={handleDragEnd}
+                      onDrop={() => handleDrop(idx)}
+                      className={`border-b border-gray-100 transition-colors ${
+                        dragOverIdx === idx && dragIdx.current !== idx
+                          ? "bg-primary-50 border-primary-300"
+                          : "hover:bg-gray-50"
+                      }`}
+                    >
                       {stdEditing === s.id ? (
                         <>
+                          <td className="px-2 py-3"></td>
                           <td className={cellClass}>
                             <input
                               type="text"
-                              value={stdEditForm.name}
-                              onChange={(e) => setStdEditForm({ ...stdEditForm, name: e.target.value })}
+                              value={stdEditName}
+                              onChange={(e) => setStdEditName(e.target.value)}
                               className={`${inputClass} w-full`}
-                            />
-                          </td>
-                          <td className={cellClass}>
-                            <input
-                              type="number"
-                              value={stdEditForm.display_order}
-                              onChange={(e) => setStdEditForm({ ...stdEditForm, display_order: e.target.value })}
-                              className={`${inputClass} w-16`}
+                              autoFocus
                             />
                           </td>
                           <td className={cellClass}>{s.student_count}</td>
@@ -248,8 +327,8 @@ export default function ManageLookups() {
                         </>
                       ) : (
                         <>
+                          <td className="px-2 py-3 cursor-grab active:cursor-grabbing">{dragHandle}</td>
                           <td className={`${cellClass} font-medium`}>{s.name}</td>
-                          <td className={cellClass}>{s.display_order}</td>
                           <td className={cellClass}>{s.student_count}</td>
                           <td className={cellClass}>{s.book_count}</td>
                           <td className={`${cellClass} text-right`}>
@@ -257,17 +336,14 @@ export default function ManageLookups() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => {
-                                  setStdEditing(s.id);
-                                  setStdEditForm({ name: s.name, display_order: String(s.display_order) });
-                                }}
+                                onClick={() => { setStdEditing(s.id); setStdEditName(s.name); }}
                               >
                                 Edit
                               </Button>
                               <Button
                                 size="sm"
                                 color="danger"
-                                onClick={() => setDeleteConfirm({ type: "standard", id: s.id, name: s.name })}
+                                onClick={() => setDeleteConfirm({ type: "standards", id: s.id, name: s.name })}
                               >
                                 Delete
                               </Button>
@@ -279,29 +355,23 @@ export default function ManageLookups() {
                   ))}
                 </tbody>
               </table>
+              <p className="text-xs text-gray-400 mt-2">Drag rows to reorder</p>
             </div>
           )}
         </div>
+      )}
 
-        {/* ── Sections ── */}
+      {/* Sections Tab */}
+      {activeTab === "sections" && (
         <div className="bg-white rounded-lg border border-gray-200 p-5">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Sections</h2>
-
           <form onSubmit={handleCreateSection} className="flex gap-2 mb-4">
             <input
               type="text"
-              value={secForm.name}
-              onChange={(e) => setSecForm({ ...secForm, name: e.target.value })}
-              placeholder="Name (e.g. F)"
+              value={secName}
+              onChange={(e) => setSecName(e.target.value)}
+              placeholder="Section name (e.g. F)"
               className={`${inputClass} flex-1`}
               required
-            />
-            <input
-              type="number"
-              value={secForm.display_order}
-              onChange={(e) => setSecForm({ ...secForm, display_order: e.target.value })}
-              placeholder="Order"
-              className={`${inputClass} w-20`}
             />
             <Button type="submit" loading={secSaving} size="sm">Add</Button>
           </form>
@@ -315,31 +385,37 @@ export default function ManageLookups() {
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-gray-200 text-xs text-gray-500 uppercase">
+                    <th className="px-2 py-2 w-8"></th>
                     <th className="px-4 py-2">Name</th>
-                    <th className="px-4 py-2">Order</th>
                     <th className="px-4 py-2">Students</th>
                     <th className="px-4 py-2 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {sections.map((s) => (
-                    <tr key={s.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  {sections.map((s, idx) => (
+                    <tr
+                      key={s.id}
+                      draggable={secEditing !== s.id}
+                      onDragStart={() => handleDragStart(idx)}
+                      onDragOver={(e) => handleDragOver(e, idx)}
+                      onDragEnd={handleDragEnd}
+                      onDrop={() => handleDrop(idx)}
+                      className={`border-b border-gray-100 transition-colors ${
+                        dragOverIdx === idx && dragIdx.current !== idx
+                          ? "bg-primary-50 border-primary-300"
+                          : "hover:bg-gray-50"
+                      }`}
+                    >
                       {secEditing === s.id ? (
                         <>
+                          <td className="px-2 py-3"></td>
                           <td className={cellClass}>
                             <input
                               type="text"
-                              value={secEditForm.name}
-                              onChange={(e) => setSecEditForm({ ...secEditForm, name: e.target.value })}
+                              value={secEditName}
+                              onChange={(e) => setSecEditName(e.target.value)}
                               className={`${inputClass} w-full`}
-                            />
-                          </td>
-                          <td className={cellClass}>
-                            <input
-                              type="number"
-                              value={secEditForm.display_order}
-                              onChange={(e) => setSecEditForm({ ...secEditForm, display_order: e.target.value })}
-                              className={`${inputClass} w-16`}
+                              autoFocus
                             />
                           </td>
                           <td className={cellClass}>{s.student_count}</td>
@@ -352,25 +428,22 @@ export default function ManageLookups() {
                         </>
                       ) : (
                         <>
+                          <td className="px-2 py-3 cursor-grab active:cursor-grabbing">{dragHandle}</td>
                           <td className={`${cellClass} font-medium`}>{s.name}</td>
-                          <td className={cellClass}>{s.display_order}</td>
                           <td className={cellClass}>{s.student_count}</td>
                           <td className={`${cellClass} text-right`}>
                             <div className="flex gap-1 justify-end">
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => {
-                                  setSecEditing(s.id);
-                                  setSecEditForm({ name: s.name, display_order: String(s.display_order) });
-                                }}
+                                onClick={() => { setSecEditing(s.id); setSecEditName(s.name); }}
                               >
                                 Edit
                               </Button>
                               <Button
                                 size="sm"
                                 color="danger"
-                                onClick={() => setDeleteConfirm({ type: "section", id: s.id, name: s.name })}
+                                onClick={() => setDeleteConfirm({ type: "sections", id: s.id, name: s.name })}
                               >
                                 Delete
                               </Button>
@@ -382,14 +455,15 @@ export default function ManageLookups() {
                   ))}
                 </tbody>
               </table>
+              <p className="text-xs text-gray-400 mt-2">Drag rows to reorder</p>
             </div>
           )}
         </div>
-      </div>
+      )}
 
       <ConfirmDialog
         open={!!deleteConfirm}
-        title={`Delete ${deleteConfirm?.type === "standard" ? "Standard" : "Section"} "${deleteConfirm?.name}"?`}
+        title={`Delete "${deleteConfirm?.name}"?`}
         message="If students or books are using this value, deletion will be blocked."
         confirmLabel="Delete"
         variant="danger"
