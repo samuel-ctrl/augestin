@@ -191,7 +191,7 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
 
   const handleClick = (n: Notification) => {
     if (!n.is_read) markRead(n.id);
-    if (n.reference_id && (n.notification_type === "doubt_created" || n.notification_type === "doubt_comment" || n.notification_type === "doubt_status" || n.notification_type === "doubt_delete_request" || n.notification_type === "doubt_edited" || n.notification_type === "doubt_comment_edited")) {
+    if (n.reference_id && (n.notification_type === "doubt_created" || n.notification_type === "doubt_comment" || n.notification_type === "doubt_status" || n.notification_type === "doubt_delete_request" || n.notification_type === "doubt_edited" || n.notification_type === "doubt_comment_edited" || n.notification_type === "doubt_comment_deleted")) {
       navigate(`/doubts/${n.reference_id}`);
     } else if (n.notification_type === "book_assigned" || n.notification_type === "book_unassigned") {
       navigate("/self-study");
@@ -339,6 +339,8 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
                               ? "Comment"
                               : n.notification_type === "doubt_comment_edited"
                               ? "Comment Edited"
+                              : n.notification_type === "doubt_comment_deleted"
+                              ? "Comment Deleted"
                               : n.notification_type === "doubt_status"
                               ? "Status Change"
                               : n.notification_type === "doubt_delete_request"

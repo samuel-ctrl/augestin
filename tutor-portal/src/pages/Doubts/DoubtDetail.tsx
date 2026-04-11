@@ -93,6 +93,22 @@ export default function DoubtDetail() {
     });
   }, [on, doubtId]);
 
+  useEffect(() => {
+    return on("doubt_comment:deleted", (event) => {
+      const { doubt_id, comment_id } = event.payload as { doubt_id: string; comment_id: string };
+      if (doubt_id === doubtId) {
+        setDoubt((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            comments: prev.comments.filter((c) => c.id !== comment_id),
+            comment_count: prev.comment_count - 1,
+          };
+        });
+      }
+    });
+  }, [on, doubtId]);
+
   const startEditingDoubt = () => {
     if (!doubt) return;
     setEditTitle(doubt.title);

@@ -494,7 +494,42 @@ async def delete_comment_endpoint(
     if user.user_type == UserType.student and str(comment.user_id) != str(user.id):
         raise HTTPException(status_code=403, detail="You can only delete your own comments")
 
+    # Gather participants before deleting the comment
+    doubt_obj_result = await db.execute(select(DoubtModel).where(DoubtModel.id == doubt_id))
+    doubt_obj = doubt_obj_result.scalar_one_or_none()
+
+    participant_result = await db.execute(
+        select(DoubtCommentModel.user_id)
+        .where(DoubtCommentModel.doubt_id == doubt_id)
+        .distinct()
+    )
+    participant_ids = {str(uid) for uid in participant_result.scalars().all()}
+    if doubt_obj:
+        participant_ids.add(str(doubt_obj.student_id))
+    participant_ids.discard(str(user.id))
+
     await delete_comment(db, comment)
+
+    # Notify participants about the deleted comment
+    if participant_ids:
+        await manager.send_to_users(
+            list(participant_ids),
+            {
+                "type": "doubt_comment:deleted",
+                "payload": {"doubt_id": str(doubt_id), "comment_id": str(comment_id)},
+            },
+        )
+
+        doubt_title = doubt_obj.title if doubt_obj else "a doubt"
+        for pid in participant_ids:
+            await create_and_notify(
+                db,
+                recipient_id=uuid.UUID(pid),
+                sender_id=user.id,
+                message=f"{user.name} deleted a comment on '{doubt_title}'",
+                notification_type="doubt_comment_deleted",
+                reference_id=doubt_id,
+            )
 
 
 # ============================================================================
