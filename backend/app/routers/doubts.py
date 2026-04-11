@@ -381,6 +381,14 @@ async def create_comment_endpoint(
     )
     participant_ids = {str(uid) for uid in participant_result.scalars().all()}
     participant_ids.add(str(doubt_obj.student_id))
+
+    # If a student comments, ensure all tutors are notified (not just existing commenters)
+    if user.user_type == UserType.student:
+        tutor_result = await db.execute(
+            select(User.id).where(User.user_type == UserType.tutor)
+        )
+        participant_ids.update(str(uid) for uid in tutor_result.scalars().all())
+
     participant_ids.discard(str(user.id))
 
     if participant_ids:

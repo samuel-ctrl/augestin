@@ -31,7 +31,7 @@ export function TablePagination({
           <select
             value={pageSize}
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
-            className="border border-gray-500 rounded px-2 py-1 text-sm bg-transparent text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="border border-blue-300 rounded px-2 py-1 text-sm bg-white/10 text-white focus:outline-none focus:ring-2 focus:ring-blue-300"
           >
             {[10, 20, 50, 100].map((size) => (
               <option key={size} value={size} className="text-gray-800 bg-white">
@@ -44,7 +44,7 @@ export function TablePagination({
           <button
             onClick={() => onPageChange(page - 1)}
             disabled={page <= 1}
-            className="px-3 py-1 text-sm text-white border border-gray-500 rounded hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1 text-sm text-white border border-blue-300 rounded hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Prev
           </button>
@@ -54,7 +54,7 @@ export function TablePagination({
           <button
             onClick={() => onPageChange(page + 1)}
             disabled={page >= totalPages}
-            className="px-3 py-1 text-sm text-white border border-gray-500 rounded hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1 text-sm text-white border border-blue-300 rounded hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Next
           </button>

@@ -294,7 +294,7 @@ export default function HomeDashboard() {
                   <button
                     key={book.id}
                     onClick={() => navigate(`/self-study/books/${book.id}`)}
-                    className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-shadow text-left"
+                    className="bg-[rgb(191_189_207_/_38%)] rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-shadow text-left"
                   >
                     {book.thumbnail_url && (
                       <div className="mb-3 h-24 bg-gray-200 rounded overflow-hidden">
@@ -332,7 +332,7 @@ export default function HomeDashboard() {
                   <button
                     key={qs.id}
                     onClick={() => navigate(`/quiz-sets/${qs.id}`)}
-                    className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-shadow text-left"
+                    className="bg-[rgb(191_189_207_/_38%)] rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-shadow text-left"
                   >
                     {qs.thumbnail_url && (
                       <div className="mb-3 h-24 bg-gray-200 rounded overflow-hidden">

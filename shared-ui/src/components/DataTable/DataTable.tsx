@@ -150,7 +150,7 @@ export function DataTable<T>({
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-visible">
       {/* Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-4 rounded-t-xl" style={{ backgroundColor: "rgb(44, 62, 80)" }}>
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-4 rounded-t-xl" style={{ backgroundColor: "#0d47a1" }}>
         <div className="w-full sm:max-w-sm">
           <TableSearch
             value={search}
@@ -166,7 +166,7 @@ export function DataTable<T>({
           />
         )}
         {renderCard && (
-          <div className={`flex border border-gray-500 rounded-lg overflow-hidden ${!addButtonLabel ? "sm:ml-auto" : "sm:ml-auto"}`}>
+          <div className={`flex border border-white/20 rounded-lg overflow-hidden ${!addButtonLabel ? "sm:ml-auto" : "sm:ml-auto"}`}>
             <button
               onClick={() => setViewMode("table")}
               className={`p-2 transition-colors ${
@@ -230,7 +230,7 @@ export function DataTable<T>({
         <div className="overflow-auto" style={{ maxHeight: TABLE_MAX_HEIGHT, scrollbarWidth: "thin", scrollbarColor: "rgba(44,62,80,0.35) transparent" }}>
           <table className="w-full">
             <thead className="sticky top-0 z-10">
-              <tr style={{ backgroundColor: "rgb(44, 62, 80)", borderTop: "1.5px solid white" }}>
+              <tr style={{ backgroundColor: "#0d47a1", borderTop: "1.5px solid rgba(255,255,255,0.15)" }}>
                 {renderHeaderCells()}
               </tr>
             </thead>
@@ -267,7 +267,7 @@ export function DataTable<T>({
                   <tr
                     key={rowKey ? rowKey(row) : idx}
                     className={`${onRowClick ? "cursor-pointer" : ""} hover:bg-gray-50 transition-colors duration-150`}
-                    style={{ backgroundColor: idx % 2 === 0 ? "#fff" : "rgb(226 226 226 / 85%)" }}
+                    style={{ backgroundColor: idx % 2 === 0 ? "#fff" : "#f0f5ff" }}
                     onClick={() => onRowClick?.(row)}
                   >
                     {renderRowCells(row)}
@@ -280,7 +280,7 @@ export function DataTable<T>({
       )}
 
       {/* Pagination */}
-      <div className="rounded-b-xl" style={{ backgroundColor: "rgb(44, 62, 80)" }}>
+      <div className="rounded-b-xl" style={{ backgroundColor: "#0d47a1" }}>
         <TablePagination
           page={pagination.page}
           pageSize={pagination.pageSize}

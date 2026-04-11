@@ -22,7 +22,7 @@ export function BookCard({
 }: BookCardProps) {
   return (
     <div
-      className={`bg-white rounded-lg border border-gray-200 transition-shadow hover:shadow-md ${
+      className={`bg-[rgb(191_189_207_/_38%)] rounded-lg border border-gray-200 transition-shadow hover:shadow-md ${
         onClick ? "cursor-pointer" : ""
       }`}
       onClick={onClick}

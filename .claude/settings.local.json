@@ -11,7 +11,8 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(git push:*)",
-      "Bash(python -m pytest tests/test_test.py -x --tb=short)"
+      "Bash(python -m pytest tests/test_test.py -x --tb=short)",
+      "Bash(DATABASE_URL=postgresql+asyncpg://edutrack:edutrack123@localhost:5433/edutrack_db python -m app.seed --login ajedutrack@edu.in --name \"Augustin Josephraj\" --password \"Tutor@123\")"
     ]
   }
 }

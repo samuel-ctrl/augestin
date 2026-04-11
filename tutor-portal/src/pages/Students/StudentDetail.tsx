@@ -243,6 +243,32 @@ export default function StudentDetail() {
         defaultSortOrder="desc"
         defaultPageSize={20}
         rowKey={(p) => p.book_id}
+        renderCard={(row) => (
+          <div className="bg-[rgb(191_189_207_/_38%)] rounded-lg border border-gray-200 p-4">
+            <h4 className="font-medium text-gray-800 text-sm truncate">{row.book_title}</h4>
+            <div className="flex items-center gap-2 mt-2">
+              <div className="flex-1 bg-gray-200 rounded-full h-2">
+                <div
+                  className={`h-2 rounded-full ${row.watch_percentage >= 90 ? "bg-green-500" : "bg-primary-500"}`}
+                  style={{ width: `${Math.min(100, row.watch_percentage)}%` }}
+                />
+              </div>
+              <span className="text-xs text-gray-500 w-10 text-right">
+                {Math.round(row.watch_percentage)}%
+              </span>
+            </div>
+            <div className="flex items-center justify-between mt-2">
+              {row.completed ? (
+                <span className="text-green-600 text-xs font-medium">Completed</span>
+              ) : (
+                <span className="text-gray-400 text-xs">In Progress</span>
+              )}
+              <span className="text-xs text-gray-400">
+                {row.last_watched_at ? new Date(row.last_watched_at).toLocaleDateString() : "—"}
+              </span>
+            </div>
+          </div>
+        )}
       />
 
       <ConfirmDialog

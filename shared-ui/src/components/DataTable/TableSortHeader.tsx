@@ -28,7 +28,7 @@ export function TableSortHeader({
   const hoverClass = dark
     ? "hover:text-gray-200"
     : "hover:text-gray-700";
-  const arrowActive = dark ? "text-yellow-300" : "text-primary-600";
+  const arrowActive = dark ? "text-cyan-300" : "text-primary-600";
   const arrowInactive = dark ? "text-gray-400" : "text-gray-300";
 
   if (!sortable) {

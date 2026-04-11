@@ -1,41 +1,54 @@
-import { useState, useEffect } from "react";
+import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage, PageHeader } from "@shared";
-import type { AssignedQuizSet } from "@shared";
+import { DataTable, Toast, useToast, PageHeader } from "@shared";
+import type { AssignedQuizSet, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
+
+const DEFAULT_THUMBNAIL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200' fill='%23e5e7eb'%3E%3Crect width='300' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-size='40'%3E%F0%9F%A7%A9%3C/text%3E%3C/svg%3E";
 
 export default function QuizSetDashboard() {
   const navigate = useNavigate();
-  const [quizSets, setQuizSets] = useState<AssignedQuizSet[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const { toast, showApiError, dismiss } = useToast();
+  const { toast, dismiss } = useToast();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await api.get("/students/quiz-sets");
-        setQuizSets(res.data.items || res.data);
-      } catch (err: unknown) {
-        setError(extractErrorMessage(err, "Failed to load quiz sets."));
-      } finally {
-        setLoading(false);
-      }
+  const fetchQuizSets = useCallback(async (params: TableQueryParams): Promise<PaginatedResponse<AssignedQuizSet>> => {
+    const res = await api.get("/students/quiz-sets");
+    const items: AssignedQuizSet[] = res.data.items || res.data;
+    // Client-side pagination wrapper
+    const start = (params.page - 1) * params.page_size;
+    const paged = items.slice(start, start + params.page_size);
+    return {
+      items: paged,
+      total: items.length,
+      page: params.page,
+      page_size: params.page_size,
+      total_pages: Math.ceil(items.length / params.page_size),
     };
-    fetchData();
   }, []);
 
-  if (loading) return <LoadingSpinner fullPage />;
-  if (error) {
-    return (
-      <EmptyState
-        icon={<span>!</span>}
-        title="Something went wrong"
-        description={error}
-        action={{ label: "Try Again", onClick: () => window.location.reload() }}
-      />
-    );
-  }
+  const columns: ColumnDef<AssignedQuizSet>[] = [
+    { key: "name", label: "Name", sortable: false },
+    {
+      key: "question_count",
+      label: "Questions",
+      sortable: false,
+      width: "120px",
+      render: (val) => `${val} Q${val !== 1 ? "s" : ""}`,
+    },
+    {
+      key: "progress",
+      label: "Progress",
+      sortable: false,
+      width: "100px",
+      render: (_val, row) =>
+        row.progress ? (
+          <span className="px-2 py-0.5 bg-primary-50 text-primary-600 text-xs rounded">
+            {row.progress.score_percentage}%
+          </span>
+        ) : (
+          <span className="text-gray-400 text-xs">—</span>
+        ),
+    },
+  ];
 
   return (
     <div>
@@ -45,47 +58,42 @@ export default function QuizSetDashboard() {
         subtitle="Available quiz sets assigned to you"
       />
 
-      {quizSets.length === 0 ? (
-        <EmptyState
-          icon={<span>🧩</span>}
-          title="No quiz sets assigned yet"
-          description="Check back later for new quiz sets."
-        />
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {quizSets.map((qs) => (
-            <button
-              key={qs.id}
-              onClick={() => navigate(`/quiz-sets/${qs.id}`)}
-              className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-lg hover:border-primary-300 transition-all text-left"
-            >
-              {qs.thumbnail_url && (
-                <div className="mb-3 h-32 bg-gray-200 rounded overflow-hidden">
-                  <img
-                    src={qs.thumbnail_url}
-                    alt={qs.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
-                {qs.name}
-              </h3>
-              {qs.description && <p className="text-xs text-gray-500 mt-1 line-clamp-1">{qs.description}</p>}
-              <div className="flex items-center justify-between mt-3">
-                <span className="text-xs text-gray-500">
-                  {qs.question_count} Q{qs.question_count !== 1 ? "s" : ""}
+      <DataTable<AssignedQuizSet>
+        fetchFn={fetchQuizSets}
+        columns={columns}
+        searchPlaceholder="Search quizzes..."
+        rowKey={(qs) => qs.id}
+        onRowClick={(qs) => navigate(`/quiz-sets/${qs.id}`)}
+        renderCard={(row) => (
+          <div
+            className="bg-[rgb(191_189_207_/_38%)] rounded-lg border border-gray-200 p-4 hover:shadow-lg hover:border-primary-300 transition-all cursor-pointer"
+            onClick={() => navigate(`/quiz-sets/${row.id}`)}
+          >
+            <div className="mb-3 h-32 bg-gray-200 rounded overflow-hidden">
+              <img
+                src={row.thumbnail_url || DEFAULT_THUMBNAIL}
+                alt={row.name}
+                className="w-full h-full object-cover"
+                onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_THUMBNAIL; }}
+              />
+            </div>
+            <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
+              {row.name}
+            </h3>
+            {row.description && <p className="text-xs text-gray-500 mt-1 line-clamp-1">{row.description}</p>}
+            <div className="flex items-center justify-between mt-3">
+              <span className="text-xs text-gray-500">
+                {row.question_count} Q{row.question_count !== 1 ? "s" : ""}
+              </span>
+              {row.progress && (
+                <span className="text-xs px-2 py-0.5 bg-primary-50 text-primary-600 rounded">
+                  {row.progress.score_percentage}%
                 </span>
-                {qs.progress && (
-                  <span className="text-xs px-2 py-0.5 bg-primary-50 text-primary-600 rounded">
-                    {qs.progress.score_percentage}%
-                  </span>
-                )}
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
+              )}
+            </div>
+          </div>
+        )}
+      />
     </div>
   );
 }

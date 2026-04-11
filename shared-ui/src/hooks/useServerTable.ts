@@ -42,7 +42,7 @@ export function useServerTable<T>(
     fetchFn,
     defaultSortBy = "created_at",
     defaultSortOrder = "desc",
-    defaultPageSize = 20,
+    defaultPageSize = 10,
     defaultFilters = {},
   } = options;
 

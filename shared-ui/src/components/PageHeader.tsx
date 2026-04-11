@@ -19,12 +19,12 @@ export function PageHeader({
   return (
     <div
       className="mb-6 -mx-3 -mt-3 px-3 pt-4 pb-4 sm:-mx-4 sm:-mt-4 sm:px-4 md:-mx-6 md:-mt-6 md:px-6 md:pt-5 md:pb-5 relative overflow-hidden"
-      style={{ background: "linear-gradient(135deg, #312e81 0%, rgba(88, 28, 135, 0.7) 50%, #312e81 100%)" }}
+      style={{ background: "linear-gradient(135deg, #0d47a1 0%, rgba(21, 101, 192, 0.8) 50%, #0d47a1 100%)" }}
     >
       {/* Decorative bubbles — centered */}
-      <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-28 h-28 bg-purple-400/15 rounded-full" />
-      <div className="absolute -bottom-4 left-[45%] -translate-x-1/2 w-20 h-20 bg-indigo-400/12 rounded-full" />
-      <div className="absolute top-2 left-[55%] -translate-x-1/2 w-10 h-10 bg-pink-400/10 rounded-full" />
+      <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-28 h-28 bg-blue-300/15 rounded-full" />
+      <div className="absolute -bottom-4 left-[45%] -translate-x-1/2 w-20 h-20 bg-blue-400/12 rounded-full" />
+      <div className="absolute top-2 left-[55%] -translate-x-1/2 w-10 h-10 bg-cyan-300/10 rounded-full" />
 
       {/* Content */}
       <div className="relative z-10">

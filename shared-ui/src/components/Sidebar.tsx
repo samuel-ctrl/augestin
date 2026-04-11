@@ -38,26 +38,26 @@ export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, o
   }, [dropdownOpen]);
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-b from-indigo-900 via-purple-900 to-indigo-950 text-white relative overflow-hidden">
+    <div className="flex flex-col h-full text-white relative overflow-hidden" style={{ background: "linear-gradient(to bottom, #0d47a1 0%, #1565c0 30%, #1976d2 55%, #1565c0 75%, #0d47a1 100%)" }}>
       {/* Background decorative bubbles */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-20 left-0 w-28 h-28 bg-indigo-400/10 rounded-full -translate-x-1/2" />
-      <div className="absolute top-1/2 right-0 w-20 h-20 bg-pink-400/10 rounded-full translate-x-1/3" />
-      <div className="absolute top-1/4 left-2 w-14 h-14 bg-cyan-400/8 rounded-full" />
-      <div className="absolute top-[12%] right-4 w-10 h-10 bg-yellow-400/10 rounded-full" />
-      <div className="absolute bottom-1/3 right-2 w-24 h-24 bg-purple-300/8 rounded-full" />
-      <div className="absolute top-[38%] left-0 w-12 h-12 bg-blue-400/10 rounded-full -translate-x-1/3" />
-      <div className="absolute bottom-[15%] right-0 w-16 h-16 bg-violet-400/8 rounded-full translate-x-1/4" />
-      <div className="absolute top-[68%] left-6 w-8 h-8 bg-pink-300/12 rounded-full" />
-      <div className="absolute bottom-32 left-1/2 w-10 h-10 bg-indigo-300/10 rounded-full" />
-      <div className="absolute top-[85%] right-6 w-6 h-6 bg-orange-400/10 rounded-full" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-blue-300/10 rounded-full -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-20 left-0 w-28 h-28 bg-blue-400/10 rounded-full -translate-x-1/2" />
+      <div className="absolute top-1/2 right-0 w-20 h-20 bg-cyan-300/10 rounded-full translate-x-1/3" />
+      <div className="absolute top-1/4 left-2 w-14 h-14 bg-sky-300/8 rounded-full" />
+      <div className="absolute top-[12%] right-4 w-10 h-10 bg-blue-200/10 rounded-full" />
+      <div className="absolute bottom-1/3 right-2 w-24 h-24 bg-blue-300/8 rounded-full" />
+      <div className="absolute top-[38%] left-0 w-12 h-12 bg-cyan-400/8 rounded-full -translate-x-1/3" />
+      <div className="absolute bottom-[15%] right-0 w-16 h-16 bg-blue-400/8 rounded-full translate-x-1/4" />
+      <div className="absolute top-[68%] left-6 w-8 h-8 bg-sky-300/12 rounded-full" />
+      <div className="absolute bottom-32 left-1/2 w-10 h-10 bg-blue-300/10 rounded-full" />
+      <div className="absolute top-[85%] right-6 w-6 h-6 bg-cyan-300/10 rounded-full" />
       <div className="absolute top-[5%] left-1/2 w-7 h-7 bg-white/8 rounded-full" />
-      <div className="absolute top-[55%] right-8 w-5 h-5 bg-cyan-300/12 rounded-full" />
-      <div className="absolute bottom-[40%] left-4 w-9 h-9 bg-purple-400/10 rounded-full" />
-      <div className="absolute top-[30%] right-1 w-6 h-6 bg-pink-500/8 rounded-full" />
-      <div className="absolute bottom-[8%] left-1/3 w-11 h-11 bg-indigo-500/8 rounded-full" />
-      <div className="absolute top-[78%] right-1/3 w-7 h-7 bg-violet-300/10 rounded-full" />
-      <div className="absolute top-[48%] left-10 w-4 h-4 bg-yellow-300/12 rounded-full" />
+      <div className="absolute top-[55%] right-8 w-5 h-5 bg-sky-200/12 rounded-full" />
+      <div className="absolute bottom-[40%] left-4 w-9 h-9 bg-blue-300/10 rounded-full" />
+      <div className="absolute top-[30%] right-1 w-6 h-6 bg-cyan-400/8 rounded-full" />
+      <div className="absolute bottom-[8%] left-1/3 w-11 h-11 bg-blue-400/8 rounded-full" />
+      <div className="absolute top-[78%] right-1/3 w-7 h-7 bg-sky-300/10 rounded-full" />
+      <div className="absolute top-[48%] left-10 w-4 h-4 bg-cyan-200/12 rounded-full" />
       <div className="absolute bottom-[25%] right-10 w-8 h-8 bg-blue-300/8 rounded-full" />
       <div className="absolute top-[92%] left-8 w-5 h-5 bg-white/6 rounded-full" />
 
@@ -90,7 +90,7 @@ export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, o
           {onToggleCollapse && !collapsed && (
             <button
               onClick={onToggleCollapse}
-              className="hidden lg:flex p-1.5 rounded-lg text-yellow-300 hover:bg-white/15 hover:text-yellow-200 transition-all duration-200"
+              className="hidden lg:flex p-1.5 rounded-lg text-white/80 hover:bg-white/15 hover:text-white transition-all duration-200"
               title="Collapse sidebar"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -115,7 +115,7 @@ export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, o
                 collapsed ? "justify-center px-2 py-2.5" : "gap-3 px-3 py-2.5"
               } ${
                 isActive
-                  ? "bg-white/20 text-white shadow-lg shadow-purple-900/30 backdrop-blur-sm"
+                  ? "bg-white/20 text-white shadow-lg shadow-blue-900/30 backdrop-blur-sm"
                   : "text-white/70 hover:bg-white/10 hover:text-white"
               }`}
             >
@@ -171,12 +171,12 @@ export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, o
           >
             {/* Avatar circle */}
             <div className="relative">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 flex items-center justify-center shrink-0 text-sm font-bold text-indigo-900 uppercase shadow-md">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-500 flex items-center justify-center shrink-0 text-sm font-bold text-blue-900 uppercase shadow-md">
                 {userName.charAt(0)}
               </div>
               {collapsed && (
                 <span
-                  className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-indigo-900 ${
+                  className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-blue-900 ${
                     wsStatus === "connected"
                       ? "bg-green-400"
                       : wsStatus === "connecting"
@@ -204,7 +204,7 @@ export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, o
                     />
                   </div>
                   {userRole && (
-                    <span className="inline-block text-[10px] font-semibold uppercase tracking-wider bg-gradient-to-r from-yellow-400/20 to-orange-400/20 text-yellow-300 px-2 py-0.5 rounded-full mt-0.5">
+                    <span className="inline-block text-[10px] font-semibold uppercase tracking-wider bg-white/20 text-cyan-200 px-2 py-0.5 rounded-full mt-0.5">
                       {userRole}
                     </span>
                   )}
