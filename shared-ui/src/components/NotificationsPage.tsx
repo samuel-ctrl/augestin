@@ -191,7 +191,7 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
 
   const handleClick = (n: Notification) => {
     if (!n.is_read) markRead(n.id);
-    if (n.reference_id && (n.notification_type === "doubt_created" || n.notification_type === "doubt_comment" || n.notification_type === "doubt_status" || n.notification_type === "doubt_delete_request")) {
+    if (n.reference_id && (n.notification_type === "doubt_created" || n.notification_type === "doubt_comment" || n.notification_type === "doubt_status" || n.notification_type === "doubt_delete_request" || n.notification_type === "doubt_edited" || n.notification_type === "doubt_comment_edited")) {
       navigate(`/doubts/${n.reference_id}`);
     } else if (n.notification_type === "book_assigned" || n.notification_type === "book_unassigned") {
       navigate("/self-study");
@@ -333,8 +333,12 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
                           <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
                             {n.notification_type === "doubt_created"
                               ? "New Doubt"
+                              : n.notification_type === "doubt_edited"
+                              ? "Doubt Edited"
                               : n.notification_type === "doubt_comment"
                               ? "Comment"
+                              : n.notification_type === "doubt_comment_edited"
+                              ? "Comment Edited"
                               : n.notification_type === "doubt_status"
                               ? "Status Change"
                               : n.notification_type === "doubt_delete_request"
