@@ -1,12 +1,17 @@
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.dependencies import get_db, require_tutor
+from app.models.book import Book
+from app.models.book_assignment import BookAssignment
 from app.schemas.assignment import AssignmentOut, AssignRequest
 from app.schemas.pagination import PaginatedResponse
 from app.services.assignment import assign_book, delete_assignment, list_assignments_by_book
+from app.services.notification_service import create_and_notify
 
 router = APIRouter(prefix="/api/assignments", tags=["assignments"])
 
@@ -18,9 +23,21 @@ async def assign_book_endpoint(
     db: AsyncSession = Depends(get_db),
 ):
     tutor = require_tutor(request)
+    book_id = uuid.UUID(body.book_id)
     student_uuids = [uuid.UUID(sid) for sid in body.student_ids]
-    created = await assign_book(db, book_id=uuid.UUID(body.book_id), student_ids=student_uuids, tutor_id=tutor.id)
-    return {"detail": f"Assigned to {created} student(s)", "created": created}
+    created_ids = await assign_book(db, book_id=book_id, student_ids=student_uuids, tutor_id=tutor.id)
+
+    if created_ids:
+        result = await db.execute(select(Book).where(Book.id == book_id))
+        book = result.scalar_one()
+        for sid in created_ids:
+            await create_and_notify(
+                db, recipient_id=sid, sender_id=tutor.id,
+                message=f"You have been assigned a new book: '{book.title}'",
+                notification_type="book_assigned", reference_id=book_id,
+            )
+
+    return {"detail": f"Assigned to {len(created_ids)} student(s)", "created": len(created_ids)}
 
 
 @router.delete("/{assignment_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -29,10 +46,29 @@ async def delete_assignment_endpoint(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    require_tutor(request)
+    tutor = require_tutor(request)
+
+    # Load assignment with book before deleting so we can notify
+    result = await db.execute(
+        select(BookAssignment).options(selectinload(BookAssignment.book)).where(BookAssignment.id == assignment_id)
+    )
+    assignment = result.scalar_one_or_none()
+    if not assignment:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assignment not found")
+
+    student_id = assignment.student_id
+    book_title = assignment.book.title
+    book_id = assignment.book_id
+
     success = await delete_assignment(db, assignment_id)
     if not success:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Assignment not found")
+
+    await create_and_notify(
+        db, recipient_id=student_id, sender_id=tutor.id,
+        message=f"You have been unassigned from book: '{book_title}'",
+        notification_type="book_unassigned", reference_id=book_id,
+    )
 
 
 @router.get("/book/{book_id}", response_model=PaginatedResponse[AssignmentOut])

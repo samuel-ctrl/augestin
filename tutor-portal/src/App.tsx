@@ -35,7 +35,7 @@ import DevComponents from "./pages/DevComponents";
 
 function AppShell() {
   const { user, logout } = useAuth();
-  const { on } = useWS();
+  const { on, status: wsStatus } = useWS();
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
 
@@ -65,6 +65,7 @@ function AppShell() {
         onLogout={logout}
         notificationCount={unreadCount}
         onNotificationClick={() => navigate("/notifications")}
+        wsStatus={wsStatus}
       >
         <Routes>
           <Route path="/dashboard" element={<TutorDashboard />} />

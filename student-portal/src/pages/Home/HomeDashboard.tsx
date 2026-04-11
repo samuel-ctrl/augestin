@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoadingSpinner, EmptyState, Toast, useToast, PageHeader, BookCard } from "@shared";
 import type { AssignedQuizSet, QuizProgress } from "@shared";
-import { useWS } from "../../context/WebSocketContext";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
 
@@ -31,25 +30,16 @@ interface TaskItem {
   progress: number;
 }
 
-interface Notification {
-  id: string;
-  message: string;
-  created_at: string;
-  is_read: boolean;
-}
-
 type TaskFilter = "all" | "todo" | "in_progress" | "done";
 
 export default function HomeDashboard() {
   const navigate = useNavigate();
   const { toast, showApiError, dismiss } = useToast();
-  const { on } = useWS();
 
   const [pendingQuizzes, setPendingQuizzes] = useState<PendingQuiz[]>([]);
   const [continueWatching, setContinueWatching] = useState<ContinueWatching[]>([]);
   const [readyQuizSets, setReadyQuizSets] = useState<AssignedQuizSet[]>([]);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [taskFilter, setTaskFilter] = useState<TaskFilter>("all");
   const [loading, setLoading] = useState(true);
 
@@ -58,15 +48,13 @@ export default function HomeDashboard() {
       try {
         setLoading(true);
 
-        const [booksRes, quizSetsRes, notifRes] = await Promise.all([
+        const [booksRes, quizSetsRes] = await Promise.all([
           api.get<{ items: any[] }>("/students/books"),
           api.get<AssignedQuizSet[]>("/students/quiz-sets"),
-          api.get<Notification[]>("/notifications").catch(() => ({ data: [] })),
         ]);
 
         const books = booksRes.data.items || [];
         const quizSets = Array.isArray(quizSetsRes.data) ? quizSetsRes.data : [];
-        const notifs = Array.isArray(notifRes.data) ? notifRes.data : [];
 
         const pending: PendingQuiz[] = [];
         const continuing: ContinueWatching[] = [];
@@ -139,7 +127,6 @@ export default function HomeDashboard() {
         setPendingQuizzes(pending);
         setContinueWatching(continuing);
         setTasks(allTasks);
-        setNotifications(notifs);
       } catch (err: unknown) {
         showApiError(err, "Failed to load dashboard data");
       } finally {
@@ -149,13 +136,6 @@ export default function HomeDashboard() {
 
     fetchDashboardData();
   }, [showApiError]);
-
-  useEffect(() => {
-    return on("notification:created", (event) => {
-      const notif = event.payload as unknown as Notification;
-      setNotifications((prev) => [notif, ...prev]);
-    });
-  }, [on]);
 
   if (loading) return <LoadingSpinner fullPage />;
 
@@ -185,31 +165,6 @@ export default function HomeDashboard() {
         title="Welcome Back"
         subtitle="Continue learning or start something new"
       />
-
-      {/* Notifications for new assignments */}
-      {notifications.length > 0 && (
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Notifications</h2>
-          <div className="space-y-2">
-            {notifications.slice(0, 5).map((notif) => (
-              <div
-                key={notif.id}
-                className={`flex items-start gap-3 p-3 rounded-lg border ${
-                  notif.is_read ? "bg-white border-gray-200" : "bg-blue-50 border-blue-200"
-                }`}
-              >
-                <span className="text-blue-500 mt-0.5">🔔</span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-gray-800">{notif.message}</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    {new Date(notif.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Pending Tasks Summary */}
       {pendingTaskCount > 0 && (
@@ -403,7 +358,7 @@ export default function HomeDashboard() {
           {/* Pending Quizzes */}
           {pendingQuizzes.length > 0 && (
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Available Books</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">Next Books</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {pendingQuizzes.map((book) => (
                   <BookCard

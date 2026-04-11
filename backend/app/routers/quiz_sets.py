@@ -18,6 +18,7 @@ from app.schemas.quiz import (
 )
 from app.routers.quiz import _question_to_out
 from app.schemas.pagination import PaginatedResponse
+from app.services.notification_service import create_and_notify
 from app.services.quiz import (
     get_quiz_session, start_quiz, submit_answer, complete_quiz, get_quiz_progress,
     list_questions, create_question, bulk_create_questions, reorder_questions
@@ -405,11 +406,12 @@ async def assign_student_to_quiz_set(
     db: AsyncSession = Depends(get_db),
 ):
     """Assign a student to a quiz set."""
-    require_tutor(request)
+    tutor = require_tutor(request)
 
     # Verify quiz set exists
     result = await db.execute(select(QuizSet).where(QuizSet.id == quiz_set_id))
-    if not result.scalar_one_or_none():
+    quiz_set = result.scalar_one_or_none()
+    if not quiz_set:
         raise HTTPException(status_code=404, detail="Quiz set not found")
 
     try:
@@ -437,6 +439,12 @@ async def assign_student_to_quiz_set(
         await db.rollback()
         raise HTTPException(status_code=409, detail="Student already assigned to this quiz set")
 
+    await create_and_notify(
+        db, recipient_id=student_id, sender_id=tutor.id,
+        message=f"You have been assigned a new quiz set: '{quiz_set.name}'",
+        notification_type="quiz_set_assigned", reference_id=quiz_set_id,
+    )
+
     return QuizSetAssignOut(
         id=str(assignment.id),
         quiz_set_id=str(assignment.quiz_set_id),
@@ -455,7 +463,7 @@ async def unassign_student_from_quiz_set(
     db: AsyncSession = Depends(get_db),
 ):
     """Unassign a student from a quiz set."""
-    require_tutor(request)
+    tutor = require_tutor(request)
 
     result = await db.execute(
         select(QuizSetAssignment).where(
@@ -470,8 +478,18 @@ async def unassign_student_from_quiz_set(
     if not assignment:
         raise HTTPException(status_code=404, detail="Assignment not found")
 
+    # Fetch quiz set name for notification
+    qs_result = await db.execute(select(QuizSet).where(QuizSet.id == quiz_set_id))
+    quiz_set = qs_result.scalar_one()
+
     await db.delete(assignment)
     await db.commit()
+
+    await create_and_notify(
+        db, recipient_id=student_id, sender_id=tutor.id,
+        message=f"You have been unassigned from quiz set: '{quiz_set.name}'",
+        notification_type="quiz_set_unassigned", reference_id=quiz_set_id,
+    )
 
 
 # ============================================================================

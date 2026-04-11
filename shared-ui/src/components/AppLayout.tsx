@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import type { NavItem, BreadcrumbSegment } from "../types";
+import type { WSStatus } from "../hooks/useWebSocket";
 import { Sidebar } from "./Sidebar";
 import { Breadcrumb } from "./Breadcrumb";
 
@@ -13,6 +14,7 @@ interface AppLayoutProps {
   logo?: React.ReactNode;
   notificationCount?: number;
   onNotificationClick?: () => void;
+  wsStatus?: WSStatus;
 }
 
 export function AppLayout({
@@ -25,6 +27,7 @@ export function AppLayout({
   logo,
   notificationCount,
   onNotificationClick,
+  wsStatus,
 }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -56,6 +59,7 @@ export function AppLayout({
           onLogout={onLogout}
           notificationCount={notificationCount}
           onNotificationClick={onNotificationClick}
+          wsStatus={wsStatus}
         />
       </div>
 

@@ -76,6 +76,12 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
     if (!n.is_read) markRead(n.id);
     if (n.reference_id && (n.notification_type === "doubt_comment" || n.notification_type === "doubt_status")) {
       navigate(`/doubts/${n.reference_id}`);
+    } else if (n.notification_type === "book_assigned" || n.notification_type === "book_unassigned") {
+      navigate("/self-study");
+    } else if (n.notification_type === "quiz_set_assigned" || n.notification_type === "quiz_set_unassigned") {
+      navigate("/quiz-sets");
+    } else if (n.notification_type === "test_set_assigned" || n.notification_type === "test_set_unassigned") {
+      navigate("/test-sets");
     }
   };
 
@@ -103,7 +109,7 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
       {notifications.length === 0 ? (
         <EmptyState
           title="No notifications"
-          message="You're all caught up! Notifications will appear here when there's activity on your doubts."
+          description="You're all caught up! Notifications will appear here for assignments, doubts, and more."
         />
       ) : (
         <div className="space-y-2">
@@ -115,7 +121,7 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
                 n.is_read
                   ? "bg-white border-gray-200 hover:bg-gray-50"
                   : "bg-blue-50 border-blue-200 hover:bg-blue-100"
-              } ${n.reference_id ? "cursor-pointer" : "cursor-default"}`}
+              } ${n.reference_id || n.notification_type?.includes("assigned") ? "cursor-pointer" : "cursor-default"}`}
             >
               <div className="flex items-start gap-3">
                 <span className={`mt-0.5 ${n.is_read ? "text-gray-400" : "text-blue-500"}`}>
@@ -142,6 +148,10 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
                           ? "Comment"
                           : n.notification_type === "doubt_status"
                           ? "Status"
+                          : n.notification_type?.endsWith("_assigned")
+                          ? "Assigned"
+                          : n.notification_type?.endsWith("_unassigned")
+                          ? "Unassigned"
                           : "Message"}
                       </span>
                     )}

@@ -1,9 +1,11 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, useState } from "react";
 
 export interface WSEvent {
   type: string;
   payload: Record<string, unknown>;
 }
+
+export type WSStatus = "connected" | "connecting" | "disconnected";
 
 type EventHandler = (event: WSEvent) => void;
 
@@ -12,6 +14,7 @@ export function useWebSocket(apiUrl: string, token: string | null) {
   const handlersRef = useRef<Map<string, Set<EventHandler>>>(new Map());
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
   const reconnectAttemptRef = useRef(0);
+  const [status, setStatus] = useState<WSStatus>("disconnected");
   const MAX_RECONNECT_DELAY = 30_000;
 
   const getWsUrl = useCallback(() => {
@@ -36,10 +39,12 @@ export function useWebSocket(apiUrl: string, token: string | null) {
     }
 
     const url = `${getWsUrl()}?token=${token}`;
+    setStatus("connecting");
     const ws = new WebSocket(url);
 
     ws.onopen = () => {
       reconnectAttemptRef.current = 0;
+      setStatus("connected");
     };
 
     ws.onmessage = (event) => {
@@ -56,6 +61,7 @@ export function useWebSocket(apiUrl: string, token: string | null) {
 
     ws.onclose = (event) => {
       wsRef.current = null;
+      setStatus("disconnected");
       // Don't reconnect on auth failure
       if (event.code === 1008) return;
       // Exponential backoff: 1s, 2s, 4s, 8s... capped at 30s
@@ -98,5 +104,5 @@ export function useWebSocket(apiUrl: string, token: string | null) {
     };
   }, []);
 
-  return { on };
+  return { on, status };
 }

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
 import type { NavItem } from "../types";
+import type { WSStatus } from "../hooks/useWebSocket";
 import { NotificationBell } from "./NotificationBell";
 import logoSvg from "../assets/logo.svg";
 
@@ -15,9 +16,10 @@ interface SidebarProps {
   onLogout?: () => void;
   notificationCount?: number;
   onNotificationClick?: () => void;
+  wsStatus?: WSStatus;
 }
 
-export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, onClose, userName, userRole, onLogout, notificationCount = 0, onNotificationClick }: SidebarProps) {
+export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, onClose, userName, userRole, onLogout, notificationCount = 0, onNotificationClick, wsStatus = "disconnected" }: SidebarProps) {
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -168,13 +170,39 @@ export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, o
             title={collapsed ? `${userName} (${userRole})` : undefined}
           >
             {/* Avatar circle */}
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 flex items-center justify-center shrink-0 text-sm font-bold text-indigo-900 uppercase shadow-md">
-              {userName.charAt(0)}
+            <div className="relative">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 flex items-center justify-center shrink-0 text-sm font-bold text-indigo-900 uppercase shadow-md">
+                {userName.charAt(0)}
+              </div>
+              {collapsed && (
+                <span
+                  className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-indigo-900 ${
+                    wsStatus === "connected"
+                      ? "bg-green-400"
+                      : wsStatus === "connecting"
+                      ? "bg-yellow-400 animate-pulse"
+                      : "bg-red-400"
+                  }`}
+                  title={wsStatus === "connected" ? "Connected" : wsStatus === "connecting" ? "Connecting…" : "Disconnected"}
+                />
+              )}
             </div>
             {!collapsed && (
               <>
                 <div className="flex-1 min-w-0 text-left">
-                  <div className="text-sm font-medium text-white truncate">{userName}</div>
+                  <div className="text-sm font-medium text-white truncate flex items-center gap-1.5">
+                    {userName}
+                    <span
+                      className={`inline-block w-2 h-2 rounded-full shrink-0 ${
+                        wsStatus === "connected"
+                          ? "bg-green-400 shadow-[0_0_4px_rgba(74,222,128,0.6)]"
+                          : wsStatus === "connecting"
+                          ? "bg-yellow-400 animate-pulse shadow-[0_0_4px_rgba(250,204,21,0.6)]"
+                          : "bg-red-400 shadow-[0_0_4px_rgba(248,113,113,0.6)]"
+                      }`}
+                      title={wsStatus === "connected" ? "Connected" : wsStatus === "connecting" ? "Connecting…" : "Disconnected"}
+                    />
+                  </div>
                   {userRole && (
                     <span className="inline-block text-[10px] font-semibold uppercase tracking-wider bg-gradient-to-r from-yellow-400/20 to-orange-400/20 text-yellow-300 px-2 py-0.5 rounded-full mt-0.5">
                       {userRole}

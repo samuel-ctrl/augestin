@@ -16,6 +16,7 @@ from app.schemas.test_sets import (
     AssignedTestSetOut,
 )
 from app.schemas.pagination import PaginatedResponse
+from app.services.notification_service import create_and_notify
 from app.services.test_set import (
     create_test_set, get_test_set, update_test_set, delete_test_set,
     add_file, get_file, update_file, delete_file,
@@ -333,7 +334,7 @@ async def assign_student(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    require_tutor(request)
+    tutor = require_tutor(request)
 
     ts = await get_test_set(db, test_set_id)
     if not ts:
@@ -359,6 +360,12 @@ async def assign_student(
         await db.rollback()
         raise HTTPException(status_code=409, detail="Student already assigned to this test set")
 
+    await create_and_notify(
+        db, recipient_id=student_id, sender_id=tutor.id,
+        message=f"You have been assigned a new test set: '{ts.name}'",
+        notification_type="test_set_assigned", reference_id=test_set_id,
+    )
+
     return TestSetAssignOut(
         id=str(assignment.id),
         test_set_id=str(assignment.test_set_id),
@@ -376,7 +383,7 @@ async def unassign_student(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    require_tutor(request)
+    tutor = require_tutor(request)
 
     result = await db.execute(
         select(TestSetAssignment).where(
@@ -390,8 +397,16 @@ async def unassign_student(
     if not assignment:
         raise HTTPException(status_code=404, detail="Assignment not found")
 
+    ts = await get_test_set(db, test_set_id)
+
     await db.delete(assignment)
     await db.commit()
+
+    await create_and_notify(
+        db, recipient_id=student_id, sender_id=tutor.id,
+        message=f"You have been unassigned from test set: '{ts.name}'",
+        notification_type="test_set_unassigned", reference_id=test_set_id,
+    )
 
 
 # ============================================================================

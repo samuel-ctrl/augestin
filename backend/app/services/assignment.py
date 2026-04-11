@@ -13,8 +13,8 @@ async def assign_book(
     book_id: uuid.UUID,
     student_ids: list[uuid.UUID],
     tutor_id: uuid.UUID,
-) -> int:
-    created = 0
+) -> list[uuid.UUID]:
+    created_ids: list[uuid.UUID] = []
     for student_id in student_ids:
         # Skip duplicates
         existing = await db.execute(
@@ -31,9 +31,9 @@ async def assign_book(
             assigned_by=tutor_id,
         )
         db.add(assignment)
-        created += 1
+        created_ids.append(student_id)
     await db.commit()
-    return created
+    return created_ids
 
 
 async def delete_assignment(db: AsyncSession, assignment_id: uuid.UUID) -> bool:

@@ -13,7 +13,7 @@ export default defineConfig({
     port: 3001,
     proxy: {
       "/api": {
-        target: "http://localhost:8000",
+        target: "http://localhost:8080",
         changeOrigin: true,
         configure: (proxy) => {
           proxy.on("error", (err, _req, res) => {
@@ -25,7 +25,7 @@ export default defineConfig({
         },
       },
       "/uploads": {
-        target: "http://localhost:8000",
+        target: "http://localhost:8080",
         changeOrigin: true,
         configure: (proxy) => {
           proxy.on("error", (err, _req, res) => {
@@ -37,7 +37,7 @@ export default defineConfig({
         },
       },
       "/ws": {
-        target: "ws://localhost:8000",
+        target: "ws://localhost:8080",
         ws: true,
       },
     },

@@ -45,7 +45,7 @@ export { useServerTable } from "./hooks/useServerTable";
 export { useApi } from "./hooks/useApi";
 export { useToast, extractErrorMessage } from "./hooks/useToast";
 export { useWebSocket } from "./hooks/useWebSocket";
-export type { WSEvent } from "./hooks/useWebSocket";
+export type { WSEvent, WSStatus } from "./hooks/useWebSocket";
 
 // Layout Components
 export { AppLayout } from "./components/AppLayout";
