@@ -14,6 +14,7 @@ async def create_and_notify(
     message: str,
     notification_type: str | None = None,
     reference_id: uuid.UUID | None = None,
+    sender_name: str | None = None,
 ) -> NotificationOut:
     """Create a notification record and push it via WebSocket."""
     notification = Notification(
@@ -27,10 +28,18 @@ async def create_and_notify(
     await db.commit()
     await db.refresh(notification)
 
+    # Resolve sender name if not provided
+    if not sender_name:
+        from app.models.user import User
+        from sqlalchemy import select as sa_select
+        result = await db.execute(sa_select(User.name).where(User.id == sender_id))
+        sender_name = result.scalar_one_or_none() or "Unknown"
+
     out = NotificationOut(
         id=str(notification.id),
         recipient_id=str(notification.recipient_id),
         sender_id=str(notification.sender_id),
+        sender_name=sender_name,
         message=notification.message,
         is_read=notification.is_read,
         notification_type=notification.notification_type,

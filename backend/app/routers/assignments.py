@@ -33,7 +33,7 @@ async def assign_book_endpoint(
         for sid in created_ids:
             await create_and_notify(
                 db, recipient_id=sid, sender_id=tutor.id,
-                message=f"You have been assigned a new book: '{book.title}'",
+                message=f"{tutor.name} assigned you book: '{book.title}'",
                 notification_type="book_assigned", reference_id=book_id,
             )
 
@@ -66,7 +66,7 @@ async def delete_assignment_endpoint(
 
     await create_and_notify(
         db, recipient_id=student_id, sender_id=tutor.id,
-        message=f"You have been unassigned from book: '{book_title}'",
+        message=f"{tutor.name} unassigned you from book: '{book_title}'",
         notification_type="book_unassigned", reference_id=book_id,
     )
 

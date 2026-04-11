@@ -362,7 +362,7 @@ async def assign_student(
 
     await create_and_notify(
         db, recipient_id=student_id, sender_id=tutor.id,
-        message=f"You have been assigned a new test set: '{ts.name}'",
+        message=f"{tutor.name} assigned you test set: '{ts.name}'",
         notification_type="test_set_assigned", reference_id=test_set_id,
     )
 
@@ -404,7 +404,7 @@ async def unassign_student(
 
     await create_and_notify(
         db, recipient_id=student_id, sender_id=tutor.id,
-        message=f"You have been unassigned from test set: '{ts.name}'",
+        message=f"{tutor.name} unassigned you from test set: '{ts.name}'",
         notification_type="test_set_unassigned", reference_id=test_set_id,
     )
 

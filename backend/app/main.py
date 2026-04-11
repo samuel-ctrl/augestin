@@ -8,7 +8,6 @@ from app.config import settings
 from app.database import async_session
 from app.middleware.auth import AuthMiddleware
 from app.routers import assignments, auth, books, dashboard, doubts, notifications, progress, quiz, quiz_sets, recap, students, subjects, test, test_sets, ws
-from app.seed import seed_super_user
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +44,7 @@ async def run_migrations():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: run migrations, then seed
     await run_migrations()
-    async with async_session() as db:
-        await seed_super_user(db)
     yield
 
 

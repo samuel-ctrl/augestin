@@ -8,10 +8,14 @@ uploads/thumbnails/*
 dist/
 *.pyc
 .venv/
+backend/app/seed.py
+backend/app/SEED_README.md
 student-portal/shared-ui/
 tutor-portal/shared-ui/
 !uploads/videos/.gitkeep
 !uploads/thumbnails/.gitkeep
 .wrangler/
+deploy-be.sh
+deploy-fe.sh
 # Plan documents
 docs/

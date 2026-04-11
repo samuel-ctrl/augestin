@@ -441,7 +441,7 @@ async def assign_student_to_quiz_set(
 
     await create_and_notify(
         db, recipient_id=student_id, sender_id=tutor.id,
-        message=f"You have been assigned a new quiz set: '{quiz_set.name}'",
+        message=f"{tutor.name} assigned you quiz set: '{quiz_set.name}'",
         notification_type="quiz_set_assigned", reference_id=quiz_set_id,
     )
 
@@ -487,7 +487,7 @@ async def unassign_student_from_quiz_set(
 
     await create_and_notify(
         db, recipient_id=student_id, sender_id=tutor.id,
-        message=f"You have been unassigned from quiz set: '{quiz_set.name}'",
+        message=f"{tutor.name} unassigned you from quiz set: '{quiz_set.name}'",
         notification_type="quiz_set_unassigned", reference_id=quiz_set_id,
     )
 

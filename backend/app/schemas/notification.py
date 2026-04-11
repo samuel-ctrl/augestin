@@ -13,6 +13,7 @@ class NotificationOut(BaseModel):
     id: str
     recipient_id: str
     sender_id: str
+    sender_name: Optional[str] = None
     message: str
     is_read: bool
     notification_type: Optional[str] = None

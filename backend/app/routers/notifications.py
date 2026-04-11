@@ -1,6 +1,7 @@
 import uuid
+from datetime import date, datetime, timedelta
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import select, func, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -8,41 +9,74 @@ from app.dependencies import get_db, get_current_user, require_tutor
 from app.models.notification import Notification
 from app.models.user import User, UserType
 from app.schemas.notification import NotificationCreate, NotificationOut
+from app.schemas.pagination import PaginatedResponse
 from app.services.notification_service import create_and_notify
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 
 
-@router.get("", response_model=list[NotificationOut])
+@router.get("", response_model=PaginatedResponse[NotificationOut])
 async def list_notifications(
     request: Request,
     db: AsyncSession = Depends(get_db),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+    date_from: date | None = Query(None),
+    date_to: date | None = Query(None),
 ):
     """List notifications for the current user (most recent first)."""
     user = get_current_user(request)
 
+    base_where = [Notification.recipient_id == user.id]
+    if date_from:
+        base_where.append(
+            Notification.created_at >= datetime.combine(date_from, datetime.min.time())
+        )
+    if date_to:
+        base_where.append(
+            Notification.created_at
+            < datetime.combine(date_to + timedelta(days=1), datetime.min.time())
+        )
+
+    # Count total
+    count_query = select(func.count(Notification.id)).where(*base_where)
+    total = (await db.execute(count_query)).scalar() or 0
+
+    # Paginated query
+    offset = (page - 1) * page_size
     query = (
-        select(Notification)
-        .where(Notification.recipient_id == user.id)
+        select(Notification, User.name)
+        .join(User, Notification.sender_id == User.id)
+        .where(*base_where)
         .order_by(Notification.created_at.desc())
-        .limit(50)
+        .offset(offset)
+        .limit(page_size)
     )
     result = await db.execute(query)
-    notifications = result.scalars().all()
+    rows = result.all()
 
-    return [
-        NotificationOut(
-            id=str(n.id),
-            recipient_id=str(n.recipient_id),
-            sender_id=str(n.sender_id),
-            message=n.message,
-            is_read=n.is_read,
-            notification_type=n.notification_type,
-            reference_id=str(n.reference_id) if n.reference_id else None,
-            created_at=n.created_at,
-        )
-        for n in notifications
-    ]
+    total_pages = (total + page_size - 1) // page_size if total > 0 else 0
+
+    return PaginatedResponse(
+        items=[
+            NotificationOut(
+                id=str(n.id),
+                recipient_id=str(n.recipient_id),
+                sender_id=str(n.sender_id),
+                sender_name=sender_name,
+                message=n.message,
+                is_read=n.is_read,
+                notification_type=n.notification_type,
+                reference_id=str(n.reference_id) if n.reference_id else None,
+                created_at=n.created_at,
+            )
+            for n, sender_name in rows
+        ],
+        total=total,
+        page=page,
+        page_size=page_size,
+        total_pages=total_pages,
+    )
 
 
 @router.get("/unread-count")

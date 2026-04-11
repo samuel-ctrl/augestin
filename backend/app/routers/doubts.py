@@ -284,7 +284,7 @@ async def update_doubt_status_endpoint(
         db,
         recipient_id=doubt.student_id,
         sender_id=tutor.id,
-        message=f"Your doubt '{doubt.title}' was marked as {body.status}",
+        message=f"{tutor.name} marked your doubt '{doubt.title}' as {body.status}",
         notification_type="doubt_status",
         reference_id=doubt_id,
     )
