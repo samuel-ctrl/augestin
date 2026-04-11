@@ -1,6 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useEffect, useCallback, useRef } from "react";
-import { createPortal } from "react-dom";
+import { useState, useEffect, useCallback } from "react";
 import {
   BookCard,
   DataTable,
@@ -13,7 +12,7 @@ import {
   Button,
   PageHeader,
 } from "@shared";
-import type { Subject, Book, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
+import type { Subject, Book, ColumnDef, PaginatedResponse, TableQueryParams, DropdownMenuItem } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
 
@@ -171,15 +170,13 @@ export default function SubjectBooks() {
           rowKey={(book) => book.id}
           addButtonLabel="+ Add Book"
           onAddClick={() => navigate(`/self-study/books/new?subject_id=${subjectId}`)}
-          actions={(book) => (
-            <BookMenu
-              onPreview={() => navigate(`/self-study/books/${book.id}/preview`)}
-              onQuiz={() => navigate(`/self-study/books/${book.id}/questions`)}
-              onAssign={() => navigate(`/self-study/books/${book.id}/assign`)}
-              onEdit={() => navigate(`/self-study/books/${book.id}/edit`)}
-              onDelete={() => setDeleteTarget(book)}
-            />
-          )}
+          actions={(book): DropdownMenuItem[] => [
+            { label: "Preview", onClick: () => navigate(`/self-study/books/${book.id}/preview`) },
+            { label: "Quiz", onClick: () => navigate(`/self-study/books/${book.id}/questions`) },
+            { label: "Assign", onClick: () => navigate(`/self-study/books/${book.id}/assign`) },
+            { label: "Edit", onClick: () => navigate(`/self-study/books/${book.id}/edit`) },
+            { label: "Delete", onClick: () => setDeleteTarget(book), variant: "danger" },
+          ]}
         />
       ) : books.length === 0 ? (
         <EmptyState
@@ -229,116 +226,6 @@ export default function SubjectBooks() {
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
-    </div>
-  );
-}
-
-function BookMenu({
-  onPreview,
-  onQuiz,
-  onAssign,
-  onEdit,
-  onDelete,
-}: {
-  onPreview: () => void;
-  onQuiz: () => void;
-  onAssign: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const btnRef = useRef<HTMLButtonElement>(null);
-  const [pos, setPos] = useState({ top: 0, left: 0 });
-
-  useEffect(() => {
-    if (!open) return;
-    const handleClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node) && !btnRef.current?.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [open]);
-
-  const handleToggle = () => {
-    if (!open && btnRef.current) {
-      const rect = btnRef.current.getBoundingClientRect();
-      setPos({ top: rect.bottom + 4, left: rect.right });
-    }
-    setOpen((v) => !v);
-  };
-
-  const handleAction = (action: () => void) => {
-    setOpen(false);
-    action();
-  };
-
-  return (
-    <div className="relative">
-      <button
-        ref={btnRef}
-        onClick={handleToggle}
-        className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
-      >
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-        </svg>
-      </button>
-
-      {open && createPortal(
-        <div ref={menuRef} className="fixed z-[9999] w-36 bg-white rounded-lg border border-gray-200 shadow-lg py-1" style={{ top: pos.top, left: pos.left - 144 }}>
-          <button
-            onClick={() => handleAction(onPreview)}
-            className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-          >
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-            </svg>
-            Preview
-          </button>
-          <button
-            onClick={() => handleAction(onEdit)}
-            className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-          >
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-            </svg>
-            Edit
-          </button>
-          <button
-            onClick={() => handleAction(onQuiz)}
-            className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-          >
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Quiz
-          </button>
-          <button
-            onClick={() => handleAction(onAssign)}
-            className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center gap-2"
-          >
-            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            Assign
-          </button>
-          <div className="border-t border-gray-100 my-1" />
-          <button
-            onClick={() => handleAction(onDelete)}
-            className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
-          >
-            <svg className="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-            Delete
-          </button>
-        </div>,
-        document.body
-      )}
     </div>
   );
 }

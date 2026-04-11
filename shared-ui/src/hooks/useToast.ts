@@ -29,7 +29,7 @@ export function extractErrorMessage(err: unknown, fallback: string): string {
   if (detail) {
     // Server unreachable (proxy returned 503)
     if (detail === "SERVER_UNREACHABLE") {
-      return "Server is currently unreachable. Please try again later or contact the help desk for assistance.";
+      return "Server is currently unreachable. Please try again later or contact the help desk at 7339685046 for assistance.";
     }
 
     // Check if we have a friendly mapping
@@ -73,7 +73,7 @@ export function extractErrorMessage(err: unknown, fallback: string): string {
   const serverUnreachable = (err as { serverUnreachable?: boolean })?.serverUnreachable;
   const message = (err as { message?: string })?.message;
   if (serverUnreachable || message === "Network Error") {
-    return "Server is currently unreachable. Please try again later or contact the help desk for assistance.";
+    return "Server is currently unreachable. Please try again later or contact the help desk at 7339685046 for assistance.";
   }
 
   return fallback;

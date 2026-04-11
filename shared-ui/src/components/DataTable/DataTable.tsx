@@ -12,6 +12,8 @@ import { TableSortHeader } from "./TableSortHeader";
 import { TablePagination } from "./TablePagination";
 import { LoadingSpinner } from "../LoadingSpinner";
 import { Button } from "../Button";
+import { DropdownMenu } from "../DropdownMenu";
+import type { DropdownMenuItem } from "../DropdownMenu";
 
 interface DataTableProps<T> {
   fetchFn: (params: TableQueryParams) => Promise<PaginatedResponse<T>>;
@@ -22,7 +24,7 @@ interface DataTableProps<T> {
   defaultSortOrder?: "asc" | "desc";
   defaultPageSize?: number;
   onRowClick?: (row: T) => void;
-  actions?: (row: T) => React.ReactNode;
+  actions?: (row: T) => DropdownMenuItem[];
   rowKey?: (row: T) => string;
   addButtonLabel?: string;
   onAddClick?: () => void;
@@ -30,6 +32,7 @@ interface DataTableProps<T> {
 
 // Fixed height: header (~40px) + 6 rows (~48px each) + buffer
 const TABLE_MAX_HEIGHT = "20.5rem";
+
 
 export function DataTable<T>({
   fetchFn,
@@ -62,6 +65,84 @@ export function DataTable<T>({
     defaultPageSize,
   });
 
+  // Insert actions column at position 3 (index 2), or at end if fewer columns
+  const ACTION_COL_INDEX = Math.min(2, columns.length);
+  const totalCols = columns.length + (actions ? 1 : 0);
+
+  const renderHeaderCells = () => {
+    const cells: React.ReactNode[] = [];
+    columns.forEach((col, i) => {
+      if (actions && i === ACTION_COL_INDEX) {
+        cells.push(
+          <th key="__actions" className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider w-16">
+            Actions
+          </th>
+        );
+      }
+      cells.push(
+        <TableSortHeader
+          key={col.key}
+          label={col.label}
+          column={col.key}
+          currentSortBy={sortBy}
+          currentSortOrder={sortOrder}
+          sortable={col.sortable !== false}
+          onToggleSort={handlers.toggleSort}
+          width={col.width}
+          dark
+        />
+      );
+    });
+    // If action column goes at the end (columns.length <= 2)
+    if (actions && ACTION_COL_INDEX === columns.length) {
+      cells.push(
+        <th key="__actions" className="px-4 py-3 text-center text-xs font-semibold text-white uppercase tracking-wider w-16">
+          Actions
+        </th>
+      );
+    }
+    return cells;
+  };
+
+  const renderRowCells = (row: T) => {
+    const cells: React.ReactNode[] = [];
+    columns.forEach((col, i) => {
+      if (actions && i === ACTION_COL_INDEX) {
+        cells.push(
+          <td
+            key="__actions"
+            className="px-4 py-3.5 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <DropdownMenu items={actions(row)} />
+          </td>
+        );
+      }
+      const value = (row as Record<string, unknown>)[col.key];
+      cells.push(
+        <td
+          key={col.key}
+          className="px-4 py-3.5 text-sm text-gray-800"
+          style={col.width ? { width: col.width } : undefined}
+        >
+          {col.render ? col.render(value, row) : String(value ?? "—")}
+        </td>
+      );
+    });
+    if (actions && ACTION_COL_INDEX === columns.length) {
+      cells.push(
+        <td
+          key="__actions"
+          className="px-4 py-3.5 text-center"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <DropdownMenu items={actions(row)} />
+        </td>
+      );
+    }
+    return cells;
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-visible">
       {/* Toolbar */}
@@ -88,35 +169,18 @@ export function DataTable<T>({
       </div>
 
       {/* Table */}
-      <div className="overflow-auto" style={{ maxHeight: TABLE_MAX_HEIGHT }}>
+      <div className="overflow-auto" style={{ maxHeight: TABLE_MAX_HEIGHT, scrollbarWidth: "thin", scrollbarColor: "rgba(44,62,80,0.35) transparent" }}>
         <table className="w-full">
           <thead className="sticky top-0 z-10">
             <tr style={{ backgroundColor: "rgb(44, 62, 80)", borderTop: "1.5px solid white" }}>
-              {columns.map((col) => (
-                <TableSortHeader
-                  key={col.key}
-                  label={col.label}
-                  column={col.key}
-                  currentSortBy={sortBy}
-                  currentSortOrder={sortOrder}
-                  sortable={col.sortable !== false}
-                  onToggleSort={handlers.toggleSort}
-                  width={col.width}
-                  dark
-                />
-              ))}
-              {actions && (
-                <th className="px-4 py-3 text-right text-xs font-semibold text-white uppercase tracking-wider w-20">
-                  Actions
-                </th>
-              )}
+              {renderHeaderCells()}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
             {loading ? (
               <tr>
                 <td
-                  colSpan={columns.length + (actions ? 1 : 0)}
+                  colSpan={totalCols}
                   className="px-4 py-12 text-center"
                 >
                   <LoadingSpinner />
@@ -125,7 +189,7 @@ export function DataTable<T>({
             ) : error ? (
               <tr>
                 <td
-                  colSpan={columns.length + (actions ? 1 : 0)}
+                  colSpan={totalCols}
                   className="px-4 py-12 text-center text-red-500"
                 >
                   {error}
@@ -134,7 +198,7 @@ export function DataTable<T>({
             ) : data.length === 0 ? (
               <tr>
                 <td
-                  colSpan={columns.length + (actions ? 1 : 0)}
+                  colSpan={totalCols}
                   className="px-4 py-12 text-center text-gray-400"
                 >
                   No results found
@@ -148,26 +212,7 @@ export function DataTable<T>({
                   style={{ backgroundColor: idx % 2 === 0 ? "#fff" : "rgb(226 226 226 / 85%)" }}
                   onClick={() => onRowClick?.(row)}
                 >
-                  {columns.map((col) => {
-                    const value = (row as Record<string, unknown>)[col.key];
-                    return (
-                      <td
-                        key={col.key}
-                        className="px-4 py-3.5 text-sm text-gray-800"
-                        style={col.width ? { width: col.width } : undefined}
-                      >
-                        {col.render ? col.render(value, row) : String(value ?? "—")}
-                      </td>
-                    );
-                  })}
-                  {actions && (
-                    <td
-                      className="px-4 py-3.5 text-right"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {actions(row)}
-                    </td>
-                  )}
+                  {renderRowCells(row)}
                 </tr>
               ))
             )}

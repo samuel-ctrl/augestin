@@ -71,6 +71,7 @@ export { Toast } from "./components/Toast";
 export type { ToastType } from "./components/Toast";
 export { EmptyState } from "./components/EmptyState";
 export { ConfirmDialog } from "./components/ConfirmDialog";
+export { FormDialog } from "./components/FormDialog";
 export { NotificationBell } from "./components/NotificationBell";
 export { NotificationToast } from "./components/NotificationToast";
 export { NotificationsPage } from "./components/NotificationsPage";

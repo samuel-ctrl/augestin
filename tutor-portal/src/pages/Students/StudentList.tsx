@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { DataTable, ConfirmDialog, Toast, useToast, extractErrorMessage, Button, PageHeader } from "@shared";
-import type { Student, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
+import { DataTable, ConfirmDialog, Toast, useToast, extractErrorMessage, PageHeader } from "@shared";
+import type { Student, ColumnDef, PaginatedResponse, TableQueryParams, DropdownMenuItem } from "@shared";
 import api from "../../api/client";
 import { useLookups } from "../../context/LookupContext";
 
@@ -82,11 +82,9 @@ export default function StudentList() {
         rowKey={(s) => s.id}
         addButtonLabel="+ Add Student"
         onAddClick={() => navigate("/students/new")}
-        actions={(student) => (
-          <Button variant="ghost" color="danger" size="xs" onClick={() => setDeleteTarget(student)}>
-            Delete
-          </Button>
-        )}
+        actions={(student): DropdownMenuItem[] => [
+          { label: "Delete", onClick: () => setDeleteTarget(student), variant: "danger" },
+        ]}
       />
 
       <ConfirmDialog

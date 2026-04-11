@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
 import {
-  PageHeader, DataTable, Toast, useToast, Button, ConfirmDialog,
+  PageHeader, DataTable, Toast, useToast, Button, ConfirmDialog, FormDialog,
 } from "@shared";
-import type { ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
+import type { ColumnDef, PaginatedResponse, TableQueryParams, DropdownMenuItem } from "@shared";
 import api from "../../api/client";
 import { useLookups } from "../../context/LookupContext";
 
@@ -34,6 +34,7 @@ export default function ManageLookups() {
   const [saving, setSaving] = useState(false);
 
   // Create form
+  const [createOpen, setCreateOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
 
@@ -70,13 +71,13 @@ export default function ManageLookups() {
 
   // ── Create ──
 
-  const handleCreate = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreate = async () => {
     if (!newName.trim()) return;
     setCreating(true);
     try {
       await api.post(`/lookups/${activeTab}`, { name: newName.trim() });
       setNewName("");
+      setCreateOpen(false);
       reload();
       await refetch();
       showSuccess(`${activeTab === "standards" ? "Standard" : "Section"} created`);
@@ -143,28 +144,15 @@ export default function ManageLookups() {
 
   // ── Columns ──
 
-  const stdColumns: ColumnDef<StandardItem>[] = [
-    { key: "name", label: "Name", sortable: false },
-    { key: "student_count", label: "Students", sortable: false },
-    { key: "book_count", label: "Books", sortable: false },
-  ];
-
-  const secColumns: ColumnDef<SectionItem>[] = [
-    { key: "name", label: "Name", sortable: false },
-    { key: "student_count", label: "Students", sortable: false },
-  ];
-
-  // ── Shared actions renderer ──
-
-  const renderActions = (items: { id: string; name: string }[], row: { id: string; name: string }, idx: number) => {
+  const renderNameCell = (_value: unknown, row: { id: string; name: string }) => {
     if (editing?.id === row.id) {
       return (
-        <div className="flex items-center gap-1 justify-end">
+        <div className="flex items-center gap-1">
           <input
             type="text"
             value={editing.name}
             onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-            className="px-2 py-1 border border-gray-300 rounded text-sm w-20 focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="px-2 py-1 border border-gray-300 rounded text-sm w-32 focus:outline-none focus:ring-2 focus:ring-primary-500"
             autoFocus
             onKeyDown={(e) => { if (e.key === "Enter") handleUpdate(); if (e.key === "Escape") setEditing(null); }}
           />
@@ -173,28 +161,33 @@ export default function ManageLookups() {
         </div>
       );
     }
-    return (
-      <div className="flex items-center gap-1 justify-end">
-        <button
-          onClick={() => handleMove(items, idx, -1)}
-          disabled={idx === 0 || reordering !== null}
-          className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed"
-          title="Move up"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" /></svg>
-        </button>
-        <button
-          onClick={() => handleMove(items, idx, 1)}
-          disabled={idx === items.length - 1 || reordering !== null}
-          className="p-1 text-gray-400 hover:text-gray-700 disabled:opacity-30 disabled:cursor-not-allowed"
-          title="Move down"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
-        </button>
-        <Button size="xs" variant="outline" onClick={() => setEditing({ id: row.id, name: row.name })}>Edit</Button>
-        <Button size="xs" variant="ghost" color="danger" onClick={() => setDeleteConfirm({ type: activeTab, id: row.id, name: row.name })}>Delete</Button>
-      </div>
-    );
+    return String(row.name);
+  };
+
+  const stdColumns: ColumnDef<StandardItem>[] = [
+    { key: "name", label: "Name", sortable: false, render: renderNameCell as ColumnDef<StandardItem>["render"] },
+    { key: "student_count", label: "Students", sortable: false },
+    { key: "book_count", label: "Books", sortable: false },
+  ];
+
+  const secColumns: ColumnDef<SectionItem>[] = [
+    { key: "name", label: "Name", sortable: false, render: renderNameCell as ColumnDef<SectionItem>["render"] },
+    { key: "student_count", label: "Students", sortable: false },
+  ];
+
+  // ── Shared actions renderer ──
+
+  const renderActions = (items: { id: string; name: string }[], row: { id: string; name: string }, idx: number): DropdownMenuItem[] => {
+    const menuItems: DropdownMenuItem[] = [];
+    if (idx > 0) {
+      menuItems.push({ label: "Move Up", onClick: () => handleMove(items, idx, -1) });
+    }
+    if (idx < items.length - 1) {
+      menuItems.push({ label: "Move Down", onClick: () => handleMove(items, idx, 1) });
+    }
+    menuItems.push({ label: "Edit", onClick: () => setEditing({ id: row.id, name: row.name }) });
+    menuItems.push({ label: "Delete", onClick: () => setDeleteConfirm({ type: activeTab, id: row.id, name: row.name }), variant: "danger" });
+    return menuItems;
   };
 
   // We need to track the fetched items for the actions renderer (move up/down)
@@ -252,13 +245,7 @@ export default function ManageLookups() {
           defaultSortBy="display_order"
           rowKey={(s) => s.id}
           addButtonLabel="+ Add Standard"
-          onAddClick={() => {
-            const name = prompt("Enter standard name:");
-            if (name?.trim()) {
-              setNewName(name.trim());
-              api.post("/lookups/standards", { name: name.trim() }).then(() => { reload(); refetch(); showSuccess("Standard created"); }).catch((err) => showApiError(err, "Failed to create"));
-            }
-          }}
+          onAddClick={() => { setNewName(""); setCreateOpen(true); }}
           actions={(row) => {
             const idx = stdItems.findIndex((i) => i.id === row.id);
             return renderActions(stdItems, row, idx);
@@ -273,13 +260,7 @@ export default function ManageLookups() {
           defaultSortBy="display_order"
           rowKey={(s) => s.id}
           addButtonLabel="+ Add Section"
-          onAddClick={() => {
-            const name = prompt("Enter section name:");
-            if (name?.trim()) {
-              setNewName(name.trim());
-              api.post("/lookups/sections", { name: name.trim() }).then(() => { reload(); refetch(); showSuccess("Section created"); }).catch((err) => showApiError(err, "Failed to create"));
-            }
-          }}
+          onAddClick={() => { setNewName(""); setCreateOpen(true); }}
           actions={(row) => {
             const idx = secItems.findIndex((i) => i.id === row.id);
             return renderActions(secItems, row, idx);
@@ -297,6 +278,28 @@ export default function ManageLookups() {
         onConfirm={handleDelete}
         onCancel={() => setDeleteConfirm(null)}
       />
+
+      <FormDialog
+        open={createOpen}
+        title={`Add ${activeTab === "standards" ? "Standard" : "Section"}`}
+        submitLabel="Create"
+        loading={creating}
+        submitDisabled={!newName.trim()}
+        onSubmit={handleCreate}
+        onCancel={() => { setCreateOpen(false); setNewName(""); }}
+      >
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Name
+        </label>
+        <input
+          type="text"
+          value={newName}
+          onChange={(e) => setNewName(e.target.value)}
+          placeholder={`Enter ${activeTab === "standards" ? "standard" : "section"} name`}
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+          autoFocus
+        />
+      </FormDialog>
     </div>
   );
 }
