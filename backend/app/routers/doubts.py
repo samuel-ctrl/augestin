@@ -196,7 +196,7 @@ async def update_doubt_endpoint(
     # Re-fetch with eager-loaded relationships (commit expires them)
     doubt = await get_doubt(db, doubt_id)
 
-    return DoubtOut(
+    out = DoubtOut(
         id=str(doubt.id),
         title=doubt.title,
         description=doubt.description,
@@ -210,6 +210,41 @@ async def update_doubt_endpoint(
         created_at=doubt.created_at,
         updated_at=doubt.updated_at,
     )
+
+    # Notify participants about the doubt edit
+    if user.user_type == UserType.student:
+        # Student edited → notify all tutors
+        tutor_result = await db.execute(
+            select(User.id).where(User.user_type == UserType.tutor)
+        )
+        recipient_ids = [str(uid) for uid in tutor_result.scalars().all()]
+    else:
+        # Tutor edited → notify the student who raised the doubt
+        recipient_ids = [str(doubt.student_id)]
+
+    # Exclude the editor themselves
+    recipient_ids = [rid for rid in recipient_ids if rid != str(user.id)]
+
+    if recipient_ids:
+        await manager.send_to_users(
+            recipient_ids,
+            {
+                "type": "doubt:edited",
+                "payload": out.model_dump(mode="json"),
+            },
+        )
+
+        for rid in recipient_ids:
+            await create_and_notify(
+                db,
+                recipient_id=uuid.UUID(rid),
+                sender_id=user.id,
+                message=f"{user.name} edited doubt: '{doubt.title}'",
+                notification_type="doubt_edited",
+                reference_id=doubt.id,
+            )
+
+    return out
 
 
 @router.post("/api/doubts/{doubt_id}/request-delete", status_code=status.HTTP_200_OK)
@@ -395,7 +430,7 @@ async def update_comment_endpoint(
     author_result = await db.execute(select(User).where(User.id == comment.user_id))
     author = author_result.scalar_one_or_none()
 
-    return DoubtCommentOut(
+    out = DoubtCommentOut(
         id=str(comment.id),
         doubt_id=str(comment.doubt_id),
         user_id=str(comment.user_id),
@@ -405,6 +440,42 @@ async def update_comment_endpoint(
         created_at=comment.created_at,
         updated_at=comment.updated_at,
     )
+
+    # Notify all participants (doubt owner + commenters) except the editor
+    doubt_obj_result = await db.execute(select(DoubtModel).where(DoubtModel.id == doubt_id))
+    doubt_obj = doubt_obj_result.scalar_one_or_none()
+
+    participant_result = await db.execute(
+        select(DoubtCommentModel.user_id)
+        .where(DoubtCommentModel.doubt_id == doubt_id)
+        .distinct()
+    )
+    participant_ids = {str(uid) for uid in participant_result.scalars().all()}
+    if doubt_obj:
+        participant_ids.add(str(doubt_obj.student_id))
+    participant_ids.discard(str(user.id))
+
+    if participant_ids:
+        await manager.send_to_users(
+            list(participant_ids),
+            {
+                "type": "doubt_comment:edited",
+                "payload": out.model_dump(mode="json"),
+            },
+        )
+
+        doubt_title = doubt_obj.title if doubt_obj else "a doubt"
+        for pid in participant_ids:
+            await create_and_notify(
+                db,
+                recipient_id=uuid.UUID(pid),
+                sender_id=user.id,
+                message=f"{user.name} edited a comment on '{doubt_title}'",
+                notification_type="doubt_comment_edited",
+                reference_id=doubt_id,
+            )
+
+    return out
 
 
 @router.delete("/api/doubts/{doubt_id}/comments/{comment_id}", status_code=status.HTTP_204_NO_CONTENT)

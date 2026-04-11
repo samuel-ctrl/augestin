@@ -69,6 +69,30 @@ export default function DoubtDetail() {
     });
   }, [on, doubtId]);
 
+  useEffect(() => {
+    return on("doubt:edited", (event) => {
+      const edited = event.payload as { id: string };
+      if (edited.id === doubtId) fetchDoubt();
+    });
+  }, [on, doubtId, fetchDoubt]);
+
+  useEffect(() => {
+    return on("doubt_comment:edited", (event) => {
+      const edited = event.payload as unknown as DoubtComment;
+      if (edited.doubt_id === doubtId) {
+        setDoubt((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            comments: prev.comments.map((c) =>
+              c.id === edited.id ? edited : c
+            ),
+          };
+        });
+      }
+    });
+  }, [on, doubtId]);
+
   const startEditingDoubt = () => {
     if (!doubt) return;
     setEditTitle(doubt.title);
