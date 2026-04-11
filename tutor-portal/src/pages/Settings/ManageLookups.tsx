@@ -34,6 +34,7 @@ export default function ManageLookups() {
   const [saving, setSaving] = useState(false);
 
   // Create form
+  const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
 
@@ -77,6 +78,7 @@ export default function ManageLookups() {
     try {
       await api.post(`/lookups/${activeTab}`, { name: newName.trim() });
       setNewName("");
+      setShowAdd(false);
       reload();
       await refetch();
       showSuccess(`${activeTab === "standards" ? "Standard" : "Section"} created`);
@@ -218,42 +220,50 @@ export default function ManageLookups() {
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <PageHeader title="Manage Standards & Sections" />
 
-      {/* Tabs */}
-      <div className="flex border-b border-gray-200 mb-5">
-        <button
-          onClick={() => { setActiveTab("standards"); setEditing(null); }}
-          className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === "standards"
-              ? "border-primary-500 text-primary-600"
-              : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-          }`}
-        >
-          Standards
-        </button>
-        <button
-          onClick={() => { setActiveTab("sections"); setEditing(null); }}
-          className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${
-            activeTab === "sections"
-              ? "border-primary-500 text-primary-600"
-              : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-          }`}
-        >
-          Sections
-        </button>
+      {/* Tabs + Add */}
+      <div className="flex items-center justify-between border-b border-gray-200 mb-5">
+        <div className="flex">
+          <button
+            onClick={() => { setActiveTab("standards"); setEditing(null); setShowAdd(false); }}
+            className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "standards"
+                ? "border-primary-500 text-primary-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            Standards
+          </button>
+          <button
+            onClick={() => { setActiveTab("sections"); setEditing(null); setShowAdd(false); }}
+            className={`px-5 py-2.5 text-sm font-medium border-b-2 transition-colors ${
+              activeTab === "sections"
+                ? "border-primary-500 text-primary-600"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+            }`}
+          >
+            Sections
+          </button>
+        </div>
+        <Button size="sm" onClick={() => setShowAdd((v) => !v)}>
+          + Add {activeTab === "standards" ? "Standard" : "Section"}
+        </Button>
       </div>
 
-      {/* Create form */}
-      <form onSubmit={handleCreate} className="flex gap-2 mb-4">
-        <input
-          type="text"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          placeholder={activeTab === "standards" ? "Standard name (e.g. 13)" : "Section name (e.g. F)"}
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          required
-        />
-        <Button type="submit" loading={creating} size="sm">Add</Button>
-      </form>
+      {showAdd && (
+        <form onSubmit={handleCreate} className="flex gap-2 mb-4">
+          <input
+            type="text"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+            placeholder={activeTab === "standards" ? "Standard name (e.g. 13)" : "Section name (e.g. F)"}
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            autoFocus
+            required
+          />
+          <Button type="submit" loading={creating} size="sm">Add</Button>
+          <Button type="button" size="sm" variant="outline" onClick={() => { setShowAdd(false); setNewName(""); }}>Cancel</Button>
+        </form>
+      )}
 
       {/* Table */}
       {activeTab === "standards" ? (
