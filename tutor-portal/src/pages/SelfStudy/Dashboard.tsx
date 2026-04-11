@@ -13,6 +13,7 @@ export default function Dashboard() {
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editTarget, setEditTarget] = useState<Subject | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Subject | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
   const { toast, showApiError, showSuccess, dismiss } = useToast();
 
@@ -66,14 +67,16 @@ export default function Dashboard() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
+    setDeleting(true);
     try {
       await api.delete(`/subjects/${deleteTarget.id}`);
       showSuccess(`Subject "${deleteTarget.name}" deleted successfully.`);
       setDeleteTarget(null);
       fetchSubjects();
     } catch (err) {
-      setDeleteTarget(null);
       showApiError(err, "Failed to delete subject. Please try again.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -174,6 +177,7 @@ export default function Dashboard() {
         countdownSeconds={5}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+        loading={deleting}
       />
     </div>
   );

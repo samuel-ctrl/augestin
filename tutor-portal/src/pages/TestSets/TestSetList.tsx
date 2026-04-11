@@ -19,6 +19,7 @@ export default function TestSetList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TestSet | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(50);
   const [total, setTotal] = useState(0);
@@ -50,14 +51,16 @@ export default function TestSetList() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
+    setDeleting(true);
     try {
       await api.delete(`/test-sets/${deleteTarget.id}`);
       showSuccess(`Test Set "${deleteTarget.name}" deleted successfully.`);
       setDeleteTarget(null);
       fetchTestSets();
     } catch (err) {
-      setDeleteTarget(null);
       showApiError(err, "Failed to delete test set. Please try again.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -177,6 +180,7 @@ export default function TestSetList() {
         countdownSeconds={5}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+        loading={deleting}
       />
     </div>
   );

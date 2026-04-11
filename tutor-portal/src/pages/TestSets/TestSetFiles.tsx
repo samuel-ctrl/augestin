@@ -19,6 +19,7 @@ export default function TestSetFiles() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<TestSetFile | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const { toast, showApiError, showSuccess, dismiss } = useToast();
 
   // Add/Edit form state
@@ -105,14 +106,16 @@ export default function TestSetFiles() {
 
   const handleDeleteFile = async () => {
     if (!deleteTarget) return;
+    setDeleting(true);
     try {
       await api.delete(`/test-sets/${testSetId}/files/${deleteTarget.id}`);
       showSuccess("File deleted successfully");
       setDeleteTarget(null);
       fetchData();
     } catch (err) {
-      setDeleteTarget(null);
       showApiError(err, "Failed to delete file.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -199,8 +202,8 @@ export default function TestSetFiles() {
               <Button variant="outline" color="secondary" size="sm" onClick={resetForm}>
                 Cancel
               </Button>
-              <Button color="primary" size="sm" onClick={handleSaveFile} disabled={saving}>
-                {saving ? "Saving..." : editingFile ? "Update" : "Add File"}
+              <Button color="primary" size="sm" onClick={handleSaveFile} loading={saving}>
+                {editingFile ? "Update" : "Add File"}
               </Button>
             </div>
           </div>
@@ -261,6 +264,7 @@ export default function TestSetFiles() {
         countdownSeconds={5}
         onConfirm={handleDeleteFile}
         onCancel={() => setDeleteTarget(null)}
+        loading={deleting}
       />
     </div>
   );

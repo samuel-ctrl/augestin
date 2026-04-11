@@ -21,4 +21,3 @@ async def seed_super_user(db: AsyncSession):
     )
     db.add(tutor)
     await db.commit()
-    print("Seeded super user tutor: tutor@gmail.com / Tutor@123")

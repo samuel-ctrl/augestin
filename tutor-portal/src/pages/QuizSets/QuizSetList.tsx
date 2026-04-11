@@ -19,6 +19,7 @@ export default function QuizSetList() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<QuizSet | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [page, setPage] = useState(1);
   const [pageSize] = useState(50);
   const [total, setTotal] = useState(0);
@@ -50,14 +51,16 @@ export default function QuizSetList() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
+    setDeleting(true);
     try {
       await api.delete(`/quiz-sets/${deleteTarget.id}`);
       showSuccess(`Quiz Set "${deleteTarget.name}" deleted successfully.`);
       setDeleteTarget(null);
       fetchQuizSets();
     } catch (err) {
-      setDeleteTarget(null);
       showApiError(err, "Failed to delete quiz set. Please try again.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -176,6 +179,7 @@ export default function QuizSetList() {
         countdownSeconds={5}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+        loading={deleting}
       />
     </div>
   );

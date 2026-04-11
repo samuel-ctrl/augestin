@@ -153,8 +153,8 @@ export default function StudentCreate() {
           <Button type="button" variant="outline" color="secondary" fullWidth onClick={() => navigate("/students")}>
             Cancel
           </Button>
-          <Button type="submit" color="success" fullWidth disabled={loading}>
-            {loading ? "Creating..." : "Create Student"}
+          <Button type="submit" color="success" fullWidth loading={loading}>
+            Create Student
           </Button>
         </div>
       </form>

@@ -227,8 +227,8 @@ export default function QuizSetAssign() {
         <Button variant="outline" color="secondary" onClick={() => navigate("/quiz-sets")}>
           Cancel
         </Button>
-        <Button color="primary" onClick={handleSaveClick} disabled={saving}>
-          {saving ? "Saving..." : "Save Assignments"}
+        <Button color="primary" onClick={handleSaveClick} loading={saving}>
+          Save Assignments
         </Button>
       </div>
 

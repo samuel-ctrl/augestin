@@ -25,7 +25,9 @@ export default function DoubtDetail() {
   const [editingComment, setEditingComment] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<DoubtComment | null>(null);
-  const [showDeleteDoubt, setShowDeleteDoubt] = useState(false);
+  const [deletingComment, setDeletingComment] = useState(false);
+  const [showRequestDelete, setShowRequestDelete] = useState(false);
+  const [requestingDelete, setRequestingDelete] = useState(false);
   const [showContact, setShowContact] = useState(false);
   const { toast, showApiError, showSuccess, dismiss } = useToast();
   const { on } = useWS();
@@ -133,6 +135,7 @@ export default function DoubtDetail() {
 
   const handleDeleteComment = async () => {
     if (!deleteTarget) return;
+    setDeletingComment(true);
     try {
       await api.delete(`/doubts/${doubtId}/comments/${deleteTarget.id}`);
       setDeleteTarget(null);
@@ -140,18 +143,21 @@ export default function DoubtDetail() {
       fetchDoubt();
     } catch (err) {
       showApiError(err, "Failed to delete comment.");
-      setDeleteTarget(null);
+    } finally {
+      setDeletingComment(false);
     }
   };
 
-  const handleDeleteDoubt = async () => {
+  const handleRequestDelete = async () => {
+    setRequestingDelete(true);
     try {
-      await api.delete(`/doubts/${doubtId}`);
-      showSuccess("Doubt deleted");
-      navigate("/doubts");
+      await api.post(`/doubts/${doubtId}/request-delete`);
+      showSuccess("Deletion request sent to tutor");
+      setShowRequestDelete(false);
     } catch (err) {
-      showApiError(err, "Failed to delete doubt.");
-      setShowDeleteDoubt(false);
+      showApiError(err, "Failed to send deletion request.");
+    } finally {
+      setRequestingDelete(false);
     }
   };
 
@@ -235,8 +241,8 @@ export default function DoubtDetail() {
               </button>
             </div>
             <div className="flex gap-2 pt-2">
-              <Button size="sm" color="primary" onClick={handleSaveDoubt} disabled={savingDoubt}>
-                {savingDoubt ? "Saving..." : "Save"}
+              <Button size="sm" color="primary" onClick={handleSaveDoubt} loading={savingDoubt}>
+                Save
               </Button>
               <Button size="sm" variant="outline" color="secondary" onClick={() => setEditingDoubt(false)}>
                 Cancel
@@ -273,8 +279,8 @@ export default function DoubtDetail() {
                 <Button size="xs" color="primary" onClick={startEditingDoubt}>
                   Edit Doubt
                 </Button>
-                <Button size="xs" color="danger" onClick={() => setShowDeleteDoubt(true)}>
-                  Delete Doubt
+                <Button size="xs" color="danger" onClick={() => setShowRequestDelete(true)}>
+                  Request Deletion
                 </Button>
               </div>
             )}
@@ -357,8 +363,8 @@ export default function DoubtDetail() {
           rows={3}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 mb-3"
         />
-        <Button color="primary" size="sm" onClick={handleAddComment} disabled={submitting || !newComment.trim()}>
-          {submitting ? "Posting..." : "Post Comment"}
+        <Button color="primary" size="sm" onClick={handleAddComment} disabled={!newComment.trim()} loading={submitting}>
+          Post Comment
         </Button>
       </div>
 
@@ -372,18 +378,20 @@ export default function DoubtDetail() {
         countdownSeconds={5}
         onConfirm={handleDeleteComment}
         onCancel={() => setDeleteTarget(null)}
+        loading={deletingComment}
       />
 
       <ConfirmDialog
-        open={showDeleteDoubt}
-        title="Delete Doubt"
-        alertMessage="This will delete the doubt and all its comments permanently."
-        message="Are you sure you want to proceed?"
-        confirmLabel="Delete"
+        open={showRequestDelete}
+        title="Request Deletion"
+        alertMessage="A request will be sent to the tutor to delete this doubt."
+        message="The tutor will review and proceed with the deletion. Continue?"
+        confirmLabel="Send Request"
         variant="danger"
-        countdownSeconds={5}
-        onConfirm={handleDeleteDoubt}
-        onCancel={() => setShowDeleteDoubt(false)}
+        countdownSeconds={3}
+        onConfirm={handleRequestDelete}
+        onCancel={() => setShowRequestDelete(false)}
+        loading={requestingDelete}
       />
 
       {/* Contact Admin Popup */}

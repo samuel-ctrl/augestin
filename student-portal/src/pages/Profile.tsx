@@ -44,10 +44,11 @@ export default function Profile() {
   };
 
   return (
-    <div className="max-w-md mx-auto">
+    <div>
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <PageHeader title="Profile" />
 
+      <div className="max-w-md mx-auto">
       {/* Info Card */}
       <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
         <div className="space-y-2 text-sm">
@@ -133,6 +134,7 @@ export default function Profile() {
           {loading ? "Changing..." : "Change Password"}
         </button>
       </form>
+      </div>
     </div>
   );
 }

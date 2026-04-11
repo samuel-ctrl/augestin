@@ -72,9 +72,30 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
     }
   };
 
+  const [processingDelete, setProcessingDelete] = useState<string | null>(null);
+
+  const handleProceedDelete = async (n: Notification, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!n.reference_id) return;
+    setProcessingDelete(n.id);
+    try {
+      await api.delete(`/doubts/${n.reference_id}`);
+      if (!n.is_read) markRead(n.id);
+      setNotifications((prev) =>
+        prev.map((notif) =>
+          notif.id === n.id ? { ...notif, is_read: true, message: notif.message + " (Deleted)" } : notif
+        )
+      );
+    } catch {
+      // silently fail
+    } finally {
+      setProcessingDelete(null);
+    }
+  };
+
   const handleClick = (n: Notification) => {
     if (!n.is_read) markRead(n.id);
-    if (n.reference_id && (n.notification_type === "doubt_comment" || n.notification_type === "doubt_status")) {
+    if (n.reference_id && (n.notification_type === "doubt_created" || n.notification_type === "doubt_comment" || n.notification_type === "doubt_status" || n.notification_type === "doubt_delete_request")) {
       navigate(`/doubts/${n.reference_id}`);
     } else if (n.notification_type === "book_assigned" || n.notification_type === "book_unassigned") {
       navigate("/self-study");
@@ -144,10 +165,14 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
                     </p>
                     {n.notification_type && (
                       <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
-                        {n.notification_type === "doubt_comment"
+                        {n.notification_type === "doubt_created"
+                          ? "New Doubt"
+                          : n.notification_type === "doubt_comment"
                           ? "Comment"
                           : n.notification_type === "doubt_status"
                           ? "Status"
+                          : n.notification_type === "doubt_delete_request"
+                          ? "Delete Request"
                           : n.notification_type?.endsWith("_assigned")
                           ? "Assigned"
                           : n.notification_type?.endsWith("_unassigned")
@@ -157,6 +182,15 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
                     )}
                   </div>
                 </div>
+                {n.notification_type === "doubt_delete_request" && !n.message.endsWith("(Deleted)") && (
+                  <button
+                    onClick={(e) => handleProceedDelete(n, e)}
+                    disabled={processingDelete === n.id}
+                    className="shrink-0 px-3 py-1.5 text-xs font-medium text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors disabled:opacity-50"
+                  >
+                    {processingDelete === n.id ? "Deleting..." : "Proceed"}
+                  </button>
+                )}
                 {!n.is_read && (
                   <span className="w-2 h-2 rounded-full bg-blue-500 mt-2 shrink-0" />
                 )}

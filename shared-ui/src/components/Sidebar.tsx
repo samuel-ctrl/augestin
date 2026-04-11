@@ -66,7 +66,7 @@ export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, o
         <div className="flex items-center gap-2">
           {logo || (
             <>
-              <img src={logoSvg} alt="A.J EduTrack" className={`brightness-0 invert ${collapsed ? "h-8 w-8 object-contain" : "h-10 w-auto"}`} />
+              <img src={logoSvg} alt="A.J" className={`brightness-0 invert ${collapsed ? "h-8 w-8 object-contain" : "h-10 w-auto"}`} />
               {!collapsed && (
                 <span className="text-xl tracking-wide" style={{ fontFamily: "'Poppins', 'Segoe UI', sans-serif" }}>
                   <span className="font-bold text-yellow-300">Edu</span>

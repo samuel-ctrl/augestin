@@ -23,7 +23,10 @@ export default function DoubtDetail() {
   const [editingComment, setEditingComment] = useState<string | null>(null);
   const [editContent, setEditContent] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<DoubtComment | null>(null);
+  const [deletingComment, setDeletingComment] = useState(false);
   const [showDeleteDoubt, setShowDeleteDoubt] = useState(false);
+  const [deletingDoubt, setDeletingDoubt] = useState(false);
+  const [changingStatus, setChangingStatus] = useState<string | null>(null);
   const { toast, showApiError, showSuccess, dismiss } = useToast();
   const { on } = useWS();
 
@@ -130,6 +133,7 @@ export default function DoubtDetail() {
 
   const handleDeleteComment = async () => {
     if (!deleteTarget) return;
+    setDeletingComment(true);
     try {
       await api.delete(`/doubts/${doubtId}/comments/${deleteTarget.id}`);
       setDeleteTarget(null);
@@ -137,28 +141,34 @@ export default function DoubtDetail() {
       fetchDoubt();
     } catch (err) {
       showApiError(err, "Failed to delete comment.");
-      setDeleteTarget(null);
+    } finally {
+      setDeletingComment(false);
     }
   };
 
   const handleStatusChange = async (status: string) => {
+    setChangingStatus(status);
     try {
       await api.patch(`/doubts/${doubtId}/status`, { status });
       showSuccess(`Doubt marked as ${status}`);
       fetchDoubt();
     } catch (err) {
       showApiError(err, "Failed to update status.");
+    } finally {
+      setChangingStatus(null);
     }
   };
 
   const handleDeleteDoubt = async () => {
+    setDeletingDoubt(true);
     try {
       await api.delete(`/doubts/${doubtId}`);
       showSuccess("Doubt deleted");
       navigate("/doubts");
     } catch (err) {
       showApiError(err, "Failed to delete doubt.");
-      setShowDeleteDoubt(false);
+    } finally {
+      setDeletingDoubt(false);
     }
   };
 
@@ -235,8 +245,8 @@ export default function DoubtDetail() {
               </button>
             </div>
             <div className="flex gap-2 pt-2">
-              <Button size="sm" color="primary" onClick={handleSaveDoubt} disabled={savingDoubt}>
-                {savingDoubt ? "Saving..." : "Save"}
+              <Button size="sm" color="primary" onClick={handleSaveDoubt} loading={savingDoubt}>
+                Save
               </Button>
               <Button size="sm" variant="outline" color="secondary" onClick={() => setEditingDoubt(false)}>
                 Cancel
@@ -271,17 +281,17 @@ export default function DoubtDetail() {
             {/* Status Actions (Tutor) */}
             <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
               {doubt.status !== "resolved" && (
-                <Button size="xs" color="success" onClick={() => handleStatusChange("resolved")}>
+                <Button size="xs" color="success" onClick={() => handleStatusChange("resolved")} loading={changingStatus === "resolved"} disabled={!!changingStatus}>
                   Mark Resolved
                 </Button>
               )}
               {doubt.status !== "closed" && (
-                <Button size="xs" color="secondary" onClick={() => handleStatusChange("closed")}>
+                <Button size="xs" color="secondary" onClick={() => handleStatusChange("closed")} loading={changingStatus === "closed"} disabled={!!changingStatus}>
                   Close
                 </Button>
               )}
               {doubt.status !== "open" && (
-                <Button size="xs" variant="outline" color="primary" onClick={() => handleStatusChange("open")}>
+                <Button size="xs" variant="outline" color="primary" onClick={() => handleStatusChange("open")} loading={changingStatus === "open"} disabled={!!changingStatus}>
                   Reopen
                 </Button>
               )}
@@ -365,8 +375,8 @@ export default function DoubtDetail() {
           rows={3}
           className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 mb-3"
         />
-        <Button color="primary" size="sm" onClick={handleAddComment} disabled={submitting || !newComment.trim()}>
-          {submitting ? "Posting..." : "Post Comment"}
+        <Button color="primary" size="sm" onClick={handleAddComment} disabled={!newComment.trim()} loading={submitting}>
+          Post Comment
         </Button>
       </div>
 
@@ -380,6 +390,7 @@ export default function DoubtDetail() {
         countdownSeconds={5}
         onConfirm={handleDeleteComment}
         onCancel={() => setDeleteTarget(null)}
+        loading={deletingComment}
       />
 
       <ConfirmDialog
@@ -392,6 +403,7 @@ export default function DoubtDetail() {
         countdownSeconds={5}
         onConfirm={handleDeleteDoubt}
         onCancel={() => setShowDeleteDoubt(false)}
+        loading={deletingDoubt}
       />
     </div>
   );

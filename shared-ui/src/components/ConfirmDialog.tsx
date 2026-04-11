@@ -13,6 +13,7 @@ interface ConfirmDialogProps {
   onCancel: () => void;
   countdownSeconds?: number;
   alertMessage?: string;
+  loading?: boolean;
 }
 
 export function ConfirmDialog({
@@ -26,6 +27,7 @@ export function ConfirmDialog({
   onCancel,
   countdownSeconds,
   alertMessage,
+  loading = false,
 }: ConfirmDialogProps) {
   const [countdown, setCountdown] = useState(0);
 
@@ -51,7 +53,7 @@ export function ConfirmDialog({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-black/50" onClick={onCancel} />
+      <div className="fixed inset-0 bg-black/50" onClick={loading ? undefined : onCancel} />
       <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-2">{title}</h3>
         {alertMessage && (
@@ -63,13 +65,14 @@ export function ConfirmDialog({
         )}
         <p className="text-sm text-gray-600 mb-6">{message}</p>
         <div className="flex flex-wrap justify-end gap-3">
-          <Button variant="outline" color="secondary" onClick={onCancel}>
+          <Button variant="outline" color="secondary" onClick={onCancel} disabled={loading}>
             {cancelLabel}
           </Button>
           <Button
             color={variant === "danger" ? "danger" : "primary"}
             onClick={onConfirm}
             disabled={countdown > 0}
+            loading={loading}
           >
             {countdown > 0 ? `${confirmLabel} (${countdown})` : confirmLabel}
           </Button>

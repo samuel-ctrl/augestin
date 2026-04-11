@@ -57,6 +57,7 @@ export default function StudentDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resettingPassword, setResettingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState<string | null>(null);
   const [showReminderForm, setShowReminderForm] = useState(false);
   const [reminderMessage, setReminderMessage] = useState("");
@@ -100,14 +101,16 @@ export default function StudentDetail() {
   };
 
   const handleResetPassword = async () => {
+    setResettingPassword(true);
     try {
       const res = await api.post(`/students/${id}/reset-password`);
       setNewPassword(res.data.password);
       setShowResetConfirm(false);
       showSuccess("Password reset successfully.");
     } catch (err) {
-      setShowResetConfirm(false);
       showApiError(err, "Failed to reset password. Please try again.");
+    } finally {
+      setResettingPassword(false);
     }
   };
 
@@ -201,8 +204,8 @@ export default function StudentDetail() {
             className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 mb-2"
           />
           <div className="flex gap-2">
-            <Button size="sm" color="primary" onClick={handleSendReminder} disabled={sendingReminder || !reminderMessage.trim()}>
-              {sendingReminder ? "Sending..." : "Send"}
+            <Button size="sm" color="primary" onClick={handleSendReminder} disabled={!reminderMessage.trim()} loading={sendingReminder}>
+              Send
             </Button>
             <Button size="sm" variant="outline" color="secondary" onClick={() => setShowReminderForm(false)}>
               Cancel
@@ -252,6 +255,7 @@ export default function StudentDetail() {
         countdownSeconds={5}
         onConfirm={handleResetPassword}
         onCancel={() => setShowResetConfirm(false)}
+        loading={resettingPassword}
       />
     </div>
   );

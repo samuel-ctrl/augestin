@@ -226,8 +226,8 @@ export default function BookAssign() {
         <Button variant="outline" color="secondary" onClick={() => navigate(`/self-study/subjects/${book.subject_id}`)}>
           Cancel
         </Button>
-        <Button color="primary" onClick={handleSaveClick} disabled={saving}>
-          {saving ? "Saving..." : "Save Assignments"}
+        <Button color="primary" onClick={handleSaveClick} loading={saving}>
+          Save Assignments
         </Button>
       </div>
 

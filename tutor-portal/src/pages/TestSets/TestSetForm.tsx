@@ -129,8 +129,8 @@ export default function TestSetForm() {
           <Button type="button" variant="outline" color="secondary" onClick={() => navigate("/test-sets")}>
             Cancel
           </Button>
-          <Button type="submit" color={isEdit ? "primary" : "success"} disabled={saving}>
-            {saving ? "Saving..." : isEdit ? "Update Test Set" : "Create Test Set"}
+          <Button type="submit" color={isEdit ? "primary" : "success"} loading={saving}>
+            {isEdit ? "Update Test Set" : "Create Test Set"}
           </Button>
         </div>
       </form>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { extractErrorMessage, Button } from "@shared";
 import api from "../api/client";
+import logo from "../../shared-ui/src/assets/logo.svg";
 
 export default function ChangePassword() {
   const [oldPassword, setOldPassword] = useState("");
@@ -45,7 +46,13 @@ export default function ChangePassword() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <div className="max-w-sm w-full">
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold text-primary-600">A.J EduTrack</h1>
+          <div className="flex items-center justify-center gap-2">
+            <img src={logo} alt="A.J" className="h-12" />
+            <span className="text-2xl tracking-wide" style={{ fontFamily: "'Poppins', 'Segoe UI', sans-serif" }}>
+              <span className="font-bold text-yellow-500">Edu</span>
+              <span className="font-light text-cyan-500">Track</span>
+            </span>
+          </div>
           <p className="text-sm text-gray-500 mt-1">Change Your Password</p>
           <p className="text-xs text-gray-400 mt-2">
             You must set a new password before continuing.
@@ -92,8 +99,8 @@ export default function ChangePassword() {
             />
           </div>
           {error && <p className="text-sm text-red-500">{error}</p>}
-          <Button type="submit" color="primary" fullWidth disabled={loading}>
-            {loading ? "Changing..." : "Set New Password"}
+          <Button type="submit" color="primary" fullWidth loading={loading}>
+            Set New Password
           </Button>
         </form>
       </div>

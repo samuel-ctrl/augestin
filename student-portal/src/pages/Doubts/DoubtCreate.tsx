@@ -168,8 +168,8 @@ export default function DoubtCreate() {
           <Button type="button" variant="outline" color="secondary" onClick={() => navigate("/doubts")}>
             Cancel
           </Button>
-          <Button type="submit" color="success" disabled={saving}>
-            {saving ? "Posting..." : "Post Doubt"}
+          <Button type="submit" color="success" loading={saving}>
+            Post Doubt
           </Button>
         </div>
       </form>

@@ -246,8 +246,8 @@ export default function BookView() {
                 try {
                   await api.put(`/books/${bookId}/test/submit`);
                   setTestSubmitted(!testSubmitted);
-                } catch (err) {
-                  console.error("Failed to toggle submission:", err);
+                } catch {
+                  // toggle failed silently
                 }
               }}
               className={`px-6 py-2 rounded-lg font-medium transition-colors ${

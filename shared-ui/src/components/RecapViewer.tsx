@@ -32,7 +32,6 @@ function validateRecapContent(node: any): any {
 
   // Filter unsupported node types
   if (node.type && !SUPPORTED_NODE_TYPES.has(node.type)) {
-    console.warn(`Unsupported recap node type filtered: ${node.type}`);
     return null;
   }
 
@@ -45,13 +44,9 @@ function validateRecapContent(node: any): any {
 
   // Validate marks (bold, italic, etc.)
   if (node.marks && Array.isArray(node.marks)) {
-    node.marks = node.marks.filter((mark: any) => {
-      const isSupported = SUPPORTED_NODE_TYPES.has(mark.type);
-      if (!isSupported) {
-        console.warn(`Unsupported recap mark type filtered: ${mark.type}`);
-      }
-      return isSupported;
-    });
+    node.marks = node.marks.filter((mark: any) =>
+      SUPPORTED_NODE_TYPES.has(mark.type)
+    );
   }
 
   return node;
@@ -285,8 +280,7 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
       };
 
       return renderNodes(validatedContent.content);
-    } catch (error) {
-      console.error("Error rendering recap content:", error);
+    } catch {
       return <p className="text-red-600">Failed to render recap content</p>;
     }
   }, [content]);

@@ -146,8 +146,8 @@ export default function QuizSetForm() {
           <Button type="button" variant="outline" color="secondary" onClick={() => navigate("/quiz-sets")}>
             Cancel
           </Button>
-          <Button type="submit" color={isEdit ? "primary" : "success"} disabled={saving}>
-            {saving ? "Saving..." : isEdit ? "Update Quiz Set" : "Create Quiz Set"}
+          <Button type="submit" color={isEdit ? "primary" : "success"} loading={saving}>
+            {isEdit ? "Update Quiz Set" : "Create Quiz Set"}
           </Button>
         </div>
       </form>

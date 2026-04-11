@@ -210,21 +210,53 @@ async def update_doubt_endpoint(
     )
 
 
+@router.post("/api/doubts/{doubt_id}/request-delete", status_code=status.HTTP_200_OK)
+async def request_delete_doubt_endpoint(
+    doubt_id: uuid.UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Student requests deletion of their doubt. Tutors are notified and can proceed."""
+    student = require_student(request)
+
+    doubt = await get_doubt(db, doubt_id)
+    if not doubt:
+        raise HTTPException(status_code=404, detail="Doubt not found")
+
+    if str(doubt.student_id) != str(student.id):
+        raise HTTPException(status_code=403, detail="You can only request deletion of your own doubts")
+
+    # Notify all tutors
+    tutor_result = await db.execute(
+        select(User.id).where(User.user_type == UserType.tutor)
+    )
+    tutor_ids = [str(uid) for uid in tutor_result.scalars().all()]
+
+    for tid in tutor_ids:
+        await create_and_notify(
+            db,
+            recipient_id=uuid.UUID(tid),
+            sender_id=student.id,
+            message=f"{student.name} requested deletion of doubt: '{doubt.title}'",
+            notification_type="doubt_delete_request",
+            reference_id=doubt.id,
+        )
+
+    return {"detail": "Deletion request sent to tutors"}
+
+
 @router.delete("/api/doubts/{doubt_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_doubt_endpoint(
     doubt_id: uuid.UUID,
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    user = get_current_user(request)
+    tutor = require_tutor(request)
 
     result = await db.execute(select(DoubtModel).where(DoubtModel.id == doubt_id))
     doubt = result.scalar_one_or_none()
     if not doubt:
         raise HTTPException(status_code=404, detail="Doubt not found")
-
-    if user.user_type == UserType.student and str(doubt.student_id) != str(user.id):
-        raise HTTPException(status_code=403, detail="You can only delete your own doubts")
 
     await delete_doubt(db, doubt)
 

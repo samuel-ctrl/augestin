@@ -26,6 +26,7 @@ export default function QuizSetQuestions() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Question | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const { toast, showApiError, showSuccess, dismiss } = useToast();
 
@@ -58,14 +59,16 @@ export default function QuizSetQuestions() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
+    setDeleting(true);
     try {
       await api.delete(`/questions/${deleteTarget.id}`);
       showSuccess("Question deleted successfully.");
       setDeleteTarget(null);
       fetchData();
     } catch (err) {
-      setDeleteTarget(null);
       showApiError(err, "Failed to delete question.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -212,6 +215,7 @@ export default function QuizSetQuestions() {
         countdownSeconds={5}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+        loading={deleting}
       />
     </div>
   );

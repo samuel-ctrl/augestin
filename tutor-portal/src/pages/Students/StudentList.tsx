@@ -46,6 +46,7 @@ const filters = [
 export default function StudentList() {
   const navigate = useNavigate();
   const [deleteTarget, setDeleteTarget] = useState<Student | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const { toast, showApiError, showSuccess, dismiss } = useToast();
 
@@ -58,14 +59,16 @@ export default function StudentList() {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
+    setDeleting(true);
     try {
       await api.delete(`/students/${deleteTarget.id}`);
       setDeleteTarget(null);
       showSuccess(`Student "${deleteTarget.name}" deleted successfully.`);
       setRefreshKey((k) => k + 1);
     } catch (err) {
-      setDeleteTarget(null);
       showApiError(err, "Failed to delete student. Please try again.");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -107,6 +110,7 @@ export default function StudentList() {
         countdownSeconds={5}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
+        loading={deleting}
       />
     </div>
   );
