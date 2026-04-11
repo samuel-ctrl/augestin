@@ -23,8 +23,10 @@ interface DataTableProps<T> {
   onRowClick?: (row: T) => void;
   actions?: (row: T) => React.ReactNode;
   rowKey?: (row: T) => string;
-  maxHeight?: string;
 }
+
+// Fixed height: header (~40px) + 5 rows (~48px each) + buffer
+const TABLE_MAX_HEIGHT = "17.5rem";
 
 export function DataTable<T>({
   fetchFn,
@@ -37,7 +39,6 @@ export function DataTable<T>({
   onRowClick,
   actions,
   rowKey,
-  maxHeight,
 }: DataTableProps<T>) {
   const {
     data,
@@ -77,9 +78,9 @@ export function DataTable<T>({
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto" style={maxHeight ? { maxHeight, overflowY: "auto" } : undefined}>
+      <div className="overflow-auto" style={{ maxHeight: TABLE_MAX_HEIGHT }}>
         <table className="w-full">
-          <thead className={maxHeight ? "sticky top-0 z-10" : ""}>
+          <thead className="sticky top-0 z-10">
             <tr style={{ backgroundColor: "rgb(44, 62, 80)" }}>
               {columns.map((col) => (
                 <TableSortHeader
