@@ -97,6 +97,7 @@ export default function HomeDashboard() {
           });
         });
 
+        const ready: AssignedQuizSet[] = [];
         quizSets.forEach((qs: any) => {
           let status: TaskItem["status"] = "todo";
           let progress = 0;
@@ -110,7 +111,7 @@ export default function HomeDashboard() {
           }
 
           if (!qs.progress || !qs.progress.is_completed) {
-            setReadyQuizSets((prev) => [...prev, qs]);
+            ready.push(qs);
           }
 
           allTasks.push({
@@ -124,6 +125,7 @@ export default function HomeDashboard() {
           });
         });
 
+        setReadyQuizSets(ready);
         setPendingQuizzes(pending);
         setContinueWatching(continuing);
         setTasks(allTasks);
@@ -173,11 +175,12 @@ export default function HomeDashboard() {
             <span className="text-amber-500 text-lg">⚡</span>
             <div>
               <p className="text-sm font-semibold text-amber-800">
-                {pendingTaskCount} Pending Task{pendingTaskCount !== 1 ? "s" : ""}
+                {pendingTaskCount} of {tasks.length} Task{tasks.length !== 1 ? "s" : ""} Pending
               </p>
               <p className="text-xs text-amber-600">
-                You have {tasks.filter((t) => t.status === "todo").length} not started and{" "}
-                {tasks.filter((t) => t.status === "in_progress").length} in progress
+                {tasks.filter((t) => t.status === "todo").length} not started ·{" "}
+                {tasks.filter((t) => t.status === "in_progress").length} in progress ·{" "}
+                {tasks.filter((t) => t.status === "done").length} done
               </p>
             </div>
           </div>

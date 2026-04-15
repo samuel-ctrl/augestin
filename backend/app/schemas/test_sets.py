@@ -95,6 +95,28 @@ class TestSetSubmissionOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class LeaderboardEntryIn(BaseModel):
+    student_id: str
+    rank: int
+    score: str
+    notes: str | None = None
+
+
+class LeaderboardEntryOut(BaseModel):
+    id: str
+    test_set_id: str
+    student_id: str
+    student_name: str
+    student_login_id: str
+    rank: int
+    score: str
+    notes: str | None = None
+
+
+class LeaderboardBulkUpsert(BaseModel):
+    entries: list[LeaderboardEntryIn]
+
+
 class AssignedTestSetOut(BaseModel):
     id: str
     name: str

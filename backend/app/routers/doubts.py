@@ -56,8 +56,17 @@ async def list_doubts_endpoint(
     # Students only see doubts from their own standard
     effective_standard = standard or None
     effective_section = section or None
-    if user.user_type == UserType.student and user.standard:
-        effective_standard = user.standard
+    if user.user_type == UserType.student:
+        # Force student's own standard. If they have none, return nothing
+        # (unless they're filtering to just their own doubts via my_doubts).
+        if not user.standard:
+            if not my_doubts:
+                return PaginatedResponse(
+                    items=[], total=0, page=page, page_size=page_size, total_pages=0,
+                )
+            effective_standard = None
+        else:
+            effective_standard = user.standard
 
     items, total, pg, ps, total_pages = await list_doubts(
         db, page=page, page_size=page_size, search=search,

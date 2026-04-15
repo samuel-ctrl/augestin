@@ -78,7 +78,10 @@ export default function TutorDashboard() {
           api.get("/students", { params: { page: 1, page_size: 5, sort_by: "created_at", sort_order: "desc" } }),
           api.get("/subjects", { params: { page: 1, page_size: 100 } }),
           api.get("/quiz-sets", { params: { page: 1, page_size: 1 } }),
-          api.get("/dashboard/stats").catch(() => ({ data: {} })),
+          api.get("/dashboard/stats").catch((err) => {
+            console.error("Dashboard stats failed:", err);
+            return { data: {} };
+          }),
         ]);
 
         const subjects = subjectsRes.data.items;

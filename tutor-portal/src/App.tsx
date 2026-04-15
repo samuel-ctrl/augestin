@@ -27,12 +27,14 @@ import TestSetForm from "./pages/TestSets/TestSetForm";
 import TestSetFiles from "./pages/TestSets/TestSetFiles";
 import TestSetAssign from "./pages/TestSets/TestSetAssign";
 import TestSetSubmissions from "./pages/TestSets/TestSetSubmissions";
+import TestSetLeaderboard from "./pages/TestSets/TestSetLeaderboard";
 import DoubtList from "./pages/Doubts/DoubtList";
 import DoubtDetail from "./pages/Doubts/DoubtDetail";
 import StudentList from "./pages/Students/StudentList";
 import StudentCreate from "./pages/Students/StudentCreate";
 import StudentDetail from "./pages/Students/StudentDetail";
 import ManageLookups from "./pages/Settings/ManageLookups";
+import TutorContactSettings from "./pages/Settings/TutorContact";
 import DevComponents from "./pages/DevComponents";
 
 function AppShell() {
@@ -94,6 +96,7 @@ function AppShell() {
           <Route path="/test-sets/:id/files" element={<TestSetFiles />} />
           <Route path="/test-sets/:id/assign" element={<TestSetAssign />} />
           <Route path="/test-sets/:id/submissions" element={<TestSetSubmissions />} />
+          <Route path="/test-sets/:id/leaderboard" element={<TestSetLeaderboard />} />
           <Route path="/doubts" element={<DoubtList />} />
           <Route path="/doubts/:id" element={<DoubtDetail />} />
           <Route path="/notifications" element={<NotificationsPage api={api} navigate={navigate} onCountChange={handleCountChange} on={on} />} />
@@ -101,6 +104,7 @@ function AppShell() {
           <Route path="/students/new" element={<StudentCreate />} />
           <Route path="/students/:id" element={<StudentDetail />} />
           <Route path="/settings/lookups" element={<ManageLookups />} />
+          <Route path="/settings/tutor-contact" element={<TutorContactSettings />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

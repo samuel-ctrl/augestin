@@ -55,7 +55,7 @@ async def get_dashboard_stats(
     ).scalar() or 0
 
     completion_rate = (
-        round((completed_assignments / total_assignments) * 100, 1)
+        round(min(100.0, (completed_assignments / total_assignments) * 100), 1)
         if total_assignments > 0
         else 0
     )
@@ -87,7 +87,7 @@ async def get_dashboard_stats(
     ).scalar() or 0
 
     quiz_completion_rate = (
-        round((total_completed / total_started) * 100, 1)
+        round(min(100.0, (total_completed / total_started) * 100), 1)
         if total_started > 0
         else 0
     )

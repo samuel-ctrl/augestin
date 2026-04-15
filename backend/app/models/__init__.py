@@ -15,6 +15,8 @@ from app.models.test_set import TestSet, TestSetFile, TestSetAssignment, TestSet
 from app.models.doubt import Doubt, DoubtComment
 from app.models.notification import Notification
 from app.models.lookup import Standard, Section
+from app.models.app_setting import AppSetting
+from app.models.test_set_leaderboard import TestSetLeaderboardEntry
 
 __all__ = [
     "AuditBase", "User", "Subject", "Book", "BookAssignment", "WatchProgress",
@@ -22,4 +24,5 @@ __all__ = [
     "BookRecap", "BookTest", "TestSubmission",
     "TestSet", "TestSetFile", "TestSetAssignment", "TestSetSubmission",
     "Doubt", "DoubtComment", "Notification", "Standard", "Section",
+    "AppSetting", "TestSetLeaderboardEntry",
 ]

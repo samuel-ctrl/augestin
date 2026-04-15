@@ -179,14 +179,20 @@ async def get_student_progress(
     if student is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
 
+    # Start from assigned books so unstarted assignments also appear
     query = (
-        select(WatchProgress, Book)
-        .join(Book, WatchProgress.book_id == Book.id)
-        .where(WatchProgress.student_id == student_id)
+        select(Book, WatchProgress)
+        .join(BookAssignment, BookAssignment.book_id == Book.id)
+        .outerjoin(
+            WatchProgress,
+            (WatchProgress.book_id == Book.id)
+            & (WatchProgress.student_id == student_id),
+        )
+        .where(BookAssignment.student_id == student_id)
     )
 
     count_q = select(func.count()).select_from(
-        select(WatchProgress).where(WatchProgress.student_id == student_id).subquery()
+        select(BookAssignment).where(BookAssignment.student_id == student_id).subquery()
     )
     total = (await db.execute(count_q)).scalar() or 0
 
@@ -194,7 +200,7 @@ async def get_student_progress(
     if sort_by not in allowed:
         sort_by = "last_watched_at"
     sort_col = getattr(WatchProgress, sort_by)
-    order = sort_col.desc() if sort_order == "desc" else sort_col.asc()
+    order = sort_col.desc().nullslast() if sort_order == "desc" else sort_col.asc().nullsfirst()
     query = query.order_by(order)
 
     offset = (page - 1) * page_size
@@ -209,12 +215,16 @@ async def get_student_progress(
             book_id=str(book.id),
             book_title=book.title,
             subject_id=str(book.subject_id),
-            watch_percentage=wp.watch_percentage,
-            last_position_seconds=wp.last_position_seconds,
-            completed=wp.completed,
-            last_watched_at=wp.last_watched_at.isoformat() if wp.last_watched_at else None,
+            watch_percentage=wp.watch_percentage if wp else 0.0,
+            last_position_seconds=wp.last_position_seconds if wp else 0.0,
+            completed=wp.completed if wp else False,
+            last_watched_at=(
+                wp.last_watched_at.isoformat()
+                if wp and wp.last_watched_at
+                else None
+            ),
         )
-        for wp, book in rows
+        for book, wp in rows
     ]
 
     return PaginatedResponse(

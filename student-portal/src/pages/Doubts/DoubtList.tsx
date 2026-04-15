@@ -5,6 +5,7 @@ import {
 } from "@shared";
 import type { Doubt, PaginatedResponse } from "@shared";
 import api from "../../api/client";
+import ContactTutorDialog from "./ContactTutorDialog";
 
 const statusColors: Record<string, string> = {
   open: "bg-yellow-100 text-yellow-800",
@@ -25,6 +26,7 @@ export default function DoubtList() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [myDoubts, setMyDoubts] = useState(false);
+  const [showContact, setShowContact] = useState(false);
   const { toast, dismiss } = useToast();
 
   const fetchDoubts = useCallback(async () => {
@@ -73,11 +75,18 @@ export default function DoubtList() {
       <PageHeader
         title="Doubts"
         actions={
-          <Button color="success" onClick={() => navigate("/doubts/new")}>
-            + Ask a Doubt
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" color="primary" onClick={() => setShowContact(true)}>
+              Contact Tutor
+            </Button>
+            <Button color="success" onClick={() => navigate("/doubts/new")}>
+              + Ask a Doubt
+            </Button>
+          </div>
         }
       />
+
+      <ContactTutorDialog open={showContact} onClose={() => setShowContact(false)} />
 
       {/* Filters */}
       <div className="flex gap-3 mb-4 flex-wrap">

@@ -7,6 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, get_current_user, require_student, require_tutor
 from app.models.test_set import TestSet, TestSetFile, TestSetAssignment, TestSetSubmission
+from app.models.test_set_leaderboard import TestSetLeaderboardEntry
 from app.models.user import User, UserType
 from app.schemas.test_sets import (
     TestSetCreate, TestSetUpdate, TestSetOut, TestSetDetailOut,
@@ -14,6 +15,7 @@ from app.schemas.test_sets import (
     TestSetAssignCreate, TestSetAssignOut,
     TestSetSubmissionOut, TestSetSubmissionStatus, TestSetSubmitRequest,
     AssignedTestSetOut,
+    LeaderboardBulkUpsert, LeaderboardEntryOut,
 )
 from app.schemas.pagination import PaginatedResponse
 from app.services.notification_service import create_and_notify
@@ -462,6 +464,166 @@ async def list_test_set_submissions(
 
 
 # ============================================================================
+# LEADERBOARD (ADMIN)
+# ============================================================================
+
+async def _leaderboard_rows_to_out(
+    db: AsyncSession, rows: list[TestSetLeaderboardEntry]
+) -> list[LeaderboardEntryOut]:
+    if not rows:
+        return []
+    student_ids = {r.student_id for r in rows}
+    users = (
+        await db.execute(select(User).where(User.id.in_(student_ids)))
+    ).scalars().all()
+    by_id = {u.id: u for u in users}
+    return [
+        LeaderboardEntryOut(
+            id=str(r.id),
+            test_set_id=str(r.test_set_id),
+            student_id=str(r.student_id),
+            student_name=by_id[r.student_id].name if r.student_id in by_id else "",
+            student_login_id=by_id[r.student_id].login_id if r.student_id in by_id else "",
+            rank=r.rank,
+            score=r.score,
+            notes=r.notes,
+        )
+        for r in rows
+    ]
+
+
+@router.get(
+    "/api/test-sets/{test_set_id}/leaderboard",
+    response_model=list[LeaderboardEntryOut],
+)
+async def list_leaderboard(
+    test_set_id: uuid.UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    require_tutor(request)
+    ts = await get_test_set(db, test_set_id)
+    if not ts:
+        raise HTTPException(status_code=404, detail="Test set not found")
+
+    rows = (
+        await db.execute(
+            select(TestSetLeaderboardEntry)
+            .where(TestSetLeaderboardEntry.test_set_id == test_set_id)
+            .order_by(TestSetLeaderboardEntry.rank.asc())
+        )
+    ).scalars().all()
+    return await _leaderboard_rows_to_out(db, list(rows))
+
+
+@router.put(
+    "/api/test-sets/{test_set_id}/leaderboard",
+    response_model=list[LeaderboardEntryOut],
+)
+async def upsert_leaderboard(
+    test_set_id: uuid.UUID,
+    body: LeaderboardBulkUpsert,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    require_tutor(request)
+    ts = await get_test_set(db, test_set_id)
+    if not ts:
+        raise HTTPException(status_code=404, detail="Test set not found")
+
+    # Validate students are assigned to this test set
+    parsed: list[tuple[uuid.UUID, int, str, str | None]] = []
+    seen_students: set[uuid.UUID] = set()
+    for entry in body.entries:
+        try:
+            sid = uuid.UUID(entry.student_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail=f"Invalid student_id: {entry.student_id}")
+        if sid in seen_students:
+            raise HTTPException(
+                status_code=400, detail="Duplicate student in leaderboard"
+            )
+        seen_students.add(sid)
+        if not entry.score or not entry.score.strip():
+            raise HTTPException(status_code=400, detail="Score is required")
+        if entry.rank < 1:
+            raise HTTPException(status_code=400, detail="Rank must be >= 1")
+        parsed.append((sid, entry.rank, entry.score.strip(), entry.notes))
+
+    if parsed:
+        assigned = (
+            await db.execute(
+                select(TestSetAssignment.student_id).where(
+                    and_(
+                        TestSetAssignment.test_set_id == test_set_id,
+                        TestSetAssignment.student_id.in_([p[0] for p in parsed]),
+                    )
+                )
+            )
+        ).scalars().all()
+        assigned_set = set(assigned)
+        missing = [p[0] for p in parsed if p[0] not in assigned_set]
+        if missing:
+            raise HTTPException(
+                status_code=400,
+                detail="One or more students are not assigned to this test set",
+            )
+
+    # Replace strategy: delete existing, insert new
+    await db.execute(
+        TestSetLeaderboardEntry.__table__.delete().where(
+            TestSetLeaderboardEntry.test_set_id == test_set_id
+        )
+    )
+    for sid, rank, score, notes in parsed:
+        db.add(
+            TestSetLeaderboardEntry(
+                test_set_id=test_set_id,
+                student_id=sid,
+                rank=rank,
+                score=score,
+                notes=notes,
+            )
+        )
+    await db.commit()
+
+    rows = (
+        await db.execute(
+            select(TestSetLeaderboardEntry)
+            .where(TestSetLeaderboardEntry.test_set_id == test_set_id)
+            .order_by(TestSetLeaderboardEntry.rank.asc())
+        )
+    ).scalars().all()
+    return await _leaderboard_rows_to_out(db, list(rows))
+
+
+@router.delete(
+    "/api/test-sets/{test_set_id}/leaderboard/{student_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+async def delete_leaderboard_entry(
+    test_set_id: uuid.UUID,
+    student_id: uuid.UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    require_tutor(request)
+    res = await db.execute(
+        select(TestSetLeaderboardEntry).where(
+            and_(
+                TestSetLeaderboardEntry.test_set_id == test_set_id,
+                TestSetLeaderboardEntry.student_id == student_id,
+            )
+        )
+    )
+    entry = res.scalar_one_or_none()
+    if not entry:
+        raise HTTPException(status_code=404, detail="Leaderboard entry not found")
+    await db.delete(entry)
+    await db.commit()
+
+
+# ============================================================================
 # STUDENT ENDPOINTS
 # ============================================================================
 
@@ -519,6 +681,40 @@ async def list_student_test_sets(
         ))
 
     return items
+
+
+@router.get(
+    "/api/students/test-sets/{test_set_id}/leaderboard",
+    response_model=list[LeaderboardEntryOut],
+)
+async def get_student_test_set_leaderboard(
+    test_set_id: uuid.UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    student = require_student(request)
+
+    assigned = (
+        await db.execute(
+            select(TestSetAssignment).where(
+                and_(
+                    TestSetAssignment.test_set_id == test_set_id,
+                    TestSetAssignment.student_id == student.id,
+                )
+            )
+        )
+    ).scalar_one_or_none()
+    if not assigned:
+        raise HTTPException(status_code=403, detail="Not assigned to this test set")
+
+    rows = (
+        await db.execute(
+            select(TestSetLeaderboardEntry)
+            .where(TestSetLeaderboardEntry.test_set_id == test_set_id)
+            .order_by(TestSetLeaderboardEntry.rank.asc())
+        )
+    ).scalars().all()
+    return await _leaderboard_rows_to_out(db, list(rows))
 
 
 @router.get("/api/test-sets/{test_set_id}/my-submission", response_model=TestSetSubmissionStatus)

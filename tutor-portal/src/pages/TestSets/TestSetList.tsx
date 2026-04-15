@@ -78,6 +78,7 @@ export default function TestSetList() {
           { label: "Files", onClick: () => navigate(`/test-sets/${row.id}/files`) },
           { label: "Assign", onClick: () => navigate(`/test-sets/${row.id}/assign`) },
           { label: "Submissions", onClick: () => navigate(`/test-sets/${row.id}/submissions`) },
+          { label: "Leaderboard", onClick: () => navigate(`/test-sets/${row.id}/leaderboard`) },
           { label: "Edit", onClick: () => navigate(`/test-sets/${row.id}/edit`) },
           { label: "Delete", onClick: () => setDeleteTarget(row), variant: "danger" },
         ]}

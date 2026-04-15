@@ -7,6 +7,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useWS } from "../../context/WebSocketContext";
 import type { DoubtDetail as DoubtDetailType, DoubtComment } from "@shared";
 import api from "../../api/client";
+import ContactTutorDialog from "./ContactTutorDialog";
 
 const statusColors: Record<string, string> = {
   open: "bg-yellow-100 text-yellow-800",
@@ -218,7 +219,7 @@ export default function DoubtDetail() {
           &larr; Back to Doubts
         </button>
         <Button size="sm" variant="outline" color="primary" onClick={() => setShowContact(true)}>
-          Contact Admin
+          Contact Tutor
         </Button>
       </div>
 
@@ -434,50 +435,7 @@ export default function DoubtDetail() {
         loading={requestingDelete}
       />
 
-      {/* Contact Admin Popup */}
-      {showContact && (
-        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4" onClick={() => setShowContact(false)}>
-          <div
-            className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-sm p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Admin</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Need help? Reach out to the admin directly:
-            </p>
-            <div className="space-y-3">
-              <a
-                href="mailto:admin@edutrack.com"
-                className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
-              >
-                <span className="text-xl">📧</span>
-                <div>
-                  <p className="text-sm font-medium text-blue-900">Email</p>
-                  <p className="text-xs text-blue-700">xyz@xyz.xyz</p>
-                </div>
-              </a>
-              <a
-                href="https://wa.me/919876543210"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-3 p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-              >
-                <span className="text-xl">💬</span>
-                <div>
-                  <p className="text-sm font-medium text-green-900">WhatsApp</p>
-                  <p className="text-xs text-green-700">+91 xxxxx xxxxx</p>
-                </div>
-              </a>
-            </div>
-            <button
-              onClick={() => setShowContact(false)}
-              className="w-full mt-4 px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-            >
-              Close
-            </button>
-          </div>
-        </div>
-      )}
+      <ContactTutorDialog open={showContact} onClose={() => setShowContact(false)} />
     </div>
   );
 }

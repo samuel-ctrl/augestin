@@ -15,6 +15,7 @@ interface SubmissionItem {
   student_name: string;
   student_login_id: string;
   submitted_at: string | null;
+  submission_link: string | null;
   created_at: string;
 }
 
@@ -106,6 +107,7 @@ export default function TestSetSubmissions() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Student</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Login ID</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Status</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Submission</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
@@ -121,6 +123,20 @@ export default function TestSetSubmissions() {
                         </span>
                       ) : (
                         <span className="text-gray-500">Not submitted</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      {sub.submission_link ? (
+                        <a
+                          href={sub.submission_link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-600 hover:text-blue-800 underline"
+                        >
+                          View file
+                        </a>
+                      ) : (
+                        <span className="text-gray-400">—</span>
                       )}
                     </td>
                   </tr>

@@ -75,4 +75,9 @@ export const sidebarItems: NavItem[] = [
     label: "Manage",
     icon: createElement(SettingsIcon),
   },
+  {
+    path: "/settings/tutor-contact",
+    label: "Tutor Contact",
+    icon: "📞",
+  },
 ];

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { LoadingSpinner, EmptyState, Toast, useToast, PageHeader, Button } from "@shared";
 import type { TestSetFile } from "@shared";
 import api from "../../api/client";
+import { useAuth } from "../../context/AuthContext";
 
 interface TestSetDetail {
   id: string;
@@ -11,22 +12,36 @@ interface TestSetDetail {
   files: TestSetFile[];
 }
 
+interface LeaderboardEntry {
+  id: string;
+  student_id: string;
+  student_name: string;
+  student_login_id: string;
+  rank: number;
+  score: string;
+  notes: string | null;
+}
+
 export default function TestSetView() {
   const { id: testSetId } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [testSet, setTestSet] = useState<TestSetDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [submitted, setSubmitted] = useState(false);
   const [submissionLink, setSubmissionLink] = useState("");
   const [savedLink, setSavedLink] = useState("");
   const [toggling, setToggling] = useState(false);
+  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const { toast, showApiError, showSuccess, dismiss } = useToast();
 
   const fetchData = useCallback(async () => {
     try {
-      const [tsRes, subRes] = await Promise.all([
+      const [tsRes, subRes, lbRes] = await Promise.all([
         api.get(`/test-sets/${testSetId}`),
         api.get(`/test-sets/${testSetId}/my-submission`),
+        api.get<LeaderboardEntry[]>(`/students/test-sets/${testSetId}/leaderboard`)
+          .catch(() => ({ data: [] as LeaderboardEntry[] })),
       ]);
 
       setTestSet(tsRes.data);
@@ -35,6 +50,7 @@ export default function TestSetView() {
         setSubmissionLink(subRes.data.submission_link);
         setSavedLink(subRes.data.submission_link);
       }
+      setLeaderboard(lbRes.data);
     } catch (err) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 403 || status === 404) {
@@ -171,6 +187,38 @@ export default function TestSetView() {
             : "Submit Test"}
         </button>
       </div>
+
+      {leaderboard.length > 0 && (
+        <div className="bg-white rounded-lg border border-gray-200 p-6 mt-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">🏆 Leaderboard</h2>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-16">Rank</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Student</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-28">Score</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200">
+                {leaderboard.map((e) => {
+                  const isMe = user && e.student_id === user.id;
+                  return (
+                    <tr key={e.id} className={isMe ? "bg-amber-50" : ""}>
+                      <td className="px-4 py-2 text-sm font-semibold text-gray-900">{e.rank}</td>
+                      <td className="px-4 py-2 text-sm text-gray-800">
+                        {e.student_name}
+                        {isMe && <span className="ml-2 text-xs text-amber-600">(you)</span>}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-gray-700">{e.score}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

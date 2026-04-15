@@ -109,9 +109,12 @@ async def create_quiz_set(
     """Create a new quiz set."""
     tutor = require_tutor(request)
 
+    if not body.name or not body.name.strip():
+        raise HTTPException(status_code=400, detail="Name is required")
+
     new_quiz_set = QuizSet(
         tutor_id=tutor.id,
-        name=body.name,
+        name=body.name.strip(),
         description=body.description,
         thumbnail_url=body.thumbnail_url,
     )
@@ -120,9 +123,14 @@ async def create_quiz_set(
     try:
         await db.commit()
         await db.refresh(new_quiz_set)
-    except IntegrityError:
+    except IntegrityError as e:
         await db.rollback()
-        raise HTTPException(status_code=400, detail="Failed to create quiz set")
+        import logging
+        logging.getLogger(__name__).exception("IntegrityError creating quiz set")
+        raise HTTPException(
+            status_code=400,
+            detail=f"Failed to create quiz set: {getattr(e, 'orig', e)}",
+        )
 
     return QuizSetOut(
         id=str(new_quiz_set.id),
