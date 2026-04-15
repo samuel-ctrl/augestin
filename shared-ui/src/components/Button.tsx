@@ -1,15 +1,16 @@
-import React from "react";
+import React, { useState } from "react";
 
 type ButtonVariant = "solid" | "outline" | "ghost";
 type ButtonColor = "primary" | "success" | "danger" | "warning" | "secondary";
 type ButtonSize = "xs" | "sm" | "md" | "lg";
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onClick"> {
   variant?: ButtonVariant;
   color?: ButtonColor;
   size?: ButtonSize;
   fullWidth?: boolean;
   loading?: boolean;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void | Promise<unknown>;
   children: React.ReactNode;
 }
 
@@ -63,15 +64,28 @@ export function Button({
   loading = false,
   className = "",
   disabled,
+  onClick,
   children,
   ...props
 }: ButtonProps) {
+  const [autoLoading, setAutoLoading] = useState(false);
+  const isLoading = loading || autoLoading;
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (!onClick || isLoading) return;
+    const result = onClick(e);
+    if (result && typeof (result as Promise<unknown>).then === "function") {
+      setAutoLoading(true);
+      (result as Promise<unknown>).finally(() => setAutoLoading(false));
+    }
+  };
+
   return (
     <button
       className={[
         "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors focus:outline-none focus:ring-2",
         "disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none",
-        loading ? "cursor-wait" : "",
+        isLoading ? "cursor-wait" : "",
         colorStyles[color][variant],
         sizeStyles[size],
         fullWidth ? "w-full" : "",
@@ -79,10 +93,11 @@ export function Button({
       ]
         .filter(Boolean)
         .join(" ")}
-      disabled={disabled || loading}
+      disabled={disabled || isLoading}
+      onClick={handleClick}
       {...props}
     >
-      {loading && (
+      {isLoading && (
         <svg
           className={`animate-spin ${spinnerSizes[size]}`}
           viewBox="0 0 24 24"

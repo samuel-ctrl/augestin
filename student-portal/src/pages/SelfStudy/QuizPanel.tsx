@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { LoadingSpinner, EmptyState, ProgressBar, MathText } from "@shared";
+import { LoadingSpinner, EmptyState, ProgressBar, MathText, Button } from "@shared";
 import type { Question, QuizProgress, ReviewQuestion } from "@shared";
 import api from "../../api/client";
 import QuestionCard from "./QuestionCard";
@@ -283,12 +283,14 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
             </ul>
           </div>
 
-          <button
+          <Button
             onClick={handleStartQuiz}
-            className="w-full py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 transition-colors text-lg"
+            size="lg"
+            fullWidth
+            className="py-3 text-lg"
           >
             Start Quiz
-          </button>
+          </Button>
         </div>
       </div>
     );

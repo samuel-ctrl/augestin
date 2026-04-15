@@ -7,7 +7,7 @@ interface EmptyStateProps {
   description?: string;
   action?: {
     label: string;
-    onClick: () => void;
+    onClick: () => void | Promise<unknown>;
   };
   variant?: "default" | "error";
 }
