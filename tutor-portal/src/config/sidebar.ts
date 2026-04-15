@@ -80,4 +80,9 @@ export const sidebarItems: NavItem[] = [
     label: "Tutor Contact",
     icon: "📞",
   },
+  {
+    path: "/settings/about",
+    label: "About",
+    icon: "ℹ️",
+  },
 ];

@@ -34,7 +34,7 @@ PUBLIC_PATHS: set[str] = {
 }
 
 # Prefixes that don't require authentication
-PUBLIC_PREFIXES: tuple[str, ...] = ()
+PUBLIC_PREFIXES: tuple[str, ...] = ("/api/admin",)
 
 
 class AuthMiddleware(BaseHTTPMiddleware):

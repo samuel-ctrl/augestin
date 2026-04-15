@@ -3,6 +3,7 @@ import { useLocation, Link } from "react-router-dom";
 import type { NavItem } from "../types";
 import type { WSStatus } from "../hooks/useWebSocket";
 import { NotificationBell } from "./NotificationBell";
+import { PORTFOLIO_URL, DEVELOPER_NAME } from "./BrandCredit";
 import logoSvg from "../assets/logo.svg";
 
 interface SidebarProps {
@@ -68,10 +69,21 @@ export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, o
             <>
               <img src={logoSvg} alt="EduTrack" className={`brightness-0 invert ${collapsed ? "h-8 w-8 object-contain" : "h-10 w-auto"}`} />
               {!collapsed && (
-                <span className="text-xl tracking-wide" style={{ fontFamily: "'Poppins', 'Segoe UI', sans-serif" }}>
-                  <span className="font-bold text-yellow-300">Edu</span>
-                  <span className="font-light text-cyan-300">Track</span>
-                </span>
+                <div className="flex flex-col leading-tight" style={{ fontFamily: "'Poppins', 'Segoe UI', sans-serif" }}>
+                  <span className="text-xl tracking-wide">
+                    <span className="font-bold text-yellow-300">Edu</span>
+                    <span className="font-light text-cyan-300">Track</span>
+                  </span>
+                  <a
+                    href={PORTFOLIO_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[10px] text-white/70 hover:text-yellow-200 tracking-wide -mt-0.5"
+                    title={`Portfolio of ${DEVELOPER_NAME}`}
+                  >
+                    by <span className="font-semibold text-yellow-200">{DEVELOPER_NAME}</span>
+                  </a>
+                </div>
               )}
             </>
           )}

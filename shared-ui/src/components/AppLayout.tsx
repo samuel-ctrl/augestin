@@ -3,6 +3,7 @@ import type { NavItem, BreadcrumbSegment } from "../types";
 import type { WSStatus } from "../hooks/useWebSocket";
 import { Sidebar } from "./Sidebar";
 import { Breadcrumb } from "./Breadcrumb";
+import { BrandCredit } from "./BrandCredit";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -84,6 +85,9 @@ export function AppLayout({
 
         {/* Content */}
         <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6" style={{ backgroundColor: "aliceblue" }}>{children}</main>
+
+        {/* Developer footer */}
+        <BrandCredit variant="footer" />
       </div>
     </div>
   );

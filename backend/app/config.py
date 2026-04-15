@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     JWT_SECRET: str = "change_me"
     JWT_EXPIRY_HOURS: int = 24
     CORS_ORIGINS: str = "http://localhost:3000,http://localhost:3001"
+    ADMIN_BASIC_USER: str = ""
+    ADMIN_BASIC_PASS: str = ""
 
     class Config:
         env_file = ".env"

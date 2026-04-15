@@ -7,7 +7,7 @@ import app.audit  # noqa: F401 — registers SQLAlchemy audit event listener
 from app.config import settings
 from app.database import async_session
 from app.middleware.auth import AuthMiddleware
-from app.routers import assignments, auth, books, dashboard, doubts, lookups, notifications, progress, quiz, quiz_sets, recap, settings as settings_router, students, subjects, test, test_sets, ws
+from app.routers import admin, assignments, auth, books, dashboard, doubts, lookups, notifications, progress, quiz, quiz_sets, recap, settings as settings_router, students, subjects, test, test_sets, ws
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +79,7 @@ app.include_router(recap.router)
 app.include_router(test.router)
 app.include_router(settings_router.router)
 app.include_router(ws.router)
+app.include_router(admin.router)
 
 
 @app.get("/")

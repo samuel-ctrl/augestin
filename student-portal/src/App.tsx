@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { WebSocketProvider, useWS } from "./context/WebSocketContext";
-import { AppLayout, ProtectedRoute, NotificationToast, NotificationsPage } from "@shared";
+import { AppLayout, ProtectedRoute, NotificationToast, NotificationsPage, AuthStatusPage } from "@shared";
 import { sidebarItems } from "./config/sidebar";
 import api from "./api/client";
 import Login from "./pages/Login";
@@ -21,11 +21,16 @@ import DoubtList from "./pages/Doubts/DoubtList";
 import DoubtCreate from "./pages/Doubts/DoubtCreate";
 import DoubtDetail from "./pages/Doubts/DoubtDetail";
 import Profile from "./pages/Profile";
+import About from "./pages/About";
 
 function AppShell() {
   const { user, logout } = useAuth();
   const { on, status: wsStatus } = useWS();
   const navigate = useNavigate();
+  const handleLogout = useCallback(() => {
+    logout();
+    navigate("/logout");
+  }, [logout, navigate]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -51,7 +56,7 @@ function AppShell() {
         navItems={sidebarItems}
         userName={user?.name || ""}
         userRole="Student"
-        onLogout={logout}
+        onLogout={handleLogout}
         notificationCount={unreadCount}
         onNotificationClick={() => navigate("/notifications")}
         wsStatus={wsStatus}
@@ -70,6 +75,7 @@ function AppShell() {
           <Route path="/doubts/:id" element={<DoubtDetail />} />
           <Route path="/notifications" element={<NotificationsPage api={api} navigate={navigate} onCountChange={handleCountChange} on={on} />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/about" element={<About />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>
@@ -114,6 +120,8 @@ export default function App() {
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/session-expired" element={<AuthStatusPage variant="session-expired" />} />
+        <Route path="/logout" element={<AuthStatusPage variant="logged-out" />} />
         <Route path="/change-password" element={<ChangePasswordGuard />} />
         <Route path="/dev/components" element={<DevComponents />} />
         <Route path="/*" element={<AuthenticatedApp />} />

@@ -92,3 +92,5 @@ export { FileUpload } from "./components/FileUpload";
 export { CredentialCard } from "./components/CredentialCard";
 export { MathText } from "./components/MathText";
 export { default as RecapViewer } from "./components/RecapViewer";
+export { BrandCredit, DEVELOPER_NAME, PORTFOLIO_URL, LINKEDIN_URL } from "./components/BrandCredit";
+export { AuthStatusPage } from "./components/AuthStatusPage";

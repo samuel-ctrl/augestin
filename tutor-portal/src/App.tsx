@@ -3,7 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { LookupProvider } from "./context/LookupContext";
 import { WebSocketProvider, useWS } from "./context/WebSocketContext";
-import { AppLayout, ProtectedRoute, NotificationToast, NotificationsPage } from "@shared";
+import { AppLayout, ProtectedRoute, NotificationToast, NotificationsPage, AuthStatusPage } from "@shared";
 import { sidebarItems } from "./config/sidebar";
 import api from "./api/client";
 import Login from "./pages/Login";
@@ -35,12 +35,17 @@ import StudentCreate from "./pages/Students/StudentCreate";
 import StudentDetail from "./pages/Students/StudentDetail";
 import ManageLookups from "./pages/Settings/ManageLookups";
 import TutorContactSettings from "./pages/Settings/TutorContact";
+import About from "./pages/Settings/About";
 import DevComponents from "./pages/DevComponents";
 
 function AppShell() {
   const { user, logout } = useAuth();
   const { on, status: wsStatus } = useWS();
   const navigate = useNavigate();
+  const handleLogout = useCallback(() => {
+    logout();
+    navigate("/logout");
+  }, [logout, navigate]);
   const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
@@ -66,7 +71,7 @@ function AppShell() {
         navItems={sidebarItems}
         userName={user?.name || ""}
         userRole="Tutor"
-        onLogout={logout}
+        onLogout={handleLogout}
         notificationCount={unreadCount}
         onNotificationClick={() => navigate("/notifications")}
         wsStatus={wsStatus}
@@ -105,6 +110,7 @@ function AppShell() {
           <Route path="/students/:id" element={<StudentDetail />} />
           <Route path="/settings/lookups" element={<ManageLookups />} />
           <Route path="/settings/tutor-contact" element={<TutorContactSettings />} />
+          <Route path="/settings/about" element={<About />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
@@ -136,6 +142,8 @@ export default function App() {
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
+        <Route path="/session-expired" element={<AuthStatusPage variant="session-expired" />} />
+        <Route path="/logout" element={<AuthStatusPage variant="logged-out" />} />
         <Route path="/dev/components" element={<DevComponents />} />
         <Route path="/*" element={<AuthenticatedApp />} />
       </Routes>

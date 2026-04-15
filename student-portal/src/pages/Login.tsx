@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { extractErrorMessage, Button } from "@shared";
+import { extractErrorMessage, Button, BrandCredit } from "@shared";
 import loginImage from "../assets/login.webp";
 import logo from "../../shared-ui/src/assets/logo.svg";
 
@@ -88,6 +88,7 @@ export default function Login() {
               Sign In
             </Button>
           </form>
+          <BrandCredit variant="login" />
         </div>
       </div>
     </div>
