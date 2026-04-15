@@ -5,10 +5,10 @@ from sqlalchemy import select, func, and_, or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.dependencies import get_db, require_student, require_tutor
+from app.dependencies import get_current_user, get_db, require_student, require_tutor
 from app.models.quiz_set import QuizSet
 from app.models.quiz_set_assignment import QuizSetAssignment
-from app.models.user import User
+from app.models.user import User, UserType
 from app.schemas.quiz_sets import (
     QuizSetCreate, QuizSetUpdate, QuizSetOut, QuizSetAssignCreate, QuizSetAssignOut,
     AssignedQuizSetOut
@@ -150,14 +150,27 @@ async def get_quiz_set(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    """Get a single quiz set."""
-    require_tutor(request)
+    """Get a single quiz set. Tutors can access any; students only if assigned."""
+    user = get_current_user(request)
 
     result = await db.execute(select(QuizSet).where(QuizSet.id == quiz_set_id))
     quiz_set = result.scalar_one_or_none()
 
     if not quiz_set:
         raise HTTPException(status_code=404, detail="Quiz set not found")
+
+    if user.user_type != UserType.tutor:
+        # Student must have an assignment
+        assign_result = await db.execute(
+            select(QuizSetAssignment).where(
+                and_(
+                    QuizSetAssignment.quiz_set_id == quiz_set_id,
+                    QuizSetAssignment.student_id == user.id,
+                )
+            )
+        )
+        if not assign_result.scalar_one_or_none():
+            raise HTTPException(status_code=404, detail="Quiz set not found")
 
     question_count = len(quiz_set.questions)
     return QuizSetOut(
