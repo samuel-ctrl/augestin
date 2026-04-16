@@ -9,6 +9,7 @@ type Variant = "sidebar" | "footer" | "login" | "about";
 interface BrandCreditProps {
   variant: Variant;
   className?: string;
+  hideCredit?: boolean;
 }
 
 const linkAttrs = {
@@ -33,7 +34,7 @@ function PortfolioIcon({ className = "h-4 w-4" }: { className?: string }) {
   );
 }
 
-export function BrandCredit({ variant, className = "" }: BrandCreditProps) {
+export function BrandCredit({ variant, className = "", hideCredit = false }: BrandCreditProps) {
   if (variant === "sidebar") {
     return (
       <div className={`px-3 py-2 border-t border-white/15 text-xs text-white/70 ${className}`}>
@@ -68,17 +69,19 @@ export function BrandCredit({ variant, className = "" }: BrandCreditProps) {
         className={`shrink-0 border-t border-gray-200 bg-white/80 backdrop-blur px-4 py-2 text-xs text-gray-500 flex items-center justify-between gap-2 ${className}`}
       >
         <span>&copy; 2026 AJ EduTrack. All rights reserved.</span>
-        <span>
-          Developed by{" "}
-          <a
-            href={PORTFOLIO_URL}
-            {...linkAttrs}
-            className="font-semibold text-blue-700 hover:text-blue-900 underline decoration-dotted underline-offset-2"
-            title="Portfolio"
-          >
-            {DEVELOPER_NAME}
-          </a>
-        </span>
+        {!hideCredit && (
+          <span>
+            Developed by{" "}
+            <a
+              href={PORTFOLIO_URL}
+              {...linkAttrs}
+              className="font-semibold text-blue-700 hover:text-blue-900 underline decoration-dotted underline-offset-2"
+              title="Portfolio"
+            >
+              {DEVELOPER_NAME}
+            </a>
+          </span>
+        )}
       </footer>
     );
   }

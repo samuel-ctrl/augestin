@@ -35,6 +35,7 @@ import StudentCreate from "./pages/Students/StudentCreate";
 import StudentDetail from "./pages/Students/StudentDetail";
 import ManageLookups from "./pages/Settings/ManageLookups";
 import TutorContactSettings from "./pages/Settings/TutorContact";
+import About from "./pages/Settings/About";
 import DevComponents from "./pages/DevComponents";
 
 function AppShell() {
@@ -74,7 +75,6 @@ function AppShell() {
         notificationCount={unreadCount}
         onNotificationClick={() => navigate("/notifications")}
         wsStatus={wsStatus}
-        hideCredit
       >
         <Routes>
           <Route path="/dashboard" element={<TutorDashboard />} />
@@ -110,6 +110,7 @@ function AppShell() {
           <Route path="/students/:id" element={<StudentDetail />} />
           <Route path="/settings/lookups" element={<ManageLookups />} />
           <Route path="/settings/tutor-contact" element={<TutorContactSettings />} />
+          <Route path="/settings/about" element={<About />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -90,7 +90,7 @@ export function AppLayout({
         <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6" style={{ backgroundColor: "aliceblue" }}>{children}</main>
 
         {/* Developer footer */}
-        {!hideCredit && <BrandCredit variant="footer" />}
+        <BrandCredit variant="footer" hideCredit={hideCredit} />
       </div>
     </div>
   );

@@ -21,7 +21,6 @@ import DoubtList from "./pages/Doubts/DoubtList";
 import DoubtCreate from "./pages/Doubts/DoubtCreate";
 import DoubtDetail from "./pages/Doubts/DoubtDetail";
 import Profile from "./pages/Profile";
-import About from "./pages/About";
 
 function AppShell() {
   const { user, logout } = useAuth();
@@ -60,6 +59,7 @@ function AppShell() {
         notificationCount={unreadCount}
         onNotificationClick={() => navigate("/notifications")}
         wsStatus={wsStatus}
+        hideCredit
       >
         <Routes>
           <Route path="/" element={<HomeDashboard />} />
@@ -75,7 +75,6 @@ function AppShell() {
           <Route path="/doubts/:id" element={<DoubtDetail />} />
           <Route path="/notifications" element={<NotificationsPage api={api} navigate={navigate} onCountChange={handleCountChange} on={on} />} />
           <Route path="/profile" element={<Profile />} />
-          <Route path="/about" element={<About />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>

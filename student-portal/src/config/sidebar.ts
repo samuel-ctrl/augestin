@@ -43,9 +43,4 @@ export const sidebarItems: NavItem[] = [
     label: "Profile",
     icon: createElement(ProfileIcon),
   },
-  {
-    path: "/about",
-    label: "About",
-    icon: "ℹ️",
-  },
 ];
