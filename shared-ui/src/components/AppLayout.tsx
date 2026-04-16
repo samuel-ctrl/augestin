@@ -16,6 +16,7 @@ interface AppLayoutProps {
   notificationCount?: number;
   onNotificationClick?: () => void;
   wsStatus?: WSStatus;
+  hideCredit?: boolean;
 }
 
 export function AppLayout({
@@ -29,6 +30,7 @@ export function AppLayout({
   notificationCount,
   onNotificationClick,
   wsStatus,
+  hideCredit,
 }: AppLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -61,6 +63,7 @@ export function AppLayout({
           notificationCount={notificationCount}
           onNotificationClick={onNotificationClick}
           wsStatus={wsStatus}
+          hideCredit={hideCredit}
         />
       </div>
 
@@ -87,7 +90,7 @@ export function AppLayout({
         <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6" style={{ backgroundColor: "aliceblue" }}>{children}</main>
 
         {/* Developer footer */}
-        <BrandCredit variant="footer" />
+        {!hideCredit && <BrandCredit variant="footer" />}
       </div>
     </div>
   );

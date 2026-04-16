@@ -18,9 +18,10 @@ interface SidebarProps {
   notificationCount?: number;
   onNotificationClick?: () => void;
   wsStatus?: WSStatus;
+  hideCredit?: boolean;
 }
 
-export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, onClose, userName, userRole, onLogout, notificationCount = 0, onNotificationClick, wsStatus = "disconnected" }: SidebarProps) {
+export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, onClose, userName, userRole, onLogout, notificationCount = 0, onNotificationClick, wsStatus = "disconnected", hideCredit = false }: SidebarProps) {
   const location = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -74,15 +75,17 @@ export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, o
                     <span className="font-bold text-yellow-300">Edu</span>
                     <span className="font-light text-cyan-300">Track</span>
                   </span>
-                  <a
-                    href={PORTFOLIO_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[10px] text-white/70 hover:text-yellow-200 tracking-wide -mt-0.5"
-                    title={`Portfolio of ${DEVELOPER_NAME}`}
-                  >
-                    by <span className="font-semibold text-yellow-200">{DEVELOPER_NAME}</span>
-                  </a>
+                  {!hideCredit && (
+                    <a
+                      href={PORTFOLIO_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] text-white/70 hover:text-yellow-200 tracking-wide -mt-0.5"
+                      title={`Portfolio of ${DEVELOPER_NAME}`}
+                    >
+                      by <span className="font-semibold text-yellow-200">{DEVELOPER_NAME}</span>
+                    </a>
+                  )}
                 </div>
               )}
             </>
