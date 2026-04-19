@@ -29,6 +29,7 @@ interface DataTableProps<T> {
   addButtonLabel?: string;
   onAddClick?: () => void;
   renderCard?: (row: T, actions?: DropdownMenuItem[]) => React.ReactNode;
+  showRefresh?: boolean;
 }
 
 // Fixed height: header (~40px) + 6 rows (~48px each) + buffer
@@ -49,6 +50,7 @@ export function DataTable<T>({
   addButtonLabel,
   onAddClick,
   renderCard,
+  showRefresh,
 }: DataTableProps<T>) {
   const [viewMode, setViewMode] = React.useState<"table" | "card">("table");
 
@@ -151,7 +153,7 @@ export function DataTable<T>({
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-visible">
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-4 rounded-t-xl" style={{ backgroundColor: "#0d47a1" }}>
-        <div className="w-full sm:max-w-sm">
+        <div className="w-full sm:w-auto">
           <TableSearch
             value={search}
             onChange={handlers.setSearch}
@@ -165,8 +167,41 @@ export function DataTable<T>({
             onChange={handlers.setFilter}
           />
         )}
+        {showRefresh && (
+          <button
+            onClick={handlers.refresh}
+            disabled={loading}
+            className="sm:ml-auto p-2 rounded-lg border border-white/20 text-white hover:bg-white/10 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            title="Refresh"
+            aria-label="Refresh"
+          >
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 18 18"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className={loading ? "animate-spin" : ""}
+            >
+              <path
+                d="M15 3v4h-4M3 15v-4h4"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M13.5 7A5 5 0 0 0 4.5 8M4.5 11a5 5 0 0 0 9 1"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        )}
         {renderCard && (
-          <div className={`flex border border-white/20 rounded-lg overflow-hidden ${!addButtonLabel ? "sm:ml-auto" : "sm:ml-auto"}`}>
+          <div className={`flex border border-white/20 rounded-lg overflow-hidden ${showRefresh ? "" : "sm:ml-auto"}`}>
             <button
               onClick={() => setViewMode("table")}
               className={`p-2 transition-colors ${

@@ -17,6 +17,7 @@ from app.models.notification import Notification
 from app.models.lookup import Standard, Section
 from app.models.app_setting import AppSetting
 from app.models.test_set_leaderboard import TestSetLeaderboardEntry
+from app.models.activity_log import ActivityLog
 
 __all__ = [
     "AuditBase", "User", "Subject", "Book", "BookAssignment", "WatchProgress",
@@ -24,5 +25,5 @@ __all__ = [
     "BookRecap", "BookTest", "TestSubmission",
     "TestSet", "TestSetFile", "TestSetAssignment", "TestSetSubmission",
     "Doubt", "DoubtComment", "Notification", "Standard", "Section",
-    "AppSetting", "TestSetLeaderboardEntry",
+    "AppSetting", "TestSetLeaderboardEntry", "ActivityLog",
 ]

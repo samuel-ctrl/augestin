@@ -6,8 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import app.audit  # noqa: F401 — registers SQLAlchemy audit event listener
 from app.config import settings
 from app.database import async_session
+from app.middleware.activity_log import ActivityLogMiddleware
 from app.middleware.auth import AuthMiddleware
-from app.routers import admin, assignments, auth, books, dashboard, doubts, lookups, notifications, progress, quiz, quiz_sets, recap, settings as settings_router, students, subjects, test, test_sets, ws
+from app.routers import activity_logs, admin, assignments, auth, books, dashboard, doubts, lookups, notifications, progress, quiz, quiz_sets, recap, settings as settings_router, students, subjects, test, test_sets, ws
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +59,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+# Order matters. Starlette iterates user_middleware in reverse when building
+# the stack, so the FIRST added middleware ends up OUTERMOST.
+#   added order:   CORS, ActivityLog, Auth
+#   runtime order: CORS (outermost) -> ActivityLog -> Auth -> router
+# ActivityLog therefore sees request.state.user after Auth has populated it.
+app.add_middleware(ActivityLogMiddleware)
 app.add_middleware(AuthMiddleware)
 
 # Routers — books and quiz_sets before students so /api/students/books
@@ -80,6 +87,7 @@ app.include_router(test.router)
 app.include_router(settings_router.router)
 app.include_router(ws.router)
 app.include_router(admin.router)
+app.include_router(activity_logs.router)
 
 
 @app.get("/")

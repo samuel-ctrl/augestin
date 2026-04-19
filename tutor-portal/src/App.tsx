@@ -33,6 +33,7 @@ import DoubtDetail from "./pages/Doubts/DoubtDetail";
 import StudentList from "./pages/Students/StudentList";
 import StudentCreate from "./pages/Students/StudentCreate";
 import StudentDetail from "./pages/Students/StudentDetail";
+import ActivityLogList from "./pages/ActivityLog/ActivityLogList";
 import ManageLookups from "./pages/Settings/ManageLookups";
 import TutorContactSettings from "./pages/Settings/TutorContact";
 import About from "./pages/Settings/About";
@@ -108,6 +109,7 @@ function AppShell() {
           <Route path="/students" element={<StudentList />} />
           <Route path="/students/new" element={<StudentCreate />} />
           <Route path="/students/:id" element={<StudentDetail />} />
+          <Route path="/activity-log" element={<ActivityLogList />} />
           <Route path="/settings/lookups" element={<ManageLookups />} />
           <Route path="/settings/tutor-contact" element={<TutorContactSettings />} />
           <Route path="/settings/about" element={<About />} />
