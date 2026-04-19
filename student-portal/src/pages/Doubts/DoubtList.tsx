@@ -76,9 +76,22 @@ export default function DoubtList() {
         title="Doubts"
         actions={
           <div className="flex gap-2">
-            <Button variant="outline" color="primary" onClick={() => setShowContact(true)}>
-              Contact Tutor
-            </Button>
+            <button
+              type="button"
+              onClick={() => setShowContact(true)}
+              title="Contact Tutor"
+              aria-label="Contact Tutor"
+              className="p-2 rounded-lg text-white hover:bg-white/15 transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                <path d="M5 11a7 7 0 0 1 14 0" />
+                <rect x="3" y="11" width="3" height="5" rx="1" />
+                <rect x="18" y="11" width="3" height="5" rx="1" />
+                <path d="M6 16c0 1.5 1 3 3 3" />
+                <circle cx="12" cy="11" r="3" />
+                <path d="M5 21a7 7 0 0 1 14 0" />
+              </svg>
+            </button>
             <Button color="success" onClick={() => navigate("/doubts/new")}>
               + Ask a Doubt
             </Button>
