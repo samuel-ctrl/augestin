@@ -21,6 +21,7 @@ export type {
   QuizSet,
   QuizSetAssignment,
   AssignedQuizSet,
+  QuizSetLeaderboardEntry,
   BookTest,
   TestSubmissionStatus,
   TestSet,

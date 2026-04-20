@@ -11,7 +11,7 @@ from app.models.quiz_set_assignment import QuizSetAssignment
 from app.models.user import User, UserType
 from app.schemas.quiz_sets import (
     QuizSetCreate, QuizSetUpdate, QuizSetOut, QuizSetAssignCreate, QuizSetAssignOut,
-    AssignedQuizSetOut
+    AssignedQuizSetOut, QuizSetLeaderboardEntryOut
 )
 from app.schemas.quiz import (
     QuestionCreate, QuestionBulkCreate, QuestionOut, ReorderRequest, QuizSubmitRequest
@@ -21,7 +21,8 @@ from app.schemas.pagination import PaginatedResponse
 from app.services.notification_service import create_and_notify
 from app.services.quiz import (
     get_quiz_session, start_quiz, submit_answer, complete_quiz, get_quiz_progress,
-    list_questions, create_question, bulk_create_questions, reorder_questions
+    list_questions, create_question, bulk_create_questions, reorder_questions,
+    get_quiz_set_leaderboard,
 )
 
 router = APIRouter(tags=["quiz_sets"])
@@ -658,3 +659,50 @@ async def list_student_quiz_sets(
         ))
 
     return items
+
+
+# ============================================================================
+# LEADERBOARD
+# ============================================================================
+
+@router.get(
+    "/api/quiz-sets/{quiz_set_id}/leaderboard",
+    response_model=list[QuizSetLeaderboardEntryOut],
+)
+async def list_quiz_set_leaderboard(
+    quiz_set_id: uuid.UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    require_tutor(request)
+    qs = (
+        await db.execute(select(QuizSet).where(QuizSet.id == quiz_set_id))
+    ).scalar_one_or_none()
+    if not qs:
+        raise HTTPException(status_code=404, detail="Quiz set not found")
+    return await get_quiz_set_leaderboard(db, quiz_set_id)
+
+
+@router.get(
+    "/api/students/quiz-sets/{quiz_set_id}/leaderboard",
+    response_model=list[QuizSetLeaderboardEntryOut],
+)
+async def get_student_quiz_set_leaderboard(
+    quiz_set_id: uuid.UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    student = require_student(request)
+    assigned = (
+        await db.execute(
+            select(QuizSetAssignment).where(
+                and_(
+                    QuizSetAssignment.quiz_set_id == quiz_set_id,
+                    QuizSetAssignment.student_id == student.id,
+                )
+            )
+        )
+    ).scalar_one_or_none()
+    if not assigned:
+        raise HTTPException(status_code=403, detail="Not assigned to this quiz set")
+    return await get_quiz_set_leaderboard(db, quiz_set_id)

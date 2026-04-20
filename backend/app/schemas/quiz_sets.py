@@ -52,3 +52,15 @@ class AssignedQuizSetOut(BaseModel):
     progress: dict | None = None
 
     model_config = {"from_attributes": True}
+
+
+class QuizSetLeaderboardEntryOut(BaseModel):
+    student_id: str
+    student_name: str
+    student_login_id: str
+    rank: int
+    score_percentage: float
+    correct_count: int
+    total_questions: int
+    total_time_seconds: int
+    completed_at: datetime

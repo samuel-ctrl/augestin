@@ -77,6 +77,7 @@ export default function QuizSetList() {
         actions={(row): DropdownMenuItem[] => [
           { label: "Questions", onClick: () => navigate(`/quiz-sets/${row.id}/questions`) },
           { label: "Assign", onClick: () => navigate(`/quiz-sets/${row.id}/assign`) },
+          { label: "Leaderboard", onClick: () => navigate(`/quiz-sets/${row.id}/leaderboard`) },
           { label: "Edit", onClick: () => navigate(`/quiz-sets/${row.id}/edit`) },
           { label: "Delete", onClick: () => setDeleteTarget(row), variant: "danger" },
         ]}

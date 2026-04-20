@@ -12,6 +12,8 @@ from app.models.quiz_attempt import QuizAttempt
 from app.models.quiz_progress import QuizProgress
 from app.models.quiz_set import QuizSet
 from app.models.quiz_set_assignment import QuizSetAssignment
+from app.models.user import User
+from app.schemas.quiz_sets import QuizSetLeaderboardEntryOut
 
 
 # ---------------------------------------------------------------------------
@@ -673,3 +675,39 @@ async def get_question_count(
         raise ValueError("Invalid quiz_source")
 
     return result.scalar() or 0
+
+
+async def get_quiz_set_leaderboard(
+    db: AsyncSession, quiz_set_id: uuid.UUID
+) -> list[QuizSetLeaderboardEntryOut]:
+    result = await db.execute(
+        select(QuizProgress, User)
+        .join(User, User.id == QuizProgress.student_id)
+        .where(
+            and_(
+                QuizProgress.quiz_source == "quiz_set",
+                QuizProgress.quiz_id == quiz_set_id,
+                QuizProgress.is_completed == True,  # noqa: E712
+            )
+        )
+        .order_by(
+            QuizProgress.score_percentage.desc(),
+            QuizProgress.total_time_seconds.asc(),
+        )
+    )
+    rows = result.all()
+
+    return [
+        QuizSetLeaderboardEntryOut(
+            student_id=str(user.id),
+            student_name=user.name,
+            student_login_id=user.login_id,
+            rank=idx + 1,
+            score_percentage=progress.score_percentage,
+            correct_count=progress.correct_count,
+            total_questions=progress.total_questions,
+            total_time_seconds=progress.total_time_seconds,
+            completed_at=progress.completed_at,
+        )
+        for idx, (progress, user) in enumerate(rows)
+    ]

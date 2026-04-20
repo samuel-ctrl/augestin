@@ -214,6 +214,18 @@ export interface AssignedQuizSet {
   progress?: QuizProgress;
 }
 
+export interface QuizSetLeaderboardEntry {
+  student_id: string;
+  student_name: string;
+  student_login_id: string;
+  rank: number;
+  score_percentage: number;
+  correct_count: number;
+  total_questions: number;
+  total_time_seconds: number;
+  completed_at: string;
+}
+
 export interface BookTest {
   id: string;
   book_id: string;
