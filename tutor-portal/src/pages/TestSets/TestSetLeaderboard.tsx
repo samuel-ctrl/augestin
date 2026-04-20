@@ -54,15 +54,30 @@ export default function TestSetLeaderboard() {
   const fetchData = useCallback(async () => {
     setError(null);
     try {
-      const [tsRes, assignRes, lbRes] = await Promise.all([
+      const fetchAllAssignments = async (): Promise<AssignedStudent[]> => {
+        const pageSize = 100;
+        const all: AssignedStudent[] = [];
+        let page = 1;
+        while (true) {
+          const res = await api.get(`/test-sets/${testSetId}/assignments`, {
+            params: { page, page_size: pageSize },
+          });
+          const items = (res.data.items as AssignedStudent[]) ?? [];
+          all.push(...items);
+          const totalPages = res.data.total_pages ?? 1;
+          if (page >= totalPages || items.length === 0) break;
+          page += 1;
+        }
+        return all;
+      };
+
+      const [tsRes, assignItems, lbRes] = await Promise.all([
         api.get<TestSetInfo>(`/test-sets/${testSetId}`),
-        api.get(`/test-sets/${testSetId}/assignments`, {
-          params: { page: 1, page_size: 200 },
-        }),
+        fetchAllAssignments(),
         api.get<LeaderboardEntry[]>(`/test-sets/${testSetId}/leaderboard`),
       ]);
       setTestSet(tsRes.data);
-      setAssigned(assignRes.data.items as AssignedStudent[]);
+      setAssigned(assignItems);
       setEntries(lbRes.data.map((e) => ({ ...e })));
     } catch (err) {
       const status = (err as { response?: { status?: number } })?.response?.status;

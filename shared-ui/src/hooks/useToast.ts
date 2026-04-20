@@ -23,8 +23,27 @@ const ERROR_MESSAGE_MAP: Record<string, string> = {
 
 /** Extract a user-friendly error message from an API error. */
 export function extractErrorMessage(err: unknown, fallback: string): string {
-  const detail =
-    (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+  const rawDetail = (err as { response?: { data?: { detail?: unknown } } })
+    ?.response?.data?.detail;
+
+  // FastAPI 422 returns detail as an array of validation error objects.
+  // Flatten to a readable string so callers can render it safely.
+  let detail: string | undefined;
+  if (typeof rawDetail === "string") {
+    detail = rawDetail;
+  } else if (Array.isArray(rawDetail)) {
+    const parts = rawDetail
+      .map((d) => {
+        if (typeof d === "string") return d;
+        if (d && typeof d === "object") {
+          const msg = (d as { msg?: unknown }).msg;
+          return typeof msg === "string" ? msg : null;
+        }
+        return null;
+      })
+      .filter((s): s is string => !!s);
+    detail = parts.length ? parts.join("; ") : undefined;
+  }
 
   if (detail) {
     // Server unreachable (proxy returned 503)
