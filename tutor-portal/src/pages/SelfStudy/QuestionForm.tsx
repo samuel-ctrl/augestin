@@ -114,7 +114,7 @@ export default function QuestionForm() {
       } else {
         await api.post(`/books/${bookId}/questions`, payload);
       }
-      const redirectPath = isQuizSetMode
+      const redirectPath = quizSetId
         ? `/quiz-sets/${quizSetId}/questions`
         : `/self-study/books/${bookId}/questions`;
       navigate(redirectPath);
@@ -135,7 +135,7 @@ export default function QuestionForm() {
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <button
         onClick={() => {
-          const path = isQuizSetMode
+          const path = quizSetId
             ? `/quiz-sets/${quizSetId}/questions`
             : `/self-study/books/${bookId}/questions`;
           navigate(path);
@@ -322,7 +322,7 @@ export default function QuestionForm() {
           <Button
             type="button" variant="outline" color="secondary" fullWidth
             onClick={() => {
-              const path = isQuizSetMode
+              const path = quizSetId
                 ? `/quiz-sets/${quizSetId}/questions`
                 : `/self-study/books/${bookId}/questions`;
               navigate(path);
