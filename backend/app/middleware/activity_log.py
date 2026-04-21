@@ -1,9 +1,10 @@
 """Activity log middleware.
 
-Runs INSIDE AuthMiddleware (added earlier in main.py than Auth, so Starlette's
-wrap order places Activity inside Auth). After call_next returns, it reads
-request.state.user (populated by Auth) and writes one activity_logs row via
-the shared log_activity service.
+Wraps AuthMiddleware (registered after Auth in main.py — Starlette's
+last-added-is-outermost rule places Activity outside Auth). After
+call_next returns, it reads request.state.user (populated by Auth during
+call_next) and writes one activity_logs row via the shared log_activity
+service.
 
 Hard rules:
 - Only state-changing HTTP methods are logged (GETs excluded).

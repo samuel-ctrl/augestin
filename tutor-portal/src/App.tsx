@@ -23,6 +23,7 @@ import QuizSetForm from "./pages/QuizSets/QuizSetForm";
 import QuizSetQuestions from "./pages/QuizSets/QuizSetQuestions";
 import QuizSetAssign from "./pages/QuizSets/QuizSetAssign";
 import QuizSetLeaderboard from "./pages/QuizSets/QuizSetLeaderboard";
+import LiveQuizHost from "./pages/QuizSets/LiveQuizHost";
 import TestSetList from "./pages/TestSets/TestSetList";
 import TestSetForm from "./pages/TestSets/TestSetForm";
 import TestSetFiles from "./pages/TestSets/TestSetFiles";
@@ -98,6 +99,7 @@ function AppShell() {
           <Route path="/quiz-sets/:quizSetId/questions/new" element={<QuestionForm />} />
           <Route path="/quiz-sets/:id/assign" element={<QuizSetAssign />} />
           <Route path="/quiz-sets/:id/leaderboard" element={<QuizSetLeaderboard />} />
+          <Route path="/quiz-sets/:id/live/:code" element={<LiveQuizHost />} />
           <Route path="/test-sets" element={<TestSetList />} />
           <Route path="/test-sets/new" element={<TestSetForm />} />
           <Route path="/test-sets/:id/edit" element={<TestSetForm />} />

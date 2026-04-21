@@ -157,6 +157,53 @@ export interface ReviewQuestion {
   is_correct: boolean;
 }
 
+export type LiveQuizStatus = "lobby" | "active" | "finished";
+
+export interface LiveQuizParticipant {
+  user_id: string;
+  name: string;
+  role: "host" | "player";
+  joined_at: string;
+  connected: boolean;
+  finished: boolean;
+}
+
+export interface LiveQuizLeaderboardEntry {
+  user_id: string;
+  name: string;
+  rank: number;
+  answered_count: number;
+  finished: boolean;
+  connected: boolean;
+  correct_count?: number;
+  score_percentage?: number;
+  total_questions?: number;
+  time_taken_seconds?: number;
+}
+
+export interface LiveQuizAnswer {
+  selected_option: string | null;
+  is_skipped: boolean;
+  is_correct?: boolean;
+}
+
+export interface LiveQuizRoomSnapshot {
+  code: string;
+  quiz_set_id: string;
+  quiz_set_name: string;
+  host_id: string;
+  host_type: "tutor" | "student";
+  status: LiveQuizStatus;
+  total_time_seconds: number;
+  started_at: string | null;
+  questions: Question[];
+  participants: LiveQuizParticipant[];
+  leaderboard: LiveQuizLeaderboardEntry[];
+  your_answers: Record<string, LiveQuizAnswer>;
+  you_finished: boolean;
+  you_role: "host" | "player" | null;
+}
+
 export interface QuizSession {
   questions: Question[];
   total_questions: number;

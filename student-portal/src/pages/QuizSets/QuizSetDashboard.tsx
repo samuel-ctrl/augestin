@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { DataTable, Toast, useToast, PageHeader } from "@shared";
+import { DataTable, Toast, useToast, PageHeader, Button } from "@shared";
 import type { AssignedQuizSet, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
 
@@ -54,8 +54,13 @@ export default function QuizSetDashboard() {
     <div>
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <PageHeader
-        title="Quiz Sets"
-        subtitle="Available quiz sets assigned to you"
+        title="Quizzes"
+        subtitle="Available quizzes assigned to you"
+        actions={
+          <Button color="primary" variant="outline" size="sm" onClick={() => navigate("/quiz-sets/live")}>
+            Join Live Quiz
+          </Button>
+        }
       />
 
       <DataTable<AssignedQuizSet>

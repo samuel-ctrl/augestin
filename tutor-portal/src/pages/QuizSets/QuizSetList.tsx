@@ -8,7 +8,7 @@ import {
   PageHeader,
   DropdownMenu,
 } from "@shared";
-import type { QuizSet, ColumnDef, PaginatedResponse, TableQueryParams, DropdownMenuItem } from "@shared";
+import type { QuizSet, ColumnDef, PaginatedResponse, TableQueryParams, DropdownMenuItem, LiveQuizRoomSnapshot } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
 
@@ -25,6 +25,17 @@ export default function QuizSetList() {
     const res = await api.get("/quiz-sets", { params });
     return res.data;
   }, []);
+
+  const handleHostLive = async (quizSetId: string) => {
+    try {
+      const res = await api.post<LiveQuizRoomSnapshot>("/quiz-rooms", {
+        quiz_set_id: quizSetId,
+      });
+      navigate(`/quiz-sets/${quizSetId}/live/${res.data.code}`);
+    } catch (err) {
+      showApiError(err, "Failed to start live room.");
+    }
+  };
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -77,6 +88,7 @@ export default function QuizSetList() {
         actions={(row): DropdownMenuItem[] => [
           { label: "Questions", onClick: () => navigate(`/quiz-sets/${row.id}/questions`) },
           { label: "Assign", onClick: () => navigate(`/quiz-sets/${row.id}/assign`) },
+          { label: "Host Live Session", onClick: () => handleHostLive(row.id) },
           { label: "Leaderboard", onClick: () => navigate(`/quiz-sets/${row.id}/leaderboard`) },
           { label: "Edit", onClick: () => navigate(`/quiz-sets/${row.id}/edit`) },
           { label: "Delete", onClick: () => setDeleteTarget(row), variant: "danger" },

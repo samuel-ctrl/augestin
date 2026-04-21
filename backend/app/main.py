@@ -8,7 +8,7 @@ from app.config import settings
 from app.database import async_session
 from app.middleware.activity_log import ActivityLogMiddleware
 from app.middleware.auth import AuthMiddleware
-from app.routers import activity_logs, admin, assignments, auth, books, dashboard, doubts, lookups, notifications, progress, quiz, quiz_sets, recap, settings as settings_router, students, subjects, test, test_sets, ws
+from app.routers import activity_logs, admin, assignments, auth, books, dashboard, doubts, live_quiz, lookups, notifications, progress, quiz, quiz_sets, recap, settings as settings_router, students, subjects, test, test_sets, ws
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +51,18 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="EduTrack Self-Study Platform", lifespan=lifespan, redirect_slashes=False)
 
-# CORS
+# Order matters. Starlette's add_middleware prepends to user_middleware and
+# build_middleware_stack iterates in reverse, so the LAST added middleware
+# ends up OUTERMOST.
+#   added order:   Auth, ActivityLog, CORS
+#   runtime order: CORS (outermost) -> ActivityLog -> Auth -> router
+# CORS must be outermost so error responses from Auth (e.g. 401) still get
+# CORS headers — otherwise the browser blocks the body and the frontend
+# can't distinguish a real 401 from a network failure.
+# ActivityLog reads request.state.user after call_next, which Auth has
+# populated by then regardless of relative order.
+app.add_middleware(AuthMiddleware)
+app.add_middleware(ActivityLogMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[o.strip() for o in settings.CORS_ORIGINS.split(",")],
@@ -59,13 +70,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-# Order matters. Starlette iterates user_middleware in reverse when building
-# the stack, so the FIRST added middleware ends up OUTERMOST.
-#   added order:   CORS, ActivityLog, Auth
-#   runtime order: CORS (outermost) -> ActivityLog -> Auth -> router
-# ActivityLog therefore sees request.state.user after Auth has populated it.
-app.add_middleware(ActivityLogMiddleware)
-app.add_middleware(AuthMiddleware)
 
 # Routers — books and quiz_sets before students so /api/students/books
 # and /api/students/quiz-sets don't get matched by students' /{student_id} route
@@ -75,6 +79,7 @@ app.include_router(dashboard.router)
 app.include_router(notifications.router)
 app.include_router(books.router)
 app.include_router(quiz_sets.router)
+app.include_router(live_quiz.router)
 app.include_router(test_sets.router)
 app.include_router(doubts.router)
 app.include_router(students.router)

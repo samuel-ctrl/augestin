@@ -8,6 +8,7 @@ connections, so this endpoint bypasses AuthMiddleware naturally.
 
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 
+from app.services import live_quiz
 from app.utils.jwt import decode_token
 from app.websocket_manager import manager
 
@@ -38,3 +39,4 @@ async def websocket_endpoint(websocket: WebSocket, token: str | None = None):
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(user_id, websocket)
+        await live_quiz.mark_disconnected(user_id)

@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import { LoadingSpinner, EmptyState, PageHeader, extractErrorMessage } from "@shared";
-import type { QuizSet, QuizSetLeaderboardEntry } from "@shared";
+import { LoadingSpinner, EmptyState, PageHeader, Button, Toast, useToast, extractErrorMessage } from "@shared";
+import type { QuizSet, QuizSetLeaderboardEntry, LiveQuizRoomSnapshot } from "@shared";
 import api from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import QuizPanel from "../SelfStudy/QuizPanel";
@@ -21,6 +21,22 @@ export default function QuizSetView() {
   const [leaderboard, setLeaderboard] = useState<QuizSetLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hosting, setHosting] = useState(false);
+  const { toast, showApiError, dismiss } = useToast();
+
+  const handleHostLive = async () => {
+    setHosting(true);
+    try {
+      const res = await api.post<LiveQuizRoomSnapshot>("/quiz-rooms", {
+        quiz_set_id: quizSetId,
+      });
+      navigate(`/quiz-sets/${quizSetId}/live/${res.data.code}`);
+    } catch (err) {
+      showApiError(err, "Failed to start live room.");
+    } finally {
+      setHosting(false);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -61,10 +77,22 @@ export default function QuizSetView() {
 
   return (
     <div>
+      {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <PageHeader
         title={quizSet.name}
         subtitle={quizSet.description}
-        backButton={{ label: "Quiz Sets", onClick: () => navigate("/quiz-sets") }}
+        backButton={{ label: "Quizzes", onClick: () => navigate("/quiz-sets") }}
+        actions={
+          <Button
+            color="success"
+            variant="outline"
+            size="sm"
+            onClick={handleHostLive}
+            loading={hosting}
+          >
+            🎮 Play Live with Friends
+          </Button>
+        }
       />
 
       <QuizPanel quizSource="quiz_set" quizId={quizSetId!} />

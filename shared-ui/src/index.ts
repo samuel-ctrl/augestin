@@ -22,6 +22,11 @@ export type {
   QuizSetAssignment,
   AssignedQuizSet,
   QuizSetLeaderboardEntry,
+  LiveQuizStatus,
+  LiveQuizParticipant,
+  LiveQuizLeaderboardEntry,
+  LiveQuizAnswer,
+  LiveQuizRoomSnapshot,
   BookTest,
   TestSubmissionStatus,
   TestSet,
@@ -79,6 +84,7 @@ export { NotificationsPage } from "./components/NotificationsPage";
 export { AlertCard } from "./components/AlertCard";
 export type { AlertCardVariant } from "./components/AlertCard";
 export { ProgressBar } from "./components/ProgressBar";
+export { LiveLeaderboard } from "./components/LiveLeaderboard";
 export { DropdownMenu } from "./components/DropdownMenu";
 export type { DropdownMenuItem } from "./components/DropdownMenu";
 
