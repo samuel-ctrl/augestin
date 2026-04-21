@@ -154,7 +154,7 @@ export default function QuizSetQuestions() {
                     variant="ghost" color="primary" size="xs"
                     onClick={(e) => {
                       e.stopPropagation();
-                      navigate(`/questions/${q.id}/edit`);
+                      navigate(`/self-study/questions/${q.id}/edit`);
                     }}
                   >
                     Edit

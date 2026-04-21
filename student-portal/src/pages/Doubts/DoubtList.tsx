@@ -5,6 +5,7 @@ import {
 } from "@shared";
 import type { Doubt, PaginatedResponse } from "@shared";
 import api from "../../api/client";
+import { useAuth } from "../../context/AuthContext";
 import ContactTutorDialog from "./ContactTutorDialog";
 
 const statusColors: Record<string, string> = {
@@ -17,6 +18,8 @@ export default function DoubtList() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const bookIdParam = searchParams.get("book_id") || "";
+  const { user } = useAuth();
+  const studentStandard = user?.standard || "";
   const [doubts, setDoubts] = useState<Doubt[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -40,6 +43,7 @@ export default function DoubtList() {
       };
       if (statusFilter) params.status = statusFilter;
       if (bookIdParam) params.book_id = bookIdParam;
+      if (studentStandard) params.standard = studentStandard;
 
       const res = await api.get<PaginatedResponse<Doubt>>("/doubts", { params });
       setDoubts(res.data.items);
@@ -49,7 +53,7 @@ export default function DoubtList() {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, search, statusFilter, myDoubts, bookIdParam]);
+  }, [page, pageSize, search, statusFilter, myDoubts, bookIdParam, studentStandard]);
 
   useEffect(() => {
     fetchDoubts();
@@ -120,6 +124,16 @@ export default function DoubtList() {
           <option value="resolved">Resolved</option>
           <option value="closed">Closed</option>
         </select>
+        {studentStandard && (
+          <select
+            value={studentStandard}
+            disabled
+            title="You can only view doubts for your standard"
+            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-100 text-gray-600 cursor-not-allowed"
+          >
+            <option value={studentStandard}>{studentStandard}</option>
+          </select>
+        )}
         <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white cursor-pointer">
           <input
             type="checkbox"
