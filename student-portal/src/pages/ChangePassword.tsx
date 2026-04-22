@@ -47,10 +47,11 @@ export default function ChangePassword() {
       <div className="max-w-sm w-full">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2">
-            <img src={logo} alt="EduTrack" className="h-12" />
+            <img src={logo} alt="ultrAIment" className="h-12" />
             <span className="text-2xl tracking-wide" style={{ fontFamily: "'Poppins', 'Segoe UI', sans-serif" }}>
-              <span className="font-bold text-yellow-500">Edu</span>
-              <span className="font-light text-cyan-500">Track</span>
+              <span className="font-light text-cyan-500">ultr</span>
+              <span className="font-bold text-yellow-500">AI</span>
+              <span className="font-light text-cyan-500">ment</span>
             </span>
           </div>
           <p className="text-sm text-gray-500 mt-1">Change Your Password</p>

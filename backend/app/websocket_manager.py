@@ -1,5 +1,5 @@
 """
-WebSocket Connection Manager for EduTrack.
+WebSocket Connection Manager for ultrAIment.
 
 Maintains a mapping of user_id -> set of active WebSocket connections.
 Used to push real-time events (notifications, doubt comments) to connected clients.

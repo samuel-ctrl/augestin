@@ -1,5 +1,5 @@
 """
-Authentication Middleware for EduTrack.
+Authentication Middleware for ultrAIment.
 
 Validates JWT tokens at the middleware level so individual routes
 don't need to use Depends(get_current_user). Authenticated user

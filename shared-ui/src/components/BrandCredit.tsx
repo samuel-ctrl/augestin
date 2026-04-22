@@ -68,7 +68,7 @@ export function BrandCredit({ variant, className = "", hideCredit = false }: Bra
       <footer
         className={`shrink-0 border-t border-gray-200 bg-white/80 backdrop-blur px-4 py-2 text-xs text-gray-500 flex items-center justify-between gap-2 ${className}`}
       >
-        <span>&copy; 2026 AJ EduTrack. All rights reserved.</span>
+        <span>&copy; 2026 AJ ultrAIment. All rights reserved.</span>
         {!hideCredit && (
           <span>
             Developed by{" "}
@@ -115,7 +115,7 @@ export function BrandCredit({ variant, className = "", hideCredit = false }: Bra
             Built &amp; maintained by {DEVELOPER_NAME}
           </h3>
           <p className="mt-1 text-sm text-gray-600">
-            Lead developer and partner of AJ EduTrack.
+            Lead developer and partner of AJ ultrAIment.
           </p>
         </div>
       </div>

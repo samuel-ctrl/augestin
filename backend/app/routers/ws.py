@@ -1,5 +1,5 @@
 """
-WebSocket endpoint for EduTrack real-time events.
+WebSocket endpoint for ultrAIment real-time events.
 
 Authenticates via JWT token passed as a query parameter.
 Starlette's BaseHTTPMiddleware does not intercept WebSocket

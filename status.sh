@@ -4,7 +4,7 @@
 source .env.deploy
 
 echo "========================================"
-echo "  EduTrack Service Status Check"
+echo "  ultrAIment Service Status Check"
 echo "========================================"
 echo ""
 
@@ -64,7 +64,7 @@ fi
 
 # 5. Cloudflare Pages latest deployments
 echo ""
-for project in edutrack-tutor edutrack-student; do
+for project in staff-ultraiment ultraiment; do
   cf_json=$(curl -s -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
     "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$project/deployments?per_page=1" 2>/dev/null)
 

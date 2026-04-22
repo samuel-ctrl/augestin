@@ -31,7 +31,7 @@ const CONFIG: Record<Variant, { icon: React.ReactNode; title: string; message: s
       </svg>
     ),
     title: "You've been signed out",
-    message: "Thanks for visiting EduTrack. You've safely signed out of your account.",
+    message: "Thanks for visiting ultrAIment. You've safely signed out of your account.",
     cta: "Sign in again",
     accent: "from-blue-600 to-cyan-500",
   },

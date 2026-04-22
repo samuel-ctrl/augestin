@@ -42,7 +42,7 @@ export default function Login() {
       <div className="hidden md:flex md:w-1/2 bg-primary-50 items-center justify-center p-8">
         <img
           src={loginImage}
-          alt="EduTrack"
+          alt="ultrAIment"
           className="max-w-md w-full object-contain"
         />
       </div>
@@ -51,7 +51,7 @@ export default function Login() {
       <div className="w-full md:w-1/2 flex items-center justify-center px-4 relative z-10">
         <div className="max-w-sm w-full">
           <div className="text-center mb-8">
-            <img src={logo} alt="EduTrack" className="h-16 mx-auto" />
+            <img src={logo} alt="ultrAIment" className="h-16 mx-auto" />
             <p className="text-sm text-gray-500 mt-2">Student Portal</p>
           </div>
           <form

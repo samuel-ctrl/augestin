@@ -49,7 +49,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="EduTrack Self-Study Platform", lifespan=lifespan, redirect_slashes=False)
+app = FastAPI(title="ultrAIment Self-Study Platform", lifespan=lifespan, redirect_slashes=False)
 
 # Order matters. Starlette's add_middleware prepends to user_middleware and
 # build_middleware_stack iterates in reverse, so the LAST added middleware
