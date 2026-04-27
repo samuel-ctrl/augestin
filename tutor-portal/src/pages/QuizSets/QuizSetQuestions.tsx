@@ -9,9 +9,18 @@ import {
   MathText,
   extractErrorMessage,
   Button,
+  isGoogleDriveUrl,
+  extractFileId,
 } from "@shared";
 import type { Question } from "@shared";
 import api from "../../api/client";
+
+function resolveImageUrl(url: string, size: number): string {
+  if (!isGoogleDriveUrl(url)) return url;
+  const fileId = extractFileId(url);
+  if (!fileId) return url;
+  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${size}`;
+}
 
 interface QuizSetInfo {
   id: string;
@@ -173,9 +182,18 @@ export default function QuizSetQuestions() {
 
               {expandedId === q.id && (
                 <div className="px-4 pb-4 pt-0 border-t border-gray-100">
+                  {q.question_image_url && (
+                    <img
+                      src={resolveImageUrl(q.question_image_url, 1200)}
+                      alt="Question visual"
+                      className="mt-3 max-w-full max-h-64 h-auto rounded border border-gray-200"
+                    />
+                  )}
                   <div className="grid grid-cols-2 gap-2 mt-3">
                     {(["A", "B", "C", "D"] as const).map((opt) => {
                       const key = `option_${opt.toLowerCase()}` as keyof Question;
+                      const imgKey = `option_${opt.toLowerCase()}_image_url` as keyof Question;
+                      const imgUrl = q[imgKey] as string | undefined;
                       const isCorrect = q.correct_option === opt;
                       return (
                         <div
@@ -188,6 +206,13 @@ export default function QuizSetQuestions() {
                         >
                           <span className="font-medium text-gray-500 mr-1">{opt}.</span>
                           <MathText text={String(q[key] ?? "")} />
+                          {imgUrl && (
+                            <img
+                              src={resolveImageUrl(imgUrl, 600)}
+                              alt={`Option ${opt}`}
+                              className="mt-2 max-w-full max-h-40 h-auto rounded"
+                            />
+                          )}
                         </div>
                       );
                     })}

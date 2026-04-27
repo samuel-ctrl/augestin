@@ -1,6 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
-import { MathText } from "@shared";
+import { MathText, isGoogleDriveUrl, extractFileId } from "@shared";
 import type { Question } from "@shared";
+
+function resolveImageUrl(url: string, size: number): string {
+  if (!isGoogleDriveUrl(url)) return url;
+  const fileId = extractFileId(url);
+  if (!fileId) return url;
+  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${size}`;
+}
 
 interface QuestionCardProps {
   question: Question;
@@ -71,7 +78,7 @@ export default function QuestionCard({
         </p>
         {question.question_image_url && (
           <img
-            src={question.question_image_url}
+            src={resolveImageUrl(question.question_image_url, 1600)}
             alt="Question visual"
             className="mt-4 max-w-full h-auto rounded"
           />
@@ -111,7 +118,7 @@ export default function QuestionCard({
               </div>
               {imageUrl && (
                 <img
-                  src={imageUrl}
+                  src={resolveImageUrl(imageUrl, 800)}
                   alt={`Option ${key}`}
                   className="max-w-full h-auto rounded ml-10"
                 />
