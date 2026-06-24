@@ -112,7 +112,7 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
 
             case "paragraph":
               return (
-                <p key={key} className="text-gray-700 mb-4 leading-relaxed">
+                <p key={key} className="text-gray-700 dark:text-gray-300 mb-4 leading-relaxed">
                   {renderInline(node.content || [])}
                 </p>
               );
@@ -136,14 +136,14 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
 
             case "bulletList":
               return (
-                <ul key={key} className="list-disc list-inside mb-4 text-gray-700 space-y-1">
+                <ul key={key} className="list-disc list-inside mb-4 text-gray-700 dark:text-gray-300 space-y-1">
                   {renderNodes(node.content || [])}
                 </ul>
               );
 
             case "orderedList":
               return (
-                <ol key={key} className="list-decimal list-inside mb-4 text-gray-700 space-y-1">
+                <ol key={key} className="list-decimal list-inside mb-4 text-gray-700 dark:text-gray-300 space-y-1">
                   {renderNodes(node.content || [])}
                 </ol>
               );
@@ -188,11 +188,11 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
             }
 
             case "horizontalRule":
-              return <hr key={key} className="my-6 border-gray-300" />;
+              return <hr key={key} className="my-6 border-gray-300 dark:border-gray-600" />;
 
             case "blockquote":
               return (
-                <blockquote key={key} className="border-l-4 border-primary-400 pl-4 py-1 mb-4 italic text-gray-600">
+                <blockquote key={key} className="border-l-4 border-primary-400 pl-4 py-1 mb-4 italic text-gray-600 dark:text-gray-400">
                   {renderInline(node.content || [])}
                 </blockquote>
               );
@@ -232,7 +232,7 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
                   break;
                 case "code":
                   element = (
-                    <code key={key} className="bg-gray-100 px-2 py-1 rounded text-sm font-mono">
+                    <code key={key} className="bg-gray-100 dark:bg-gray-700 dark:text-gray-200 px-2 py-1 rounded text-sm font-mono">
                       {element}
                     </code>
                   );
@@ -286,8 +286,8 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
   }, [content]);
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-3 sm:p-6">
-      {title && <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">{title}</h2>}
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-6">
+      {title && <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 dark:text-gray-50">{title}</h2>}
       <div className="prose prose-sm max-w-none">
         {rendered}
       </div>

@@ -27,6 +27,22 @@ export default function TestSetDashboard() {
   }, []);
 
   const columns: ColumnDef<AssignedTestSet>[] = [
+    {
+      key: "thumbnail_url",
+      label: "",
+      sortable: false,
+      width: "72px",
+      render: (_val, row) => (
+        <div className="w-14 h-10 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
+          <img
+            src={row.thumbnail_url ? assetUrl(row.thumbnail_url) : DEFAULT_THUMBNAIL}
+            alt={row.name}
+            className="w-full h-full object-cover"
+            onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_THUMBNAIL; }}
+          />
+        </div>
+      ),
+    },
     { key: "name", label: "Name", sortable: false },
     {
       key: "file_count",
@@ -47,7 +63,10 @@ export default function TestSetDashboard() {
             Submitted
           </span>
         ) : (
-          <span className="text-gray-400 text-xs">—</span>
+          <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full flex items-center gap-1 w-fit">
+            <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+            Not Submitted
+          </span>
         ),
     },
   ];
@@ -70,10 +89,10 @@ export default function TestSetDashboard() {
           const submitted = row.submission_status?.has_submitted;
           return (
             <div
-              className="bg-[rgb(191_189_207_/_38%)] rounded-lg border border-gray-200 p-4 hover:shadow-lg hover:border-primary-300 transition-all cursor-pointer"
+              className="bg-[rgb(191_189_207_/_38%)] rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg hover:border-primary-300 transition-all cursor-pointer"
               onClick={() => navigate(`/test-sets/${row.id}`)}
             >
-              <div className="mb-3 h-32 bg-gray-200 rounded overflow-hidden">
+              <div className="mb-3 h-32 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
                 <img
                   src={row.thumbnail_url ? assetUrl(row.thumbnail_url) : DEFAULT_THUMBNAIL}
                   alt={row.name}
@@ -81,18 +100,23 @@ export default function TestSetDashboard() {
                   onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_THUMBNAIL; }}
                 />
               </div>
-              <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-50 text-sm line-clamp-2">
                 {row.name}
               </h3>
-              {row.description && <p className="text-xs text-gray-500 mt-1 line-clamp-1">{row.description}</p>}
+              {row.description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">{row.description}</p>}
               <div className="flex items-center justify-between mt-3">
-                <span className="text-xs text-gray-500">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
                   {row.file_count} file{row.file_count !== 1 ? "s" : ""}
                 </span>
-                {submitted && (
+                {submitted ? (
                   <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full flex items-center gap-1">
                     <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
                     Submitted
+                  </span>
+                ) : (
+                  <span className="text-xs px-2 py-0.5 bg-red-100 text-red-700 rounded-full flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                    Not Submitted
                   </span>
                 )}
               </div>

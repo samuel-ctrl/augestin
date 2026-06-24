@@ -22,12 +22,12 @@ export function BookCard({
 }: BookCardProps) {
   return (
     <div
-      className={`bg-[rgb(191_189_207_/_38%)] rounded-lg border border-gray-200 transition-shadow hover:shadow-md ${
+      className={`bg-[rgb(191_189_207_/_38%)] dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-shadow hover:shadow-md ${
         onClick ? "cursor-pointer" : ""
       }`}
       onClick={onClick}
     >
-      <div className="relative aspect-video bg-gray-100 rounded-t-lg overflow-hidden">
+      <div className="relative aspect-video bg-gray-100 dark:bg-gray-700 rounded-t-lg overflow-hidden">
         <img
           src={thumbnailUrl && isGoogleDriveUrl(thumbnailUrl) ? toDirectImageUrl(thumbnailUrl) : (thumbnailUrl || DEFAULT_THUMBNAIL)}
           alt={title}
@@ -38,9 +38,9 @@ export function BookCard({
         />
       </div>
       <div className="p-3">
-        <h4 className="font-medium text-gray-800 text-sm truncate">{title}</h4>
+        <h4 className="font-medium text-gray-800 dark:text-gray-100 text-sm truncate">{title}</h4>
         <div className="flex items-center gap-1.5 mt-1">
-          <span className="inline-block px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded">
+          <span className="inline-block px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-xs rounded">
             Std: {standard}
           </span>
           {questionCount !== undefined && questionCount > 0 && (

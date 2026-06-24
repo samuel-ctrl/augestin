@@ -149,12 +149,12 @@ async def toggle_submission(
     db: AsyncSession,
     test_id: uuid.UUID,
     student_id: uuid.UUID,
+    submission_link: str | None = None,
 ) -> TestSubmission:
     """Toggle submission status for a student.
 
-    If submitted_at is None, set to now. If set, set to None.
+    If submitted_at is None, set to now (and save link). If set, clear both.
     """
-    # Get or create submission row
     result = await db.execute(
         select(TestSubmission).where(
             and_(
@@ -166,19 +166,20 @@ async def toggle_submission(
     submission = result.scalar_one_or_none()
 
     if not submission:
-        # Create new with submitted_at = now
         submission = TestSubmission(
             test_id=test_id,
             student_id=student_id,
             submitted_at=datetime.now(timezone.utc),
+            submission_link=submission_link,
         )
         db.add(submission)
     else:
-        # Toggle
         if submission.submitted_at is None:
             submission.submitted_at = datetime.now(timezone.utc)
+            submission.submission_link = submission_link
         else:
             submission.submitted_at = None
+            submission.submission_link = None
 
     await db.commit()
     await db.refresh(submission)

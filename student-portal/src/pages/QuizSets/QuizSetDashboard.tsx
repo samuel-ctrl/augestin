@@ -45,7 +45,7 @@ export default function QuizSetDashboard() {
             {row.progress.score_percentage}%
           </span>
         ) : (
-          <span className="text-gray-400 text-xs">—</span>
+          <span className="text-gray-400 dark:text-gray-500 text-xs">—</span>
         ),
     },
   ];
@@ -71,10 +71,10 @@ export default function QuizSetDashboard() {
         onRowClick={(qs) => navigate(`/quiz-sets/${qs.id}`)}
         renderCard={(row) => (
           <div
-            className="bg-[rgb(191_189_207_/_38%)] rounded-lg border border-gray-200 p-4 hover:shadow-lg hover:border-primary-300 transition-all cursor-pointer"
+            className="bg-[rgb(191_189_207_/_38%)] rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg hover:border-primary-300 transition-all cursor-pointer"
             onClick={() => navigate(`/quiz-sets/${row.id}`)}
           >
-            <div className="mb-3 h-32 bg-gray-200 rounded overflow-hidden">
+            <div className="mb-3 h-32 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
               <img
                 src={row.thumbnail_url || DEFAULT_THUMBNAIL}
                 alt={row.name}
@@ -82,12 +82,12 @@ export default function QuizSetDashboard() {
                 onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_THUMBNAIL; }}
               />
             </div>
-            <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
+            <h3 className="font-semibold text-gray-900 dark:text-gray-50 text-sm line-clamp-2">
               {row.name}
             </h3>
-            {row.description && <p className="text-xs text-gray-500 mt-1 line-clamp-1">{row.description}</p>}
+            {row.description && <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">{row.description}</p>}
             <div className="flex items-center justify-between mt-3">
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-500 dark:text-gray-400">
                 {row.question_count} Q{row.question_count !== 1 ? "s" : ""}
               </span>
               {row.progress && (

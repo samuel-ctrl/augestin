@@ -56,7 +56,7 @@ export function DropdownMenu({ items }: DropdownMenuProps) {
         ref={buttonRef}
         type="button"
         onClick={handleToggle}
-        className="p-1.5 rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+        className="p-1.5 rounded-full text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
       >
         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
           <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
@@ -66,7 +66,7 @@ export function DropdownMenu({ items }: DropdownMenuProps) {
       {open && createPortal(
         <div
           ref={menuRef}
-          className="fixed w-36 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50"
+          className="fixed w-36 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50"
           style={{ top: pos.top, left: pos.left }}
         >
           {items.map((item, idx) => (
@@ -80,8 +80,8 @@ export function DropdownMenu({ items }: DropdownMenuProps) {
               }}
               className={`w-full text-left px-3 py-2 text-sm transition-colors ${
                 item.variant === "danger"
-                  ? "text-red-600 hover:bg-red-50"
-                  : "text-gray-700 hover:bg-gray-50"
+                  ? "text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30"
+                  : "text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
               {item.label}

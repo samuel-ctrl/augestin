@@ -21,6 +21,7 @@ export default function BookView() {
   const [testLoading, setTestLoading] = useState(false);
   const [testSubmitted, setTestSubmitted] = useState(false);
   const [testSubmitting, setTestSubmitting] = useState(false);
+  const [testSubmissionLink, setTestSubmissionLink] = useState("");
   const [bookDoubts, setBookDoubts] = useState<Doubt[]>([]);
   const [doubtsCount, setDoubtsCount] = useState(0);
 
@@ -33,6 +34,7 @@ export default function BookView() {
         setTest(testRes.data);
         const statusRes = await api.get(`/books/${bookId}/test/my-submission`);
         setTestSubmitted(statusRes.data.has_submitted);
+        setTestSubmissionLink(statusRes.data.submission_link || "");
       }
     } catch (err) {
       // Silently fail if test doesn't exist or endpoint returns error
@@ -108,7 +110,7 @@ export default function BookView() {
           className={`px-4 py-2 text-sm rounded-lg font-medium transition-colors ${
             activeTab === "record"
               ? "bg-primary-600 text-white"
-              : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
           }`}
         >
           Record
@@ -133,7 +135,7 @@ export default function BookView() {
           </button>
         ) : (
           <button
-            className="px-4 py-2 text-sm rounded-lg font-medium bg-gray-100 text-gray-400 cursor-not-allowed flex items-center gap-1"
+            className="px-4 py-2 text-sm rounded-lg font-medium bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed flex items-center gap-1"
             disabled
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -197,14 +199,14 @@ export default function BookView() {
 
           {/* Book Details */}
           <div className="mt-6">
-            <h1 className="text-xl font-semibold text-gray-800">
+            <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
               {book.title}
             </h1>
-            <span className="inline-block mt-1 px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded">
+            <span className="inline-block mt-1 px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-xs rounded">
               Standard: {book.standard}th
             </span>
             {book.description && (
-              <p className="mt-3 text-sm text-gray-600 leading-relaxed">
+              <p className="mt-3 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                 {book.description}
               </p>
             )}
@@ -217,14 +219,14 @@ export default function BookView() {
       )}
 
       {activeTab === "recap" && recap && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
           <RecapViewer content={recap.content} title={recap.title} />
         </div>
       )}
 
       {activeTab === "test" && test && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Test</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-4">Test</h2>
 
           {test.instructions && (
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -233,44 +235,93 @@ export default function BookView() {
             </div>
           )}
 
-          <div className="flex items-center gap-4 flex-wrap">
+          <div className="mb-6">
             <a
               href={test.drive_link}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
+              className="inline-block px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium"
             >
               Open Test File
             </a>
-            <button
-              disabled={testSubmitting}
-              onClick={async () => {
-                setTestSubmitting(true);
-                try {
-                  await api.put(`/books/${bookId}/test/submit`);
-                  setTestSubmitted(!testSubmitted);
-                } catch {
-                  // toggle failed silently
-                } finally {
-                  setTestSubmitting(false);
-                }
-              }}
-              className={`px-6 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                testSubmitted
-                  ? "bg-green-100 text-green-700 hover:bg-green-200"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {testSubmitting ? "Saving..." : testSubmitted ? "✓ Submitted" : "Mark as Submitted"}
-            </button>
+          </div>
+
+          <div className="border-t border-gray-100 dark:border-gray-800 pt-6">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Submit Your Answer</h3>
+            {testSubmitted ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-green-700 text-sm font-medium">
+                  <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                  Submitted
+                </div>
+                {testSubmissionLink && (
+                  <a
+                    href={testSubmissionLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary-600 hover:underline block truncate"
+                  >
+                    {testSubmissionLink}
+                  </a>
+                )}
+                <button
+                  disabled={testSubmitting}
+                  onClick={async () => {
+                    setTestSubmitting(true);
+                    try {
+                      await api.put(`/books/${bookId}/test/submit`, {});
+                      setTestSubmitted(false);
+                      setTestSubmissionLink("");
+                    } catch {
+                      // silently fail
+                    } finally {
+                      setTestSubmitting(false);
+                    }
+                  }}
+                  className="px-4 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
+                >
+                  {testSubmitting ? "Saving..." : "Undo Submission"}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <input
+                  type="url"
+                  value={testSubmissionLink}
+                  onChange={(e) => setTestSubmissionLink(e.target.value)}
+                  placeholder="Paste your Google Drive answer link..."
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500"
+                />
+                <button
+                  disabled={testSubmitting || !testSubmissionLink.trim()}
+                  onClick={async () => {
+                    setTestSubmitting(true);
+                    try {
+                      const res = await api.put(`/books/${bookId}/test/submit`, {
+                        submission_link: testSubmissionLink.trim() || null,
+                      });
+                      setTestSubmitted(res.data.has_submitted);
+                      setTestSubmissionLink(res.data.submission_link || "");
+                    } catch {
+                      // silently fail
+                    } finally {
+                      setTestSubmitting(false);
+                    }
+                  }}
+                  className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {testSubmitting ? "Submitting..." : "Submit Test"}
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {activeTab === "doubts" && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50">
               Doubts ({doubtsCount})
             </h2>
             <button
@@ -282,27 +333,27 @@ export default function BookView() {
           </div>
 
           {bookDoubts.length === 0 ? (
-            <p className="text-sm text-gray-500">No doubts for this book yet. Be the first to ask!</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">No doubts for this book yet. Be the first to ask!</p>
           ) : (
             <div className="space-y-3">
               {bookDoubts.map((doubt) => (
                 <div
                   key={doubt.id}
                   onClick={() => navigate(`/doubts/${doubt.id}`)}
-                  className="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition-colors"
+                  className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                 >
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-sm font-medium text-gray-900">{doubt.title}</h3>
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-gray-50">{doubt.title}</h3>
                     <span className={`px-1.5 py-0.5 text-[10px] rounded-full ${
                       doubt.status === "open" ? "bg-yellow-100 text-yellow-800" :
                       doubt.status === "resolved" ? "bg-green-100 text-green-800" :
-                      "bg-gray-100 text-gray-600"
+                      "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
                     }`}>
                       {doubt.status}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-600 line-clamp-1">{doubt.description}</p>
-                  <div className="flex items-center gap-2 mt-1 text-xs text-gray-400">
+                  <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">{doubt.description}</p>
+                  <div className="flex items-center gap-2 mt-1 text-xs text-gray-400 dark:text-gray-500">
                     <span>{doubt.student_name}</span>
                     <span>{doubt.comment_count} comments</span>
                   </div>

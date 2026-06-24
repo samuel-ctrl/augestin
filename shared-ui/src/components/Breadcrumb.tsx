@@ -8,14 +8,14 @@ interface BreadcrumbProps {
 
 export function Breadcrumb({ segments }: BreadcrumbProps) {
   return (
-    <nav className="flex items-center text-sm text-gray-500 overflow-x-auto whitespace-nowrap">
+    <nav className="flex items-center text-sm text-gray-500 dark:text-gray-400 overflow-x-auto whitespace-nowrap">
       {segments.map((segment, index) => {
         const isLast = index === segments.length - 1;
         return (
           <React.Fragment key={index}>
-            {index > 0 && <span className="mx-2 text-gray-300">/</span>}
+            {index > 0 && <span className="mx-2 text-gray-300 dark:text-gray-600">/</span>}
             {isLast || !segment.path ? (
-              <span className={isLast ? "text-gray-900 font-medium" : ""}>
+              <span className={isLast ? "text-gray-900 dark:text-gray-100 font-medium" : ""}>
                 {segment.label}
               </span>
             ) : (

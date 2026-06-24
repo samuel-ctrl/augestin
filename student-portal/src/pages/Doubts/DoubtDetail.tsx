@@ -214,7 +214,7 @@ export default function DoubtDetail() {
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={() => navigate("/doubts")}
-          className="text-sm text-gray-500 hover:text-gray-700 inline-flex items-center gap-1"
+          className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 inline-flex items-center gap-1"
         >
           &larr; Back to Doubts
         </button>
@@ -237,29 +237,29 @@ export default function DoubtDetail() {
       </div>
 
       {/* Doubt Header */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
         {editingDoubt ? (
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Title *</label>
               <input
                 type="text"
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Description *</label>
               <textarea
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
                 rows={5}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Attachment Links</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">Attachment Links</label>
               <div className="space-y-2">
                 {editLinks.map((link, idx) => (
                   <div key={idx} className="flex items-center gap-2">
@@ -272,7 +272,7 @@ export default function DoubtDetail() {
                         setEditLinks(updated);
                       }}
                       placeholder="https://drive.google.com/..."
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500"
                     />
                     {editLinks.length > 1 && (
                       <button
@@ -308,13 +308,13 @@ export default function DoubtDetail() {
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <h1 className="text-xl font-semibold text-gray-900">{doubt.title}</h1>
+                  <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-50">{doubt.title}</h1>
                   <span className={`px-2 py-0.5 text-xs rounded-full ${statusColors[doubt.status] || ""}`}>
                     {doubt.status}
                   </span>
                 </div>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">{doubt.description}</p>
-                <div className="flex items-center gap-3 mt-3 text-xs text-gray-500">
+                <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{doubt.description}</p>
+                <div className="flex items-center gap-3 mt-3 text-xs text-gray-500 dark:text-gray-400">
                   <span>By {doubt.student_name}</span>
                   {doubt.book_title && (
                     <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded">{doubt.book_title}</span>
@@ -329,7 +329,7 @@ export default function DoubtDetail() {
             </div>
 
             {isMyDoubt && (
-              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200">
+              <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <Button size="xs" color="primary" onClick={startEditingDoubt}>
                   Edit Doubt
                 </Button>
@@ -343,7 +343,7 @@ export default function DoubtDetail() {
       </div>
 
       {/* Comments */}
-      <h2 className="text-sm font-semibold text-gray-800 mb-3">
+      <h2 className="text-sm font-semibold text-gray-800 dark:text-gray-100 mb-3">
         Comments ({doubt.comments.length})
       </h2>
 
@@ -352,14 +352,14 @@ export default function DoubtDetail() {
           const isMyComment = user && comment.user_id === user.id;
 
           return (
-            <div key={comment.id} className="bg-white rounded-lg border border-gray-200 p-4">
+            <div key={comment.id} className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
               {editingComment === comment.id ? (
                 <div>
                   <textarea
                     value={editContent}
                     onChange={(e) => setEditContent(e.target.value)}
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500"
                   />
                   <div className="flex gap-2 mt-2">
                     <Button size="xs" color="primary" onClick={() => handleUpdateComment(comment.id)}>
@@ -373,17 +373,17 @@ export default function DoubtDetail() {
               ) : (
                 <>
                   <div className="flex items-center gap-2 mb-2">
-                    <span className="text-sm font-medium text-gray-900">{comment.user_name}</span>
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-50">{comment.user_name}</span>
                     <span className={`px-1.5 py-0.5 text-[10px] rounded ${
                       comment.user_type === "tutor" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"
                     }`}>
                       {comment.user_type}
                     </span>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-gray-400 dark:text-gray-500">
                       {new Date(comment.created_at).toLocaleString()}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap">{comment.content}</p>
+                  <p className="text-sm text-gray-700 dark:text-gray-200 whitespace-pre-wrap">{comment.content}</p>
                   {/* Student can only edit/delete their own comments */}
                   {isMyComment && (
                     <div className="flex gap-2 mt-2">
@@ -409,13 +409,13 @@ export default function DoubtDetail() {
       </div>
 
       {/* Add Comment */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
         <textarea
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
           placeholder="Write a comment..."
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 mb-3"
+          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 mb-3 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500"
         />
         <Button color="primary" size="sm" onClick={handleAddComment} disabled={!newComment.trim()} loading={submitting}>
           Post Comment

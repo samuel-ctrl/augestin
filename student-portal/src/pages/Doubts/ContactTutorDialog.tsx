@@ -47,16 +47,16 @@ export default function ContactTutorDialog({ open, onClose }: Props) {
       onClick={onClose}
     >
       <div
-        className="bg-white rounded-xl shadow-xl border border-gray-200 w-full max-w-sm p-6"
+        className="bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 w-full max-w-sm p-6"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Tutor</h3>
-        <p className="text-sm text-gray-600 mb-4">
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-4">Contact Tutor</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
           Reach out to your tutor directly:
         </p>
 
         {loading && (
-          <div className="text-sm text-gray-500 py-2">Loading…</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400 py-2">Loading…</div>
         )}
         {error && (
           <div className="text-sm text-red-600 py-2">{error}</div>
@@ -76,7 +76,7 @@ export default function ContactTutorDialog({ open, onClose }: Props) {
                 </div>
               </a>
             ) : (
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg text-gray-400">
+              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg text-gray-400 dark:text-gray-500">
                 <span className="text-xl">📧</span>
                 <p className="text-xs">Email not configured</p>
               </div>
@@ -96,7 +96,7 @@ export default function ContactTutorDialog({ open, onClose }: Props) {
                 </div>
               </a>
             ) : (
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg text-gray-400">
+              <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg text-gray-400 dark:text-gray-500">
                 <span className="text-xl">💬</span>
                 <p className="text-xs">WhatsApp not configured</p>
               </div>
@@ -106,7 +106,7 @@ export default function ContactTutorDialog({ open, onClose }: Props) {
 
         <button
           onClick={onClose}
-          className="w-full mt-4 px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          className="w-full mt-4 px-4 py-2 text-sm text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           Close
         </button>

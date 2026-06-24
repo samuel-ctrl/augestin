@@ -10,7 +10,7 @@ from app.models.test import BookTest, TestSubmission
 from app.models.user import User
 from app.schemas.test import (
     BookTestCreate, BookTestUpdate, BookTestOut, TestSubmissionOut,
-    TestSubmissionStatus
+    TestSubmissionStatus, TestSubmitRequest
 )
 from app.schemas.pagination import PaginatedResponse
 from app.services.test import (
@@ -147,6 +147,7 @@ async def list_book_test_submissions(
             student_name=student_name,
             student_login_id=student_login_id,
             submitted_at=submission.submitted_at,
+            submission_link=getattr(submission, "submission_link", None),
             created_at=submission.created_at,
         ))
 
@@ -195,6 +196,7 @@ async def get_my_test_submission(
     return TestSubmissionStatus(
         has_submitted=submission is not None and submission.submitted_at is not None,
         submitted_at=submission.submitted_at if submission else None,
+        submission_link=submission.submission_link if submission else None,
     )
 
 
@@ -203,6 +205,7 @@ async def submit_test(
     book_id: uuid.UUID,
     request: Request,
     db: AsyncSession = Depends(get_db),
+    body: TestSubmitRequest = None,
 ):
     """Toggle test submission status for student."""
     student = require_student(request)
@@ -224,10 +227,11 @@ async def submit_test(
     if test is None:
         raise HTTPException(status_code=404, detail="Test not found")
 
-    # Toggle submission
-    submission = await toggle_submission(db, test.id, student.id)
+    submission_link = body.submission_link if body else None
+    submission = await toggle_submission(db, test.id, student.id, submission_link=submission_link)
 
     return TestSubmissionStatus(
         has_submitted=submission.submitted_at is not None,
         submitted_at=submission.submitted_at,
+        submission_link=submission.submission_link,
     )

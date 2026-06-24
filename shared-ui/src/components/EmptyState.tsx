@@ -20,8 +20,8 @@ export function EmptyState({ icon, title, description, action, variant = "defaul
         <div
           className={`w-16 h-16 rounded-full flex items-center justify-center text-3xl mb-5 ${
             isError
-              ? "bg-red-50 text-red-400"
-              : "bg-primary-50 text-primary-400"
+              ? "bg-red-50 dark:bg-red-900/30 text-red-400"
+              : "bg-primary-50 dark:bg-primary-900/30 text-primary-400"
           }`}
         >
           {icon}
@@ -29,13 +29,13 @@ export function EmptyState({ icon, title, description, action, variant = "defaul
       )}
       <h3
         className={`text-lg font-semibold mb-2 ${
-          isError ? "text-gray-700" : "text-gray-600"
+          isError ? "text-gray-700 dark:text-gray-300" : "text-gray-600 dark:text-gray-400"
         }`}
       >
         {title}
       </h3>
       {description && (
-        <p className="text-sm text-gray-400 mb-6 max-w-sm leading-relaxed">{description}</p>
+        <p className="text-sm text-gray-400 dark:text-gray-500 mb-6 max-w-sm leading-relaxed">{description}</p>
       )}
       {action && (
         <Button

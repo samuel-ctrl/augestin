@@ -112,12 +112,12 @@ export default function DoubtList() {
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           placeholder="Search doubts..."
-          className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="flex-1 min-w-[200px] px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500"
         />
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
         >
           <option value="">All Status</option>
           <option value="open">Open</option>
@@ -129,17 +129,17 @@ export default function DoubtList() {
             value={studentStandard}
             disabled
             title="You can only view doubts for your standard"
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm bg-gray-100 text-gray-600 cursor-not-allowed"
+            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 cursor-not-allowed"
           >
             <option value={studentStandard}>{studentStandard}</option>
           </select>
         )}
-        <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white cursor-pointer">
+        <label className="flex items-center gap-2 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-sm bg-white dark:bg-gray-700 dark:text-gray-100 cursor-pointer">
           <input
             type="checkbox"
             checked={myDoubts}
             onChange={(e) => { setMyDoubts(e.target.checked); setPage(1); }}
-            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+            className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
           />
           My Doubts
         </label>
@@ -158,18 +158,18 @@ export default function DoubtList() {
             <div
               key={doubt.id}
               onClick={() => navigate(`/doubts/${doubt.id}`)}
-              className="bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-shadow cursor-pointer"
+              className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-shadow cursor-pointer"
             >
               <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-sm font-semibold text-gray-900">{doubt.title}</h3>
+                    <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-50">{doubt.title}</h3>
                     <span className={`px-2 py-0.5 text-xs rounded-full ${statusColors[doubt.status] || "bg-gray-100 text-gray-600"}`}>
                       {doubt.status}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 line-clamp-2">{doubt.description}</p>
-                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                  <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">{doubt.description}</p>
+                  <div className="flex items-center gap-3 mt-2 text-xs text-gray-500 dark:text-gray-400">
                     <span>By {doubt.student_name}</span>
                     {doubt.book_title && (
                       <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded">
@@ -187,20 +187,20 @@ export default function DoubtList() {
       )}
 
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200">
-          <div className="text-sm text-gray-500">Page {page} of {totalPages}</div>
+        <div className="flex items-center justify-between mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <div className="text-sm text-gray-500 dark:text-gray-400">Page {page} of {totalPages}</div>
           <div className="flex gap-2">
             <button
               onClick={() => setPage(Math.max(1, page - 1))}
               disabled={page === 1}
-              className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50"
+              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm disabled:opacity-50"
             >
               Previous
             </button>
             <button
               onClick={() => setPage(Math.min(totalPages, page + 1))}
               disabled={page === totalPages}
-              className="px-3 py-1 border border-gray-300 rounded text-sm disabled:opacity-50"
+              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm disabled:opacity-50"
             >
               Next
             </button>

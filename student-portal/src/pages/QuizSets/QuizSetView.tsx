@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { LoadingSpinner, EmptyState, PageHeader, Button, Toast, useToast, extractErrorMessage } from "@shared";
 import type { QuizSet, QuizSetLeaderboardEntry, LiveQuizRoomSnapshot } from "@shared";
 import api from "../../api/client";
@@ -19,10 +19,32 @@ export default function QuizSetView() {
   const { user } = useAuth();
   const [quizSet, setQuizSet] = useState<QuizSet | null>(null);
   const [leaderboard, setLeaderboard] = useState<QuizSetLeaderboardEntry[]>([]);
+  const [quizCompleted, setQuizCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hosting, setHosting] = useState(false);
   const { toast, showApiError, dismiss } = useToast();
+
+  const fetchLeaderboard = useCallback(async () => {
+    try {
+      const res = await api.get<QuizSetLeaderboardEntry[]>(
+        `/students/quiz-sets/${quizSetId}/leaderboard`
+      );
+      setLeaderboard(res.data);
+    } catch {
+      setLeaderboard([]);
+    }
+  }, [quizSetId]);
+
+  // The leaderboard is only meaningful — and only shown — to a student who has
+  // completed this quiz. Fetch it only once they finish.
+  const handleQuizCompletedChange = useCallback(
+    (completed: boolean) => {
+      setQuizCompleted(completed);
+      if (completed) fetchLeaderboard();
+    },
+    [fetchLeaderboard]
+  );
 
   const handleHostLive = async () => {
     setHosting(true);
@@ -41,13 +63,8 @@ export default function QuizSetView() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [qsRes, lbRes] = await Promise.all([
-          api.get(`/quiz-sets/${quizSetId}`),
-          api.get<QuizSetLeaderboardEntry[]>(`/students/quiz-sets/${quizSetId}/leaderboard`)
-            .catch(() => ({ data: [] as QuizSetLeaderboardEntry[] })),
-        ]);
+        const qsRes = await api.get(`/quiz-sets/${quizSetId}`);
         setQuizSet(qsRes.data);
-        setLeaderboard(lbRes.data);
       } catch (err: unknown) {
         const status = (err as { response?: { status?: number } })?.response?.status;
         if (status === 404) {
@@ -95,35 +112,39 @@ export default function QuizSetView() {
         }
       />
 
-      <QuizPanel quizSource="quiz_set" quizId={quizSetId!} />
+      <QuizPanel
+        quizSource="quiz_set"
+        quizId={quizSetId!}
+        onCompletedChange={handleQuizCompletedChange}
+      />
 
-      {leaderboard.length > 0 && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mt-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">🏆 Leaderboard</h2>
+      {quizCompleted && leaderboard.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mt-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-4">🏆 Leaderboard</h2>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-16">Rank</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Student</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-40">Score</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-24">Time</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider w-16">Rank</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider">Student</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider w-40">Score</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider w-24">Time</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {leaderboard.map((e) => {
                   const isMe = user && e.student_id === user.id;
                   return (
                     <tr key={e.student_id} className={isMe ? "bg-amber-50" : ""}>
-                      <td className="px-4 py-2 text-sm font-semibold text-gray-900">{e.rank}</td>
-                      <td className="px-4 py-2 text-sm text-gray-800">
+                      <td className="px-4 py-2 text-sm font-semibold text-gray-900 dark:text-gray-50">{e.rank}</td>
+                      <td className="px-4 py-2 text-sm text-gray-800 dark:text-gray-100">
                         {e.student_name}
                         {isMe && <span className="ml-2 text-xs text-amber-600">(you)</span>}
                       </td>
-                      <td className="px-4 py-2 text-sm text-gray-700">
+                      <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">
                         {e.correct_count}/{e.total_questions} — {e.score_percentage.toFixed(0)}%
                       </td>
-                      <td className="px-4 py-2 text-sm text-gray-700">{formatTime(e.total_time_seconds)}</td>
+                      <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">{formatTime(e.total_time_seconds)}</td>
                     </tr>
                   );
                 })}

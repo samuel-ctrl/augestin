@@ -234,7 +234,7 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
               className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
                 timeFilter === f
                   ? "bg-indigo-600 text-white border-indigo-600"
-                  : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
+                  : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
               {TIME_FILTER_LABELS[f]}
@@ -245,22 +245,22 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
         {/* Custom date inputs */}
         {timeFilter === "custom" && (
           <div className="flex flex-wrap items-center gap-3 mb-4">
-            <label className="text-sm text-gray-600">
+            <label className="text-sm text-gray-600 dark:text-gray-300">
               From:
               <input
                 type="date"
                 value={customDateFrom}
                 onChange={(e) => { setCustomDateFrom(e.target.value); setPage(1); }}
-                className="ml-2 border border-gray-300 rounded px-2 py-1 text-sm"
+                className="ml-2 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               />
             </label>
-            <label className="text-sm text-gray-600">
+            <label className="text-sm text-gray-600 dark:text-gray-300">
               To:
               <input
                 type="date"
                 value={customDateTo}
                 onChange={(e) => { setCustomDateTo(e.target.value); setPage(1); }}
-                className="ml-2 border border-gray-300 rounded px-2 py-1 text-sm"
+                className="ml-2 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
               />
             </label>
           </div>
@@ -270,7 +270,7 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
         {hasNewNotification && (
           <button
             onClick={() => { setPage(1); setTimeFilter("all"); setHasNewNotification(false); }}
-            className="w-full text-center py-2 mb-3 text-sm text-blue-600 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors"
+            className="w-full text-center py-2 mb-3 text-sm text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
           >
             New notifications available - click to refresh
           </button>
@@ -300,8 +300,8 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
                   onClick={() => handleClick(n)}
                   className={`w-full text-left rounded-lg border p-4 transition-colors ${
                     n.is_read
-                      ? "bg-white border-gray-200 hover:bg-gray-50"
-                      : "bg-blue-50 border-blue-200 hover:bg-blue-100"
+                      ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
+                      : "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50"
                   } ${n.reference_id || n.notification_type?.includes("assigned") ? "cursor-pointer" : "cursor-default"}`}
                 >
                   <div className="flex items-start gap-3">
@@ -311,7 +311,7 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
                       </svg>
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm ${n.is_read ? "text-gray-600" : "text-gray-900 font-medium"}`}>
+                      <p className={`text-sm ${n.is_read ? "text-gray-600 dark:text-gray-400" : "text-gray-900 dark:text-gray-100 font-medium"}`}>
                         {n.message}
                       </p>
                       <div className="flex items-center gap-2 mt-1 flex-wrap">
@@ -320,8 +320,8 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
                             {n.sender_name}
                           </span>
                         )}
-                        {n.sender_name && <span className="text-xs text-gray-300">·</span>}
-                        <p className="text-xs text-gray-400">
+                        {n.sender_name && <span className="text-xs text-gray-300 dark:text-gray-600">·</span>}
+                        <p className="text-xs text-gray-400 dark:text-gray-500">
                           {new Date(n.created_at).toLocaleDateString(undefined, {
                             month: "short",
                             day: "numeric",
@@ -330,7 +330,7 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
                           })}
                         </p>
                         {n.notification_type && (
-                          <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded">
+                          <span className="text-xs text-gray-400 dark:text-gray-500 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">
                             {n.notification_type === "doubt_created"
                               ? "New Doubt"
                               : n.notification_type === "doubt_edited"
@@ -376,24 +376,24 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex items-center justify-between mt-4 px-1">
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-gray-500 dark:text-gray-400">
                   Showing {showingFrom}-{showingTo} of {total}
                 </span>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => setPage((p) => p - 1)}
                     disabled={page <= 1}
-                    className="px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Previous
                   </button>
-                  <span className="px-3 py-1.5 text-sm text-gray-600">
+                  <span className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300">
                     Page {page} of {totalPages}
                   </span>
                   <button
                     onClick={() => setPage((p) => p + 1)}
                     disabled={page >= totalPages}
-                    className="px-3 py-1.5 text-sm text-gray-600 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Next
                   </button>

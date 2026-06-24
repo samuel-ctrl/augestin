@@ -31,8 +31,8 @@ export function AttachmentGallery({ links }: AttachmentGalleryProps) {
 
   return (
     <>
-      <div className="mt-4 pt-3 border-t border-gray-100">
-        <h3 className="text-xs font-medium text-gray-500 mb-2">Attachments</h3>
+      <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+        <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">Attachments</h3>
         <div className="flex flex-wrap gap-3">
           {links.map((link, idx) => {
             const previewUrl = getPreviewUrl(link);
@@ -43,7 +43,7 @@ export function AttachmentGallery({ links }: AttachmentGalleryProps) {
                   key={idx}
                   type="button"
                   onClick={() => setLightboxUrl(getFullImageUrl(link))}
-                  className="group relative w-28 h-28 rounded-lg border border-gray-200 overflow-hidden bg-gray-50 hover:border-primary-400 hover:shadow-md transition-all"
+                  className="group relative w-28 h-28 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden bg-gray-50 dark:bg-gray-700 hover:border-primary-400 hover:shadow-md transition-all"
                 >
                   <img
                     src={previewUrl}

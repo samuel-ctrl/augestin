@@ -16,14 +16,14 @@ export function ProgressBar({ percentage, showLabel = true, size = "md" }: Progr
 
   return (
     <div className="flex items-center gap-2">
-      <div className={`flex-1 bg-gray-200 rounded-full ${heightClass} overflow-hidden`}>
+      <div className={`flex-1 bg-gray-200 dark:bg-gray-700 rounded-full ${heightClass} overflow-hidden`}>
         <div
           className={`${barColor} ${heightClass} rounded-full transition-all duration-300`}
           style={{ width: `${clamped}%` }}
         />
       </div>
       {showLabel && (
-        <span className="text-xs text-gray-500 w-10 text-right shrink-0">
+        <span className="text-xs text-gray-500 dark:text-gray-400 w-10 text-right shrink-0">
           {Math.round(clamped)}%
         </span>
       )}

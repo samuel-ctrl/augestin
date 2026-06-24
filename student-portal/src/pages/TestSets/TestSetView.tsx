@@ -100,21 +100,21 @@ export default function TestSetView() {
       />
 
       {/* Files */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-4">
           Files ({testSet.files.length})
         </h2>
 
         {testSet.files.length === 0 ? (
-          <p className="text-sm text-gray-500">No files available yet.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400">No files available yet.</p>
         ) : (
           <div className="space-y-3">
             {testSet.files.map((file) => (
-              <div key={file.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <div key={file.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-medium text-gray-900">{file.file_name}</h3>
+                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-50">{file.file_name}</h3>
                   {file.instructions && (
-                    <p className="text-xs text-gray-500 mt-0.5">{file.instructions}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{file.instructions}</p>
                   )}
                 </div>
                 <a
@@ -132,15 +132,15 @@ export default function TestSetView() {
       </div>
 
       {/* Submission */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Submission</h2>
-        <p className="text-sm text-gray-600 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-3">Submission</h2>
+        <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
           Submit your completed test by pasting a Google Drive link or PDF link below, then mark as submitted.
         </p>
 
         {/* Link Input */}
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
             Submission Link (Google Drive / PDF)
           </label>
           <input
@@ -155,7 +155,7 @@ export default function TestSetView() {
               }
             }}
             placeholder="https://drive.google.com/file/d/... or PDF link"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500"
             disabled={submitted}
           />
           {savedLink && submitted && (
@@ -189,28 +189,28 @@ export default function TestSetView() {
       </div>
 
       {leaderboard.length > 0 && (
-        <div className="bg-white rounded-lg border border-gray-200 p-6 mt-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">🏆 Leaderboard</h2>
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mt-6">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-4">🏆 Leaderboard</h2>
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
                 <tr>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-16">Rank</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Student</th>
-                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider w-28">Score</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider w-16">Rank</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider">Student</th>
+                  <th className="px-4 py-2 text-left text-xs font-medium text-gray-700 dark:text-gray-200 uppercase tracking-wider w-28">Score</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {leaderboard.map((e) => {
                   const isMe = user && e.student_id === user.id;
                   return (
                     <tr key={e.id} className={isMe ? "bg-amber-50" : ""}>
-                      <td className="px-4 py-2 text-sm font-semibold text-gray-900">{e.rank}</td>
-                      <td className="px-4 py-2 text-sm text-gray-800">
+                      <td className="px-4 py-2 text-sm font-semibold text-gray-900 dark:text-gray-50">{e.rank}</td>
+                      <td className="px-4 py-2 text-sm text-gray-800 dark:text-gray-100">
                         {e.student_name}
                         {isMe && <span className="ml-2 text-xs text-amber-600">(you)</span>}
                       </td>
-                      <td className="px-4 py-2 text-sm text-gray-700">{e.score}</td>
+                      <td className="px-4 py-2 text-sm text-gray-700 dark:text-gray-200">{e.score}</td>
                     </tr>
                   );
                 })}

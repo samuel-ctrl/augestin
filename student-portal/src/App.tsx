@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { WebSocketProvider, useWS } from "./context/WebSocketContext";
 import { AppLayout, ProtectedRoute, NotificationToast, NotificationsPage, AuthStatusPage } from "@shared";
 import { sidebarItems } from "./config/sidebar";
@@ -27,6 +28,7 @@ import Profile from "./pages/Profile";
 function AppShell() {
   const { user, logout } = useAuth();
   const { on, status: wsStatus } = useWS();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const handleLogout = useCallback(() => {
     logout();
@@ -62,6 +64,9 @@ function AppShell() {
         onNotificationClick={() => navigate("/notifications")}
         wsStatus={wsStatus}
         hideCredit
+        showDateTime
+        isDark={isDark}
+        onThemeToggle={toggleTheme}
       >
         <Routes>
           <Route path="/" element={<HomeDashboard />} />
@@ -120,6 +125,7 @@ function ChangePasswordGuard() {
 
 export default function App() {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -130,5 +136,6 @@ export default function App() {
         <Route path="/*" element={<AuthenticatedApp />} />
       </Routes>
     </AuthProvider>
+    </ThemeProvider>
   );
 }

@@ -50,47 +50,47 @@ export default function Profile() {
 
       <div className="max-w-md mx-auto">
       {/* Info Card */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 mb-6">
         <div className="space-y-2 text-sm">
           <div className="flex justify-between">
-            <span className="text-gray-500">Name</span>
-            <span className="text-gray-800 font-medium">{user?.name}</span>
+            <span className="text-gray-500 dark:text-gray-400">Name</span>
+            <span className="text-gray-800 dark:text-gray-100 font-medium">{user?.name}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-500">Login ID</span>
-            <span className="text-gray-800 font-mono">{user?.login_id}</span>
+            <span className="text-gray-500 dark:text-gray-400">Login ID</span>
+            <span className="text-gray-800 dark:text-gray-100 font-mono">{user?.login_id}</span>
           </div>
           {user?.standard && (
             <div className="flex justify-between">
-              <span className="text-gray-500">Standard</span>
-              <span className="text-gray-800">{user.standard}th</span>
+              <span className="text-gray-500 dark:text-gray-400">Standard</span>
+              <span className="text-gray-800 dark:text-gray-100">{user.standard}th</span>
             </div>
           )}
           {user?.email && (
             <div className="flex justify-between">
-              <span className="text-gray-500">Email</span>
-              <span className="text-gray-800">{user.email}</span>
+              <span className="text-gray-500 dark:text-gray-400">Email</span>
+              <span className="text-gray-800 dark:text-gray-100">{user.email}</span>
             </div>
           )}
           {user?.phone && (
             <div className="flex justify-between">
-              <span className="text-gray-500">Phone</span>
-              <span className="text-gray-800">{user.phone}</span>
+              <span className="text-gray-500 dark:text-gray-400">Phone</span>
+              <span className="text-gray-800 dark:text-gray-100">{user.phone}</span>
             </div>
           )}
         </div>
       </div>
 
       {/* Change Password */}
-      <h2 className="text-lg font-medium text-gray-800 mb-3">
+      <h2 className="text-lg font-medium text-gray-800 dark:text-gray-100 mb-3">
         Change Password
       </h2>
       <form
         onSubmit={handleChangePassword}
-        className="bg-white rounded-lg border border-gray-200 p-6 space-y-4"
+        className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 space-y-4"
       >
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
             Current Password
           </label>
           <input
@@ -98,11 +98,11 @@ export default function Profile() {
             value={oldPassword}
             onChange={(e) => setOldPassword(e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
             New Password
           </label>
           <input
@@ -110,11 +110,11 @@ export default function Profile() {
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
             Confirm New Password
           </label>
           <input
@@ -122,7 +122,7 @@ export default function Profile() {
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500"
           />
         </div>
         {error && <p className="text-sm text-red-500">{error}</p>}

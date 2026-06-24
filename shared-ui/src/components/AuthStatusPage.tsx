@@ -41,15 +41,15 @@ export function AuthStatusPage({ variant, loginPath = "/login" }: AuthStatusPage
   const { icon, title, message, cta, accent } = CONFIG[variant];
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-cyan-50 px-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl border border-gray-100 p-8 text-center">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-cyan-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4">
+      <div className="max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 p-8 text-center">
         <div
           className={`mx-auto h-16 w-16 rounded-full bg-gradient-to-br ${accent} flex items-center justify-center text-white shadow-lg`}
         >
           {icon}
         </div>
-        <h1 className="mt-5 text-2xl font-semibold text-gray-900">{title}</h1>
-        <p className="mt-3 text-sm text-gray-600 leading-relaxed">{message}</p>
+        <h1 className="mt-5 text-2xl font-semibold text-gray-900 dark:text-gray-50">{title}</h1>
+        <p className="mt-3 text-sm text-gray-600 dark:text-gray-300 leading-relaxed">{message}</p>
         <Link
           to={loginPath}
           className="mt-6 inline-flex items-center justify-center w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition shadow-sm"

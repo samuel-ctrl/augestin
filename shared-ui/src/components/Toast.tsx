@@ -11,25 +11,25 @@ interface ToastProps {
 
 const config: Record<ToastType, { bg: string; border: string; text: string; icon: string; btnColor: string }> = {
   error: {
-    bg: "bg-red-50",
-    border: "border-red-200",
-    text: "text-red-800",
+    bg: "bg-red-50 dark:bg-red-900/40",
+    border: "border-red-200 dark:border-red-800",
+    text: "text-red-800 dark:text-red-300",
     icon: "M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-    btnColor: "text-red-400 hover:text-red-600",
+    btnColor: "text-red-400 hover:text-red-600 dark:text-red-500 dark:hover:text-red-300",
   },
   success: {
-    bg: "bg-green-50",
-    border: "border-green-200",
-    text: "text-green-800",
+    bg: "bg-green-50 dark:bg-green-900/40",
+    border: "border-green-200 dark:border-green-800",
+    text: "text-green-800 dark:text-green-300",
     icon: "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z",
-    btnColor: "text-green-400 hover:text-green-600",
+    btnColor: "text-green-400 hover:text-green-600 dark:text-green-500 dark:hover:text-green-300",
   },
   info: {
-    bg: "bg-blue-50",
-    border: "border-blue-200",
-    text: "text-blue-800",
+    bg: "bg-blue-50 dark:bg-blue-900/40",
+    border: "border-blue-200 dark:border-blue-800",
+    text: "text-blue-800 dark:text-blue-300",
     icon: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z",
-    btnColor: "text-blue-400 hover:text-blue-600",
+    btnColor: "text-blue-400 hover:text-blue-600 dark:text-blue-500 dark:hover:text-blue-300",
   },
 };
 

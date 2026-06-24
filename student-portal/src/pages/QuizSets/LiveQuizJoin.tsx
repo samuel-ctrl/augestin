@@ -37,8 +37,8 @@ export default function LiveQuizJoin() {
         backButton={{ label: "Quizzes", onClick: () => navigate("/quiz-sets") }}
       />
 
-      <div className="bg-white rounded-lg border border-gray-200 p-6 max-w-md">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 max-w-md">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">
           Room code
         </label>
         <input
@@ -49,7 +49,7 @@ export default function LiveQuizJoin() {
           maxLength={8}
           autoFocus
           placeholder="ABC234"
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-2xl font-mono tracking-widest uppercase focus:outline-none focus:ring-2 focus:ring-primary-500"
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-2xl font-mono tracking-widest uppercase focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500"
         />
         <Button
           color="primary"
@@ -61,7 +61,7 @@ export default function LiveQuizJoin() {
           Join Room
         </Button>
 
-        <p className="mt-6 text-sm text-gray-500">
+        <p className="mt-6 text-sm text-gray-500 dark:text-gray-400">
           To host your own room, open a quiz from{" "}
           <button
             onClick={() => navigate("/quiz-sets")}

@@ -114,7 +114,7 @@ export function SubjectTile({
       </div>
 
       {/* Title */}
-      <h3 className="text-sm font-semibold text-gray-800 mt-2 truncate max-w-[120px]" title={name}>
+      <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100 mt-2 truncate max-w-[120px]" title={name}>
         {name}
       </h3>
 

@@ -52,7 +52,7 @@ export default function SubjectView() {
       sortable: true,
       width: "100px",
       render: (value) => (
-        <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-xs rounded">
+        <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-xs rounded">
           Std: {String(value)}
         </span>
       ),
@@ -69,7 +69,7 @@ export default function SubjectView() {
             {count} Q{count !== 1 ? "s" : ""}
           </span>
         ) : (
-          <span className="text-gray-400 text-xs">—</span>
+          <span className="text-gray-400 dark:text-gray-500 text-xs">—</span>
         );
       },
     },

@@ -128,7 +128,7 @@ export function DataTable<T>({
       cells.push(
         <td
           key={col.key}
-          className="px-4 py-3.5 text-sm text-gray-800"
+          className="px-4 py-3.5 text-sm text-gray-800 dark:text-gray-200"
           style={col.width ? { width: col.width } : undefined}
         >
           {col.render ? col.render(value, row) : String(value ?? "—")}
@@ -150,7 +150,7 @@ export function DataTable<T>({
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-visible">
+    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-visible">
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 p-4 rounded-t-xl" style={{ backgroundColor: "#0d47a1" }}>
         <div className="w-full sm:w-auto">
@@ -248,9 +248,9 @@ export function DataTable<T>({
           {loading ? (
             <div className="flex justify-center py-12"><LoadingSpinner /></div>
           ) : error ? (
-            <div className="text-center text-red-500 py-12">{error}</div>
+            <div className="text-center text-red-500 dark:text-red-400 py-12">{error}</div>
           ) : data.length === 0 ? (
-            <div className="text-center text-gray-400 py-12">No results found</div>
+            <div className="text-center text-gray-400 dark:text-gray-500 py-12">No results found</div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {data.map((row, idx) => (
@@ -269,7 +269,7 @@ export function DataTable<T>({
                 {renderHeaderCells()}
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {loading ? (
                 <tr>
                   <td
@@ -283,7 +283,7 @@ export function DataTable<T>({
                 <tr>
                   <td
                     colSpan={totalCols}
-                    className="px-4 py-12 text-center text-red-500"
+                    className="px-4 py-12 text-center text-red-500 dark:text-red-400"
                   >
                     {error}
                   </td>
@@ -292,7 +292,7 @@ export function DataTable<T>({
                 <tr>
                   <td
                     colSpan={totalCols}
-                    className="px-4 py-12 text-center text-gray-400"
+                    className="px-4 py-12 text-center text-gray-400 dark:text-gray-500"
                   >
                     No results found
                   </td>
@@ -301,8 +301,11 @@ export function DataTable<T>({
                 data.map((row, idx) => (
                   <tr
                     key={rowKey ? rowKey(row) : idx}
-                    className={`${onRowClick ? "cursor-pointer" : ""} hover:bg-gray-50 transition-colors duration-150`}
-                    style={{ backgroundColor: idx % 2 === 0 ? "#fff" : "#f0f5ff" }}
+                    className={`${onRowClick ? "cursor-pointer" : ""} transition-colors duration-150 ${
+                      idx % 2 === 0
+                        ? "bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-750"
+                        : "bg-blue-50/60 dark:bg-gray-700/40 hover:bg-blue-100/60 dark:hover:bg-gray-700/60"
+                    }`}
                     onClick={() => onRowClick?.(row)}
                   >
                     {renderRowCells(row)}

@@ -4,6 +4,7 @@ import { LoadingSpinner, EmptyState, Toast, useToast, PageHeader, BookCard } fro
 import type { AssignedQuizSet, QuizProgress } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
+import { getRandomWelcomeQuote } from "./welcomeQuotes";
 
 interface PendingQuiz {
   id: string;
@@ -42,6 +43,8 @@ export default function HomeDashboard() {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [taskFilter, setTaskFilter] = useState<TaskFilter>("all");
   const [loading, setLoading] = useState(true);
+  // Pick a random encouragement subtitle once per visit (stable across re-renders).
+  const [welcomeSubtitle] = useState(getRandomWelcomeQuote);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -145,8 +148,6 @@ export default function HomeDashboard() {
     (t) => taskFilter === "all" || t.status === taskFilter
   );
 
-  const pendingTaskCount = tasks.filter((t) => t.status !== "done").length;
-
   const hasContent =
     pendingQuizzes.length > 0 ||
     continueWatching.length > 0 ||
@@ -165,32 +166,13 @@ export default function HomeDashboard() {
 
       <PageHeader
         title="Welcome Back"
-        subtitle="Continue learning or start something new"
+        subtitle={welcomeSubtitle}
       />
-
-      {/* Pending Tasks Summary */}
-      {pendingTaskCount > 0 && (
-        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-          <div className="flex items-center gap-2">
-            <span className="text-amber-500 text-lg">⚡</span>
-            <div>
-              <p className="text-sm font-semibold text-amber-800">
-                {pendingTaskCount} of {tasks.length} Task{tasks.length !== 1 ? "s" : ""} Pending
-              </p>
-              <p className="text-xs text-amber-600">
-                {tasks.filter((t) => t.status === "todo").length} not started ·{" "}
-                {tasks.filter((t) => t.status === "in_progress").length} in progress ·{" "}
-                {tasks.filter((t) => t.status === "done").length} done
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* My Tasks Widget */}
       {tasks.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">My Tasks</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-3">My Tasks</h2>
 
           {/* Filter Tabs */}
           <div className="flex gap-1 mb-4 overflow-x-auto pb-1">
@@ -201,7 +183,7 @@ export default function HomeDashboard() {
                 className={`px-3 py-1.5 text-xs font-medium rounded-full whitespace-nowrap transition-colors ${
                   taskFilter === tab.key
                     ? "bg-primary-600 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
                 }`}
               >
                 {tab.label}
@@ -210,9 +192,9 @@ export default function HomeDashboard() {
           </div>
 
           {/* Task List */}
-          <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100">
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 divide-y divide-gray-100 dark:divide-gray-800">
             {filteredTasks.length === 0 ? (
-              <div className="p-6 text-center text-sm text-gray-400">
+              <div className="p-6 text-center text-sm text-gray-400 dark:text-gray-500">
                 No tasks in this category
               </div>
             ) : (
@@ -226,7 +208,7 @@ export default function HomeDashboard() {
                         : `/quiz-sets/${task.id}`
                     )
                   }
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left"
                 >
                   {/* Status dot */}
                   <div
@@ -240,15 +222,15 @@ export default function HomeDashboard() {
                   />
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 truncate">
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-50 truncate">
                       {task.name}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs text-gray-500">{task.subject}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">{task.subject}</span>
                       {task.date && (
                         <>
-                          <span className="text-gray-300">·</span>
-                          <span className="text-xs text-gray-400">
+                          <span className="text-gray-300 dark:text-gray-600">·</span>
+                          <span className="text-xs text-gray-400 dark:text-gray-500">
                             {new Date(task.date).toLocaleDateString()}
                           </span>
                         </>
@@ -258,7 +240,7 @@ export default function HomeDashboard() {
 
                   {/* Progress bar */}
                   <div className="w-20 shrink-0">
-                    <div className="w-full bg-gray-200 rounded-full h-1.5">
+                    <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-1.5">
                       <div
                         className={`h-1.5 rounded-full transition-all ${
                           task.status === "done"
@@ -268,7 +250,7 @@ export default function HomeDashboard() {
                         style={{ width: `${task.progress}%` }}
                       />
                     </div>
-                    <p className="text-[10px] text-gray-400 text-right mt-0.5">
+                    <p className="text-[10px] text-gray-400 dark:text-gray-500 text-right mt-0.5">
                       {Math.round(task.progress)}%
                     </p>
                   </div>
@@ -291,16 +273,16 @@ export default function HomeDashboard() {
           {/* Continue Watching */}
           {continueWatching.length > 0 && (
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Continue Reading</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">Continue Reading</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {continueWatching.map((book) => (
                   <button
                     key={book.id}
                     onClick={() => navigate(`/self-study/books/${book.id}`)}
-                    className="bg-[rgb(191_189_207_/_38%)] rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-shadow text-left"
+                    className="bg-[rgb(191_189_207_/_38%)] dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-shadow text-left"
                   >
                     {book.thumbnail_url && (
-                      <div className="mb-3 h-24 bg-gray-200 rounded overflow-hidden">
+                      <div className="mb-3 h-24 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
                         <img
                           src={assetUrl(book.thumbnail_url)}
                           alt={book.title}
@@ -308,16 +290,16 @@ export default function HomeDashboard() {
                         />
                       </div>
                     )}
-                    <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 mb-2">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-50 text-sm line-clamp-2 mb-2">
                       {book.title}
                     </h3>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
                       <div
                         className="bg-primary-600 h-2 rounded-full transition-all"
                         style={{ width: `${book.progress.score_percentage}%` }}
                       />
                     </div>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                       {book.progress.score_percentage}% complete
                     </p>
                   </button>
@@ -329,16 +311,16 @@ export default function HomeDashboard() {
           {/* Ready Quiz Sets */}
           {readyQuizSets.length > 0 && (
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Quiz Sets Ready</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">Quiz Sets Ready</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {readyQuizSets.map((qs) => (
                   <button
                     key={qs.id}
                     onClick={() => navigate(`/quiz-sets/${qs.id}`)}
-                    className="bg-[rgb(191_189_207_/_38%)] rounded-lg border border-gray-200 p-4 hover:shadow-lg transition-shadow text-left"
+                    className="bg-[rgb(191_189_207_/_38%)] dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-shadow text-left"
                   >
                     {qs.thumbnail_url && (
-                      <div className="mb-3 h-24 bg-gray-200 rounded overflow-hidden">
+                      <div className="mb-3 h-24 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
                         <img
                           src={assetUrl(qs.thumbnail_url)}
                           alt={qs.name}
@@ -346,10 +328,10 @@ export default function HomeDashboard() {
                         />
                       </div>
                     )}
-                    <h3 className="font-semibold text-gray-900 text-sm line-clamp-2">
+                    <h3 className="font-semibold text-gray-900 dark:text-gray-50 text-sm line-clamp-2">
                       {qs.name}
                     </h3>
-                    <p className="text-xs text-gray-500 mt-2">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
                       {qs.question_count} question{qs.question_count !== 1 ? "s" : ""}
                     </p>
                   </button>
@@ -361,7 +343,7 @@ export default function HomeDashboard() {
           {/* Pending Quizzes */}
           {pendingQuizzes.length > 0 && (
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">Next Books</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">Next Books</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {pendingQuizzes.map((book) => (
                   <BookCard

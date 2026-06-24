@@ -159,13 +159,13 @@ export function Sidebar({ navItems, logo, collapsed = false, onToggleCollapse, o
       <div className={`border-t border-white/10 relative z-20 ${collapsed ? "px-2 py-3" : "px-3 py-3"}`} ref={dropdownRef}>
         {/* Dropdown menu — opens upward */}
         {dropdownOpen && (
-          <div className={`absolute bottom-full mb-2 bg-white rounded-xl shadow-xl border border-gray-200 py-1.5 overflow-hidden ${
+          <div className={`absolute bottom-full mb-2 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-200 dark:border-gray-700 py-1.5 overflow-hidden ${
             collapsed ? "left-full ml-2 bottom-0 mb-0 w-48" : "left-3 right-3"
           }`}>
             {onLogout && (
               <button
                 onClick={() => { onLogout(); setDropdownOpen(false); }}
-                className="flex items-center gap-3 w-full px-3.5 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                className="flex items-center gap-3 w-full px-3.5 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 transition-colors"
               >
                 <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3-3h-9m9 0l-3-3m3 3l-3 3" />

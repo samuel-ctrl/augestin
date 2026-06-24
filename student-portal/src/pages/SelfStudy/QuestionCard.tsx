@@ -69,11 +69,11 @@ export default function QuestionCard({
   ];
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
       {/* Question */}
       <div className="mb-6">
-        <p className="text-gray-800 leading-relaxed">
-          <span className="text-gray-400 text-sm mr-1">Q{questionNumber}.</span>
+        <p className="text-gray-800 dark:text-gray-100 leading-relaxed">
+          <span className="text-gray-400 dark:text-gray-500 text-sm mr-1">Q{questionNumber}.</span>
           <MathText text={question.question_text} />
         </p>
         {question.question_image_url && (
@@ -99,7 +99,7 @@ export default function QuestionCard({
               className={`w-full flex flex-col gap-3 p-3 rounded-lg border transition-colors text-left ${
                 isSelected
                   ? "border-primary-400 bg-primary-50"
-                  : "border-gray-200 bg-white hover:bg-gray-50"
+                  : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
               }`}
             >
               <div className="flex items-center gap-3">
@@ -107,12 +107,12 @@ export default function QuestionCard({
                   className={`w-7 h-7 rounded-full border-2 flex items-center justify-center text-xs font-medium shrink-0 ${
                     isSelected
                       ? "border-primary-500 bg-primary-500 text-white"
-                      : "border-gray-300 text-gray-500"
+                      : "border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400"
                   }`}
                 >
                   {key}
                 </span>
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-gray-700 dark:text-gray-200">
                   <MathText text={text} />
                 </span>
               </div>
@@ -137,7 +137,7 @@ export default function QuestionCard({
           className={`w-full px-4 py-2 text-sm rounded-lg border transition-colors ${
             isSkipped
               ? "border-yellow-400 bg-yellow-50 text-yellow-700"
-              : "border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
+              : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
           } disabled:opacity-40 disabled:cursor-not-allowed`}
         >
           ⏭️ Skip this question
@@ -150,11 +150,11 @@ export default function QuestionCard({
           type="button"
           onClick={onPrevious}
           disabled={!canGoPrevious}
-          className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           &larr; Previous
         </button>
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-gray-400 dark:text-gray-500">
           {questionNumber} / {totalQuestions}
         </span>
         <button

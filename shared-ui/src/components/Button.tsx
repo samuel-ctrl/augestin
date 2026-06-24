@@ -44,8 +44,8 @@ const colorStyles: Record<ButtonColor, Record<ButtonVariant, string>> = {
   },
   secondary: {
     solid: "bg-gray-500 text-white hover:bg-gray-600 focus:ring-gray-200",
-    outline: "border border-gray-300 text-gray-600 hover:bg-gray-50 focus:ring-gray-200",
-    ghost: "text-gray-400 hover:text-gray-500 hover:bg-gray-50 focus:ring-gray-200",
+    outline: "border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-gray-200",
+    ghost: "text-gray-400 dark:text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-gray-200",
   },
 };
 

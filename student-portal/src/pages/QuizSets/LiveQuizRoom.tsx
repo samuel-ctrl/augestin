@@ -260,8 +260,8 @@ export default function LiveQuizRoom() {
           </div>
         </div>
         <div className="text-right">
-          <div className="text-xs text-gray-600">Participants</div>
-          <div className="text-lg font-semibold text-gray-900">
+          <div className="text-xs text-gray-600 dark:text-gray-300">Participants</div>
+          <div className="text-lg font-semibold text-gray-900 dark:text-gray-50">
             {snapshot.participants.filter((p) => p.role === "player").length}
           </div>
         </div>
@@ -269,7 +269,7 @@ export default function LiveQuizRoom() {
 
       {snapshot.status === "lobby" && (
         <div className="grid md:grid-cols-3 gap-4">
-          <div className="md:col-span-2 bg-white rounded-lg border border-gray-200 p-6">
+          <div className="md:col-span-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
             <h2 className="text-lg font-semibold mb-3">In the Room</h2>
             {snapshot.participants.length === 0 ? (
               <EmptyState
@@ -280,9 +280,9 @@ export default function LiveQuizRoom() {
             ) : (
               <ul className="space-y-2">
                 {snapshot.participants.map((p) => (
-                  <li key={p.user_id} className="flex items-center gap-3 p-2 bg-gray-50 rounded">
+                  <li key={p.user_id} className="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-900 rounded">
                     <span className={`w-2 h-2 rounded-full ${p.connected ? "bg-green-500" : "bg-gray-300"}`} />
-                    <span className="flex-1 text-sm text-gray-800">{p.name}</span>
+                    <span className="flex-1 text-sm text-gray-800 dark:text-gray-100">{p.name}</span>
                     {p.role === "host" && (
                       <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded-full">host</span>
                     )}
@@ -317,14 +317,14 @@ export default function LiveQuizRoom() {
         <div className="grid md:grid-cols-3 gap-4">
           <div className="md:col-span-2 space-y-4">
             {youFinished ? (
-              <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
                 <div className="text-4xl mb-2">🏁</div>
                 <h3 className="text-lg font-semibold mb-1">You're done!</h3>
-                <p className="text-sm text-gray-500">Waiting for others to finish...</p>
+                <p className="text-sm text-gray-500 dark:text-gray-400">Waiting for others to finish...</p>
               </div>
             ) : !isPlayer ? (
-              <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-                <p className="text-sm text-gray-600">
+              <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-8 text-center">
+                <p className="text-sm text-gray-600 dark:text-gray-300">
                   You're hosting. Watch the leaderboard on the right.
                 </p>
               </div>
@@ -342,7 +342,7 @@ export default function LiveQuizRoom() {
                         className={`w-8 h-8 rounded text-xs font-medium ${
                           isCurrent ? "bg-primary-600 text-white" :
                           answered ? "bg-green-100 text-green-700 border border-green-300" :
-                          "bg-gray-100 text-gray-500 border border-gray-300"
+                          "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 border border-gray-300 dark:border-gray-600"
                         }`}
                       >
                         {i + 1}
@@ -384,9 +384,9 @@ export default function LiveQuizRoom() {
 
       {snapshot.status === "finished" && (
         <div className="grid md:grid-cols-3 gap-4">
-          <div className="md:col-span-2 bg-white rounded-lg border border-gray-200 p-6">
+          <div className="md:col-span-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
             <h2 className="text-lg font-semibold mb-2">🎉 Quiz Complete</h2>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 dark:text-gray-300">
               Final scores are in. See how you ranked on the right.
             </p>
             <Button

@@ -24,6 +24,10 @@ class BookTestOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class TestSubmitRequest(BaseModel):
+    submission_link: str | None = None
+
+
 class TestSubmissionOut(BaseModel):
     id: str
     test_id: str
@@ -31,6 +35,7 @@ class TestSubmissionOut(BaseModel):
     student_name: str
     student_login_id: str
     submitted_at: datetime | None = None
+    submission_link: str | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -39,3 +44,4 @@ class TestSubmissionOut(BaseModel):
 class TestSubmissionStatus(BaseModel):
     has_submitted: bool
     submitted_at: datetime | None = None
+    submission_link: str | None = None

@@ -25,6 +25,7 @@ interface TestSubmission {
   student_name: string;
   student_login_id: string;
   submitted_at?: string;
+  submission_link?: string;
   created_at: string;
 }
 
@@ -289,6 +290,9 @@ export default function BookTestPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       Submitted At
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                      Submission
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200">
@@ -308,6 +312,20 @@ export default function BookTestPage() {
                           </span>
                         ) : (
                           <span className="text-gray-500">Not submitted</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        {submission.submission_link ? (
+                          <a
+                            href={submission.submission_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary-600 hover:underline"
+                          >
+                            View file
+                          </a>
+                        ) : (
+                          <span className="text-gray-400">—</span>
                         )}
                       </td>
                     </tr>

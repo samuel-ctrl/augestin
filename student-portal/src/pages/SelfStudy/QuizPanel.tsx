@@ -8,11 +8,13 @@ interface QuizPanelProps {
   quizSource: "book" | "quiz_set";
   quizId: string;
   displayTitle?: string;
+  /** Notified whenever the current student's completion state changes. */
+  onCompletedChange?: (completed: boolean) => void;
 }
 
 type QuizState = "loading" | "start" | "active" | "completed";
 
-export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPanelProps) {
+export default function QuizPanel({ quizSource, quizId, displayTitle, onCompletedChange }: QuizPanelProps) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [totalTimeSeconds, setTotalTimeSeconds] = useState(0);
@@ -80,6 +82,12 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
   useEffect(() => {
     fetchSession();
   }, [fetchSession]);
+
+  // Notify the parent when the student's completion state changes, so views
+  // can gate completion-only content (e.g. the leaderboard) on having played.
+  useEffect(() => {
+    onCompletedChange?.(quizState === "completed");
+  }, [quizState, onCompletedChange]);
 
   // Global timer
   useEffect(() => {
@@ -230,7 +238,7 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
       return (
         <EmptyState
           icon={
-            <svg className="w-12 h-12 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-12 h-12 text-gray-300 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           }
@@ -249,10 +257,10 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
 
     return (
       <div className="max-w-md mx-auto mt-8">
-        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center shadow-sm">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 text-center shadow-sm">
           <div className="text-5xl mb-4">📝</div>
-          <h2 className="text-xl font-bold text-gray-800 mb-2">Quiz</h2>
-          <p className="text-gray-600 mb-6">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Quiz</h2>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
             {totalQuestions} question{totalQuestions !== 1 ? "s" : ""}
           </p>
 
@@ -302,32 +310,32 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
     return (
       <div className="max-w-2xl mx-auto mt-8">
         {/* Score Card */}
-        <div className="bg-white rounded-xl border border-gray-200 p-8 text-center shadow-sm mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-8 text-center shadow-sm mb-6">
           <div className="text-5xl mb-4">{passed ? "🎉" : "😔"}</div>
           <h2 className={`text-xl font-bold mb-1 ${passed ? "text-green-600" : "text-red-500"}`}>
             Quiz Completed{passed ? "!" : ""}
           </h2>
-          <p className="text-gray-500 text-sm mb-6">
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
             {passed ? "Great work!" : "Better luck next time."}
           </p>
-          <div className="bg-gray-50 rounded-lg p-6 mb-4">
-            <div className="text-4xl font-bold text-gray-800 mb-1">
+          <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-6 mb-4">
+            <div className="text-4xl font-bold text-gray-800 dark:text-gray-100 mb-1">
               {progress.score_percentage}%
             </div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
               {progress.correct_count} of {totalQuestions} correct
             </p>
             <div className="mt-3">
               <ProgressBar percentage={progress.score_percentage} size="sm" showLabel={false} />
             </div>
           </div>
-          <p className="text-xs text-gray-400">This quiz cannot be re-attempted.</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500">This quiz cannot be re-attempted.</p>
         </div>
 
         {/* Question Review */}
         {review && review.length > 0 && (
           <div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Review Answers</h3>
+            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-4">Review Answers</h3>
             <div className="space-y-4">
               {review.map((q, idx) => {
                 const options = [
@@ -340,13 +348,13 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
                 return (
                   <div
                     key={q.id}
-                    className={`bg-white rounded-lg border-2 p-5 ${
-                      q.is_correct ? "border-green-200" : q.selected_option ? "border-red-200" : "border-gray-200"
+                    className={`bg-white dark:bg-gray-800 rounded-lg border-2 p-5 ${
+                      q.is_correct ? "border-green-200" : q.selected_option ? "border-red-200" : "border-gray-200 dark:border-gray-700"
                     }`}
                   >
                     {/* Status badge */}
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm font-medium text-gray-500">
+                      <span className="text-sm font-medium text-gray-500 dark:text-gray-400">
                         Question {idx + 1}
                       </span>
                       <span
@@ -355,7 +363,7 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
                             ? "bg-green-100 text-green-700"
                             : q.selected_option
                             ? "bg-red-100 text-red-700"
-                            : "bg-gray-100 text-gray-500"
+                            : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
                         }`}
                       >
                         {q.is_correct ? "Correct" : q.selected_option ? "Incorrect" : "Not answered"}
@@ -363,7 +371,7 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
                     </div>
 
                     {/* Question text */}
-                    <p className="text-gray-800 mb-3 leading-relaxed">
+                    <p className="text-gray-800 dark:text-gray-100 mb-3 leading-relaxed">
                       <MathText text={q.question_text} />
                     </p>
 
@@ -374,7 +382,7 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
                         const isSelected = key === q.selected_option;
                         const isWrong = isSelected && !isCorrect;
 
-                        let optClass = "border-gray-200 bg-gray-50 text-gray-600";
+                        let optClass = "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 text-gray-600 dark:text-gray-300";
                         if (isCorrect) {
                           optClass = "border-green-400 bg-green-50 text-green-800";
                         } else if (isWrong) {
@@ -392,7 +400,7 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
                                   ? "bg-green-500 text-white"
                                   : isWrong
                                   ? "bg-red-500 text-white"
-                                  : "bg-gray-200 text-gray-500"
+                                  : "bg-gray-200 dark:bg-gray-600 text-gray-500 dark:text-gray-400"
                               }`}
                             >
                               {isCorrect ? "✓" : isWrong ? "✗" : key}
@@ -437,7 +445,7 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
   return (
     <div>
       {/* Top bar: timer + answered count */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-4">
         <div className="flex items-center justify-between mb-3">
           <div className={`flex items-center gap-1.5 ${timerColor} font-mono`}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -447,7 +455,7 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
               {String(timerMinutes).padStart(2, "0")}:{String(timerSeconds).padStart(2, "0")}
             </span>
           </div>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-500 dark:text-gray-400">
             {totalHandled} / {totalQuestions} done
             {answeredCount > 0 && ` (${answeredCount} answered, ${skippedCount} skipped)`}
           </span>
@@ -460,7 +468,7 @@ export default function QuizPanel({ quizSource, quizId, displayTitle }: QuizPane
             const isQuestionSkipped = !!skipped[q.id];
             const isCurrent = idx === currentIndex;
 
-            let circleClass = "border-gray-300 text-gray-500 bg-white hover:bg-gray-50";
+            let circleClass = "border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700";
             if (isCurrent) {
               circleClass = "border-primary-500 bg-primary-600 text-white";
             } else if (isAnswered) {
