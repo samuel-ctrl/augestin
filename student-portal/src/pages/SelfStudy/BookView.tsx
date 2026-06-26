@@ -24,6 +24,8 @@ export default function BookView() {
   const [testSubmissionLink, setTestSubmissionLink] = useState("");
   const [bookDoubts, setBookDoubts] = useState<Doubt[]>([]);
   const [doubtsCount, setDoubtsCount] = useState(0);
+  const [isVideoWatched, setIsVideoWatched] = useState(false);
+  const [markingWatched, setMarkingWatched] = useState(false);
 
   const fetchTestData = useCallback(async () => {
     if (!bookId) return;
@@ -57,11 +59,14 @@ export default function BookView() {
       setSubject(subjectRes.data);
       setRecap(recapRes.data);
 
-      // Fetch test data and doubts in parallel
+      // Fetch test data, doubts, and watch status in parallel
       if (bookId) {
         fetchTestData();
         api.get<PaginatedResponse<Doubt>>(`/books/${bookId}/doubts`, { params: { page: 1, page_size: 10 } })
           .then((res) => { setBookDoubts(res.data.items); setDoubtsCount(res.data.total); })
+          .catch(() => {});
+        api.get<{ is_watched: boolean }>(`/books/${bookId}/watch-status`)
+          .then((res) => setIsVideoWatched(res.data.is_watched))
           .catch(() => {});
       }
     } catch (err: unknown) {
@@ -196,6 +201,36 @@ export default function BookView() {
         <div>
           {/* Video Player */}
           <VideoPlayer src={assetUrl(book.video_url)} />
+
+          {/* Mark as Watched */}
+          <div className="mt-4">
+            {isVideoWatched ? (
+              <span className="inline-flex items-center gap-1.5 px-4 py-2 bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-sm font-medium rounded-lg border border-green-200 dark:border-green-700">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Watched
+              </span>
+            ) : (
+              <button
+                onClick={async () => {
+                  setMarkingWatched(true);
+                  try {
+                    await api.post(`/books/${bookId}/mark-watched`);
+                    setIsVideoWatched(true);
+                  } catch {
+                    // silently fail
+                  } finally {
+                    setMarkingWatched(false);
+                  }
+                }}
+                disabled={markingWatched}
+                className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {markingWatched ? "Saving..." : "Mark as Watched"}
+              </button>
+            )}
+          </div>
 
           {/* Book Details */}
           <div className="mt-6">

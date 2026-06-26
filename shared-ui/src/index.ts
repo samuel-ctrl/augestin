@@ -27,6 +27,7 @@ export type {
   LiveQuizLeaderboardEntry,
   LiveQuizAnswer,
   LiveQuizRoomSnapshot,
+  LearningZoneQuiz,
   BookTest,
   TestSubmissionStatus,
   TestSet,

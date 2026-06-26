@@ -236,7 +236,7 @@ export default function LiveQuizRoom() {
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
 
       <PageHeader
-        title={snapshot.quiz_set_name}
+        title={snapshot.quiz_name}
         subtitle={
           snapshot.status === "lobby" ? "Waiting for host to start" :
           snapshot.status === "active" ? `Time left ${formatTime(remaining)}` :
@@ -394,7 +394,11 @@ export default function LiveQuizRoom() {
               variant="outline"
               size="sm"
               className="mt-4"
-              onClick={() => navigate(`/quiz-sets/${snapshot.quiz_set_id}`)}
+              onClick={() =>
+                snapshot.quiz_source === "book"
+                  ? navigate(`/self-study/books/${snapshot.book_id}`)
+                  : navigate(`/quiz-sets/${snapshot.quiz_set_id}`)
+              }
             >
               Back to Quiz
             </Button>

@@ -187,10 +187,24 @@ export interface LiveQuizAnswer {
   is_correct?: boolean;
 }
 
+export interface LearningZoneQuiz {
+  book_id: string;
+  book_title: string;
+  book_thumbnail_url?: string;
+  subject_id: string;
+  subject_name: string;
+  question_count: number;
+  is_quiz_unlocked: boolean;
+}
+
 export interface LiveQuizRoomSnapshot {
   code: string;
-  quiz_set_id: string;
-  quiz_set_name: string;
+  quiz_source: "quiz_set" | "book";
+  quiz_set_id: string | null;
+  quiz_set_name: string | null;
+  book_id: string | null;
+  book_name: string | null;
+  quiz_name: string;
   host_id: string;
   host_type: "tutor" | "student";
   status: LiveQuizStatus;

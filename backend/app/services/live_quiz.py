@@ -14,10 +14,13 @@ from fastapi import HTTPException
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.models.book import Book
+from app.models.book_assignment import BookAssignment
 from app.models.question import Question
 from app.models.quiz_set import QuizSet
 from app.models.quiz_set_assignment import QuizSetAssignment
 from app.models.user import User, UserType
+from app.models.watch_progress import WatchProgress
 from app.websocket_manager import manager
 
 CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"  # excludes I, O, 0, 1
@@ -49,14 +52,19 @@ class Participant:
 
 @dataclass
 class Room:
+    # Required fields (no defaults) must come first
     code: str
-    quiz_set_id: str
-    quiz_set_name: str
+    quiz_source: Literal["quiz_set", "book"]
     host_id: str
     host_type: Literal["tutor", "student"]
     status: StatusType
     total_time_seconds: int
     questions: list[dict]
+    # Optional fields
+    quiz_set_id: Optional[str] = None
+    quiz_set_name: Optional[str] = None
+    book_id: Optional[str] = None
+    book_name: Optional[str] = None
     started_at: Optional[datetime] = None
     timer_task: Optional[asyncio.Task] = None
     participants: dict[str, Participant] = field(default_factory=dict)
@@ -114,6 +122,39 @@ def get_room(code: str) -> Room:
     return room
 
 
+async def _can_access_book_quiz(
+    db: AsyncSession, user: User, book_id: uuid.UUID
+) -> tuple[bool, str]:
+    """Return (can_access, reason). reason is 'ok', 'not_assigned', or 'quiz_locked'."""
+    if user.user_type == UserType.tutor:
+        return False, "not_assigned"
+
+    assignment_res = await db.execute(
+        select(BookAssignment).where(
+            and_(
+                BookAssignment.book_id == book_id,
+                BookAssignment.student_id == user.id,
+            )
+        )
+    )
+    if assignment_res.scalar_one_or_none() is None:
+        return False, "not_assigned"
+
+    wp_res = await db.execute(
+        select(WatchProgress).where(
+            and_(
+                WatchProgress.book_id == book_id,
+                WatchProgress.student_id == user.id,
+                WatchProgress.completed.is_(True),
+            )
+        )
+    )
+    if wp_res.scalar_one_or_none() is None:
+        return False, "quiz_locked"
+
+    return True, "ok"
+
+
 async def _can_access_quiz_set(db: AsyncSession, user: User, quiz_set: QuizSet) -> bool:
     if user.user_type == UserType.tutor:
         return str(quiz_set.tutor_id) == str(user.id)
@@ -131,24 +172,59 @@ async def _can_access_quiz_set(db: AsyncSession, user: User, quiz_set: QuizSet) 
 async def create_room(
     db: AsyncSession,
     user: User,
-    quiz_set_id: uuid.UUID,
+    quiz_set_id: uuid.UUID | None = None,
+    book_id: uuid.UUID | None = None,
     total_time_seconds: int | None = None,
 ) -> Room:
-    res = await db.execute(select(QuizSet).where(QuizSet.id == quiz_set_id))
-    quiz_set = res.scalar_one_or_none()
-    if not quiz_set:
-        raise HTTPException(status_code=404, detail="Quiz set not found")
-    if not await _can_access_quiz_set(db, user, quiz_set):
-        raise HTTPException(status_code=403, detail="You don't have access to this quiz set")
+    if quiz_set_id is not None:
+        res = await db.execute(select(QuizSet).where(QuizSet.id == quiz_set_id))
+        quiz_set = res.scalar_one_or_none()
+        if not quiz_set:
+            raise HTTPException(status_code=404, detail="Quiz set not found")
+        if not await _can_access_quiz_set(db, user, quiz_set):
+            raise HTTPException(status_code=403, detail="You don't have access to this quiz set")
 
-    qres = await db.execute(
-        select(Question)
-        .where(Question.quiz_set_id == quiz_set_id)
-        .order_by(Question.created_at.asc())
-    )
-    questions = list(qres.scalars().all())
-    if not questions:
-        raise HTTPException(status_code=400, detail="Quiz set has no questions")
+        qres = await db.execute(
+            select(Question)
+            .where(Question.quiz_set_id == quiz_set_id)
+            .order_by(Question.created_at.asc())
+        )
+        questions = list(qres.scalars().all())
+        if not questions:
+            raise HTTPException(status_code=400, detail="Quiz set has no questions")
+
+        quiz_source: Literal["quiz_set", "book"] = "quiz_set"
+        room_quiz_set_id: str | None = str(quiz_set_id)
+        room_quiz_set_name: str | None = quiz_set.name
+        room_book_id: str | None = None
+        room_book_name: str | None = None
+
+    else:
+        assert book_id is not None
+        book_res = await db.execute(select(Book).where(Book.id == book_id))
+        book = book_res.scalar_one_or_none()
+        if not book:
+            raise HTTPException(status_code=404, detail="Book not found")
+
+        can_access, reason = await _can_access_book_quiz(db, user, book_id)
+        if not can_access:
+            detail = "Book not assigned to you" if reason == "not_assigned" else "Complete the video first to unlock this quiz"
+            raise HTTPException(status_code=403, detail=detail)
+
+        qres = await db.execute(
+            select(Question)
+            .where(Question.book_id == book_id)
+            .order_by(Question.created_at.asc())
+        )
+        questions = list(qres.scalars().all())
+        if not questions:
+            raise HTTPException(status_code=400, detail="This book has no quiz questions")
+
+        quiz_source = "book"
+        room_quiz_set_id = None
+        room_quiz_set_name = None
+        room_book_id = str(book_id)
+        room_book_name = book.title
 
     default_time = sum(q.time_limit_seconds for q in questions) or MIN_TIME_SECONDS
     if total_time_seconds is None:
@@ -180,13 +256,16 @@ async def create_room(
 
         room = Room(
             code=code,
-            quiz_set_id=str(quiz_set_id),
-            quiz_set_name=quiz_set.name,
+            quiz_source=quiz_source,
             host_id=str(user.id),
             host_type=host_type,
             status="lobby",
             total_time_seconds=total_time,
             questions=[_question_to_dict(q) for q in questions],
+            quiz_set_id=room_quiz_set_id,
+            quiz_set_name=room_quiz_set_name,
+            book_id=room_book_id,
+            book_name=room_book_name,
         )
         room.participants[str(user.id)] = Participant(
             user_id=str(user.id),
@@ -227,12 +306,17 @@ async def join_room(db: AsyncSession, user: User, code: str) -> Room:
             if room.status != "lobby":
                 raise HTTPException(status_code=409, detail="Room already started")
 
-            res = await db.execute(
-                select(QuizSet).where(QuizSet.id == uuid.UUID(room.quiz_set_id))
-            )
-            quiz_set = res.scalar_one_or_none()
-            if not quiz_set or not await _can_access_quiz_set(db, user, quiz_set):
-                raise HTTPException(status_code=403, detail="You don't have access to this quiz set")
+            if room.quiz_source == "quiz_set":
+                res = await db.execute(
+                    select(QuizSet).where(QuizSet.id == uuid.UUID(room.quiz_set_id))
+                )
+                quiz_set = res.scalar_one_or_none()
+                if not quiz_set or not await _can_access_quiz_set(db, user, quiz_set):
+                    raise HTTPException(status_code=403, detail="You don't have access to this quiz set")
+            else:
+                can_access, reason = await _can_access_book_quiz(db, user, uuid.UUID(room.book_id))
+                if not can_access:
+                    raise HTTPException(status_code=403, detail=reason)
 
             host_type: Literal["tutor", "student"] = (
                 "tutor" if user.user_type == UserType.tutor else "student"
@@ -602,8 +686,12 @@ def room_to_snapshot(room: Room, requesting_user_id: str) -> dict:
 
     return {
         "code": room.code,
+        "quiz_source": room.quiz_source,
         "quiz_set_id": room.quiz_set_id,
         "quiz_set_name": room.quiz_set_name,
+        "book_id": room.book_id,
+        "book_name": room.book_name,
+        "quiz_name": room.book_name if room.quiz_source == "book" else room.quiz_set_name,
         "host_id": room.host_id,
         "host_type": room.host_type,
         "status": room.status,

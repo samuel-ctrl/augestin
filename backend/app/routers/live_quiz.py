@@ -5,7 +5,7 @@ Rooms are ephemeral and in-memory; see app/services/live_quiz.py.
 import uuid
 
 from fastapi import APIRouter, Depends, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_current_user, get_db
@@ -15,13 +15,22 @@ router = APIRouter(prefix="/api/quiz-rooms", tags=["quiz_rooms"])
 
 
 class CreateRoomRequest(BaseModel):
-    quiz_set_id: uuid.UUID
+    quiz_set_id: uuid.UUID | None = None
+    book_id: uuid.UUID | None = None
     total_time_seconds: int | None = Field(
         default=None,
         ge=live_quiz.MIN_TIME_SECONDS,
         le=live_quiz.MAX_TIME_SECONDS,
         description="Override the default quiz duration. Defaults to sum of question time limits.",
     )
+
+    @model_validator(mode="after")
+    def exactly_one_source(self) -> "CreateRoomRequest":
+        has_qs = self.quiz_set_id is not None
+        has_book = self.book_id is not None
+        if has_qs == has_book:
+            raise ValueError("Provide exactly one of quiz_set_id or book_id")
+        return self
 
 
 class AnswerRequest(BaseModel):
@@ -53,8 +62,12 @@ class LeaderboardEntryOut(BaseModel):
 
 class RoomSnapshotOut(BaseModel):
     code: str
-    quiz_set_id: str
-    quiz_set_name: str
+    quiz_source: str
+    quiz_set_id: str | None
+    quiz_set_name: str | None
+    book_id: str | None
+    book_name: str | None
+    quiz_name: str
     host_id: str
     host_type: str
     status: str
@@ -87,7 +100,10 @@ async def create_room(
 ):
     user = get_current_user(request)
     room = await live_quiz.create_room(
-        db, user, body.quiz_set_id, total_time_seconds=body.total_time_seconds,
+        db, user,
+        quiz_set_id=body.quiz_set_id,
+        book_id=body.book_id,
+        total_time_seconds=body.total_time_seconds,
     )
     return _snapshot(room, str(user.id))
 

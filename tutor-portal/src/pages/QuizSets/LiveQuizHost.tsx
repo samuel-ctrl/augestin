@@ -150,7 +150,7 @@ export default function LiveQuizHost() {
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
 
       <PageHeader
-        title={`Live: ${snapshot.quiz_set_name}`}
+        title={`Live: ${snapshot.quiz_name}`}
         subtitle={
           snapshot.status === "lobby" ? "Share the code and start when ready" :
           snapshot.status === "active" ? `Time left ${formatTime(remaining)}` :

@@ -7,11 +7,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func as sa_func
 
 from app.dependencies import get_current_user, get_db, require_student, require_tutor
+from datetime import datetime, timezone
+
 from app.models.book import Book
 from app.models.book_assignment import BookAssignment
 from app.models.question import Question
 from app.models.quiz_progress import QuizProgress
+from app.models.subject import Subject
 from app.models.user import User, UserType
+from app.models.watch_progress import WatchProgress
 from app.schemas.book import BookCreateRequest, BookOut, BookUpdateRequest
 from app.schemas.pagination import PaginatedResponse
 from app.services.book import (
@@ -243,6 +247,145 @@ async def list_student_books(
             "subject_id": str(book.subject_id),
             "question_count": q_counts.get(book.id, 0),
             "progress": progress_dict,
+        })
+
+    return {"items": items}
+
+
+# --- /api/books/{book_id}/watch-status ---
+
+@router.get("/api/books/{book_id}/watch-status")
+async def get_book_watch_status(
+    book_id: uuid.UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Return whether the current student has marked this book's video as watched."""
+    student = require_student(request)
+
+    assignment_res = await db.execute(
+        select(BookAssignment).where(
+            BookAssignment.book_id == book_id,
+            BookAssignment.student_id == student.id,
+        )
+    )
+    if assignment_res.scalar_one_or_none() is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Book not assigned to you")
+
+    wp_res = await db.execute(
+        select(WatchProgress).where(
+            WatchProgress.book_id == book_id,
+            WatchProgress.student_id == student.id,
+        )
+    )
+    row = wp_res.scalar_one_or_none()
+    return {"is_watched": bool(row and row.completed)}
+
+
+# --- POST /api/books/{book_id}/mark-watched ---
+
+@router.post("/api/books/{book_id}/mark-watched")
+async def mark_book_video_watched(
+    book_id: uuid.UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """Idempotent. Mark a book's video as watched, unlocking its quiz for multiplayer."""
+    student = require_student(request)
+
+    assignment_res = await db.execute(
+        select(BookAssignment).where(
+            BookAssignment.book_id == book_id,
+            BookAssignment.student_id == student.id,
+        )
+    )
+    if assignment_res.scalar_one_or_none() is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Book not assigned to you")
+
+    wp_res = await db.execute(
+        select(WatchProgress).where(
+            WatchProgress.book_id == book_id,
+            WatchProgress.student_id == student.id,
+        )
+    )
+    row = wp_res.scalar_one_or_none()
+    now = datetime.now(timezone.utc)
+    if row:
+        row.completed = True
+        row.last_watched_at = now
+    else:
+        row = WatchProgress(
+            student_id=student.id,
+            book_id=book_id,
+            watch_percentage=0.0,
+            last_position_seconds=0.0,
+            completed=True,
+            last_watched_at=now,
+        )
+        db.add(row)
+
+    await db.commit()
+    return {"is_watched": True}
+
+
+# --- GET /api/students/books/quizzes ---
+
+@router.get("/api/students/books/quizzes")
+async def list_student_book_quizzes(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """List assigned books that have quiz questions, with unlock status per student."""
+    student = require_student(request)
+
+    query = (
+        select(Book, WatchProgress)
+        .join(BookAssignment, Book.id == BookAssignment.book_id)
+        .outerjoin(
+            WatchProgress,
+            and_(
+                WatchProgress.book_id == Book.id,
+                WatchProgress.student_id == student.id,
+            ),
+        )
+        .where(BookAssignment.student_id == student.id)
+        .order_by(Book.created_at.asc())
+    )
+    results = (await db.execute(query)).all()
+
+    book_ids = [row[0].id for row in results]
+    q_counts: dict = {}
+    if book_ids:
+        count_result = await db.execute(
+            select(Question.book_id, sa_func.count(Question.id))
+            .where(Question.book_id.in_(book_ids))
+            .group_by(Question.book_id)
+        )
+        q_counts = dict(count_result.all())
+
+    subject_ids = list({row[0].subject_id for row in results})
+    subject_names: dict = {}
+    if subject_ids:
+        subj_result = await db.execute(
+            select(Subject).where(Subject.id.in_(subject_ids))
+        )
+        subject_names = {s.id: s.name for s in subj_result.scalars().all()}
+
+    items = []
+    for row in results:
+        book = row[0]
+        wp = row[1]
+        qcount = q_counts.get(book.id, 0)
+        if qcount == 0:
+            continue
+        items.append({
+            "book_id": str(book.id),
+            "book_title": book.title,
+            "book_thumbnail_url": book.thumbnail_url,
+            "subject_id": str(book.subject_id),
+            "subject_name": subject_names.get(book.subject_id, ""),
+            "question_count": qcount,
+            "is_quiz_unlocked": bool(wp and wp.completed),
         })
 
     return {"items": items}

@@ -9,20 +9,34 @@ export default function LiveQuizJoin() {
   const [code, setCode] = useState("");
   const [joining, setJoining] = useState(false);
   const { toast, showApiError, dismiss } = useToast();
+  const [blockModal, setBlockModal] = useState<{ open: boolean; message: string }>({
+    open: false,
+    message: "",
+  });
 
   const handleJoin = async () => {
     const trimmed = code.trim().toUpperCase();
     if (trimmed.length < 4) return;
     setJoining(true);
     try {
-      const res = await api.post<LiveQuizRoomSnapshot>(
-        `/quiz-rooms/${trimmed}/join`
-      );
-      navigate(
-        `/quiz-sets/${res.data.quiz_set_id}/live/${res.data.code}`
-      );
-    } catch (err) {
-      showApiError(err, "Could not join room. Check the code and try again.");
+      const res = await api.post<LiveQuizRoomSnapshot>(`/quiz-rooms/${trimmed}/join`);
+      const id = res.data.quiz_source === "book" ? res.data.book_id : res.data.quiz_set_id;
+      navigate(`/quiz-sets/${id}/live/${res.data.code}`);
+    } catch (err: unknown) {
+      const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;
+      if (detail === "not_assigned") {
+        setBlockModal({
+          open: true,
+          message: "You haven't been assigned this book. Ask your tutor to assign it to you.",
+        });
+      } else if (detail === "quiz_locked") {
+        setBlockModal({
+          open: true,
+          message: "You need to watch the video for this book and mark it as watched before you can join.",
+        });
+      } else {
+        showApiError(err, "Could not join room. Check the code and try again.");
+      }
     } finally {
       setJoining(false);
     }
@@ -72,6 +86,32 @@ export default function LiveQuizJoin() {
           and tap <strong>Play Live with Friends</strong>.
         </p>
       </div>
+
+      {/* Access blocked modal */}
+      {blockModal.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-sm w-full p-6">
+            <div className="flex items-start gap-3 mb-4">
+              <span className="text-2xl">🔒</span>
+              <div>
+                <h3 className="text-base font-semibold text-gray-900 dark:text-gray-50">
+                  Can't join this room
+                </h3>
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">
+                  {blockModal.message}
+                </p>
+              </div>
+            </div>
+            <Button
+              color="primary"
+              className="w-full"
+              onClick={() => setBlockModal({ open: false, message: "" })}
+            >
+              Got it
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
