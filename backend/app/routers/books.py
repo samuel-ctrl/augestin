@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import func as sa_func
 
 from app.dependencies import get_current_user, get_db, require_student, require_tutor
-from datetime import datetime, timezone
+from datetime import datetime
 
 from app.models.book import Book
 from app.models.book_assignment import BookAssignment
@@ -309,7 +309,7 @@ async def mark_book_video_watched(
         )
     )
     row = wp_res.scalar_one_or_none()
-    now = datetime.now(timezone.utc)
+    now = datetime.utcnow()
     if row:
         row.completed = True
         row.last_watched_at = now
