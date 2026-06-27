@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.book import Book
 from app.models.book_assignment import BookAssignment
+from app.models.topic import Topic
 from app.models.user import User, UserType
 from app.services.lookup import validate_standard
 
@@ -27,10 +28,8 @@ def validate_url(url: str) -> str:
     if not hostname:
         raise ValueError("URL must have a valid hostname")
 
-    # Decode percent-encoded hostnames before checking
     decoded_hostname = unquote(hostname)
 
-    # Block private/internal IPs (check both raw and decoded hostname)
     for name in (hostname, decoded_hostname):
         try:
             addr = ip_address(name)
@@ -39,9 +38,7 @@ def validate_url(url: str) -> str:
         except ValueError as e:
             if "not allowed" in str(e):
                 raise
-            # Not an IP address — that's fine, it's a domain name
 
-    # Resolve hostname and block private IPs behind DNS
     try:
         resolved = socket.getaddrinfo(decoded_hostname, None, socket.AF_UNSPEC, socket.SOCK_STREAM)
         for family, _, _, _, sockaddr in resolved:
@@ -49,7 +46,6 @@ def validate_url(url: str) -> str:
             if addr.is_private or addr.is_loopback or addr.is_reserved:
                 raise ValueError("URLs pointing to private or internal addresses are not allowed")
     except socket.gaierror:
-        # Cannot resolve — allow it (may be valid but not resolvable from this host)
         pass
 
     return url
@@ -59,20 +55,17 @@ async def create_book(
     db: AsyncSession,
     title: str,
     subject_id: uuid.UUID,
-    video_url: str,
     standard: str,
     description: str | None = None,
     thumbnail_url: str | None = None,
 ) -> Book:
     await validate_standard(db, standard)
-    validate_url(video_url)
     if thumbnail_url:
         validate_url(thumbnail_url)
     book = Book(
         title=title,
         description=description,
         thumbnail_url=thumbnail_url,
-        video_url=video_url,
         standard=standard,
         subject_id=subject_id,
     )
@@ -93,7 +86,6 @@ async def update_book(
     title: str | None = None,
     description: str | None = None,
     standard: str | None = None,
-    video_url: str | None = None,
     thumbnail_url: str | None = None,
 ) -> Book:
     if title is not None:
@@ -103,12 +95,9 @@ async def update_book(
     if standard is not None:
         await validate_standard(db, standard)
         book.standard = standard
-    if video_url is not None:
-        validate_url(video_url)
-        book.video_url = video_url
     if thumbnail_url is not None:
         if thumbnail_url == "":
-            book.thumbnail_url = None  # clear thumbnail
+            book.thumbnail_url = None
         else:
             validate_url(thumbnail_url)
             book.thumbnail_url = thumbnail_url
@@ -136,7 +125,6 @@ async def list_books(
     if user.user_type == UserType.tutor:
         query = select(Book).where(Book.subject_id == subject_id)
     else:
-        # Student: only assigned books
         query = (
             select(Book)
             .join(BookAssignment, BookAssignment.book_id == Book.id)
@@ -152,11 +140,9 @@ async def list_books(
     if standard:
         query = query.where(Book.standard == standard)
 
-    # Count
     count_q = select(func.count()).select_from(query.subquery())
     total = (await db.execute(count_q)).scalar() or 0
 
-    # Sort
     allowed_sort = {"title", "standard", "created_at"}
     if sort_by not in allowed_sort:
         sort_by = "created_at"
@@ -171,5 +157,16 @@ async def list_books(
     books = list(result.scalars().all())
 
     total_pages = math.ceil(total / page_size) if page_size > 0 else 0
-
     return books, total, page, page_size, total_pages
+
+
+async def get_topic_counts(db: AsyncSession, book_ids: list[uuid.UUID]) -> dict[uuid.UUID, int]:
+    """Batch-fetch topic counts for a list of books."""
+    if not book_ids:
+        return {}
+    result = await db.execute(
+        select(Topic.book_id, func.count(Topic.id))
+        .where(Topic.book_id.in_(book_ids))
+        .group_by(Topic.book_id)
+    )
+    return dict(result.all())

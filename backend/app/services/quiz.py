@@ -5,25 +5,25 @@ from datetime import datetime, timezone
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.book import Book
 from app.models.book_assignment import BookAssignment
 from app.models.question import Question
 from app.models.quiz_attempt import QuizAttempt
 from app.models.quiz_progress import QuizProgress
 from app.models.quiz_set import QuizSet
 from app.models.quiz_set_assignment import QuizSetAssignment
+from app.models.topic import Topic
 from app.models.user import User
 from app.schemas.quiz_sets import QuizSetLeaderboardEntryOut
 
 
 # ---------------------------------------------------------------------------
-# Tutor: Question CRUD
+# Tutor: Question CRUD (topic-scoped)
 # ---------------------------------------------------------------------------
 
 
 async def create_question(
     db: AsyncSession,
-    book_id: uuid.UUID | None = None,
+    topic_id: uuid.UUID | None = None,
     quiz_set_id: uuid.UUID | None = None,
     question_text: str = "",
     question_image_url: str | None = None,
@@ -39,14 +39,13 @@ async def create_question(
     explanation: str | None = None,
     time_limit_seconds: int = 60,
 ) -> Question:
-    # Validate exactly one source
-    if (book_id and quiz_set_id) or (not book_id and not quiz_set_id):
-        raise ValueError("Question must belong to exactly one source: book or quiz_set")
+    if (topic_id and quiz_set_id) or (not topic_id and not quiz_set_id):
+        raise ValueError("Question must belong to exactly one source: topic or quiz_set")
 
-    if book_id:
-        book = await db.execute(select(Book).where(Book.id == book_id))
-        if book.scalar_one_or_none() is None:
-            raise ValueError("Book not found")
+    if topic_id:
+        topic = await db.execute(select(Topic).where(Topic.id == topic_id))
+        if topic.scalar_one_or_none() is None:
+            raise ValueError("Topic not found")
 
     if quiz_set_id:
         qs = await db.execute(select(QuizSet).where(QuizSet.id == quiz_set_id))
@@ -54,7 +53,7 @@ async def create_question(
             raise ValueError("Quiz set not found")
 
     question = Question(
-        book_id=book_id,
+        topic_id=topic_id,
         quiz_set_id=quiz_set_id,
         question_text=question_text,
         question_image_url=question_image_url,
@@ -78,21 +77,20 @@ async def create_question(
 
 async def bulk_create_questions(
     db: AsyncSession,
-    book_id: uuid.UUID | None = None,
+    topic_id: uuid.UUID | None = None,
     quiz_set_id: uuid.UUID | None = None,
     questions_data: list[dict] | None = None,
 ) -> list[Question]:
     if questions_data is None:
         questions_data = []
 
-    # Validate exactly one source
-    if (book_id and quiz_set_id) or (not book_id and not quiz_set_id):
-        raise ValueError("Questions must belong to exactly one source: book or quiz_set")
+    if (topic_id and quiz_set_id) or (not topic_id and not quiz_set_id):
+        raise ValueError("Questions must belong to exactly one source: topic or quiz_set")
 
-    if book_id:
-        book = await db.execute(select(Book).where(Book.id == book_id))
-        if book.scalar_one_or_none() is None:
-            raise ValueError("Book not found")
+    if topic_id:
+        topic = await db.execute(select(Topic).where(Topic.id == topic_id))
+        if topic.scalar_one_or_none() is None:
+            raise ValueError("Topic not found")
 
     if quiz_set_id:
         qs = await db.execute(select(QuizSet).where(QuizSet.id == quiz_set_id))
@@ -101,7 +99,7 @@ async def bulk_create_questions(
 
     created = []
     for data in questions_data:
-        q = Question(book_id=book_id, quiz_set_id=quiz_set_id, **data)
+        q = Question(topic_id=topic_id, quiz_set_id=quiz_set_id, **data)
         db.add(q)
         created.append(q)
 
@@ -172,7 +170,7 @@ async def delete_question(db: AsyncSession, question: Question) -> None:
 
 async def list_questions(
     db: AsyncSession,
-    book_id: uuid.UUID | None = None,
+    topic_id: uuid.UUID | None = None,
     quiz_set_id: uuid.UUID | None = None,
     page: int = 1,
     page_size: int = 50,
@@ -180,13 +178,12 @@ async def list_questions(
     sort_by: str = "created_at",
     sort_order: str = "asc",
 ) -> tuple[list[Question], int, int, int, int]:
-    # Build query based on source
-    if book_id:
-        query = select(Question).where(Question.book_id == book_id)
+    if topic_id:
+        query = select(Question).where(Question.topic_id == topic_id)
     elif quiz_set_id:
         query = select(Question).where(Question.quiz_set_id == quiz_set_id)
     else:
-        raise ValueError("Either book_id or quiz_set_id must be provided")
+        raise ValueError("Either topic_id or quiz_set_id must be provided")
 
     if search:
         search_term = f"%{search}%"
@@ -222,7 +219,7 @@ async def list_questions(
 
 async def reorder_questions(
     db: AsyncSession,
-    book_id: uuid.UUID | None = None,
+    topic_id: uuid.UUID | None = None,
     quiz_set_id: uuid.UUID | None = None,
     question_ids: list[uuid.UUID] | None = None,
 ) -> None:
@@ -230,10 +227,10 @@ async def reorder_questions(
         question_ids = []
 
     for idx, qid in enumerate(question_ids):
-        if book_id:
+        if topic_id:
             result = await db.execute(
                 select(Question).where(
-                    and_(Question.id == qid, Question.book_id == book_id)
+                    and_(Question.id == qid, Question.topic_id == topic_id)
                 )
             )
         elif quiz_set_id:
@@ -243,12 +240,12 @@ async def reorder_questions(
                 )
             )
         else:
-            raise ValueError("Either book_id or quiz_set_id must be provided")
+            raise ValueError("Either topic_id or quiz_set_id must be provided")
 
         question = result.scalar_one_or_none()
         if question is None:
             raise ValueError(f"Question {qid} not found in this source")
-        pass  # reorder is a no-op now that sort_order is removed
+
     await db.commit()
 
 
@@ -264,11 +261,16 @@ async def _validate_assignment(
     quiz_id: uuid.UUID,
 ) -> None:
     """Validate student has access to this quiz."""
-    if quiz_source == "book":
+    if quiz_source == "topic":
+        # Topic access is gated by BookAssignment on the parent book
+        topic_result = await db.execute(select(Topic).where(Topic.id == quiz_id))
+        topic = topic_result.scalar_one_or_none()
+        if topic is None:
+            raise ValueError("Topic not found")
         result = await db.execute(
             select(BookAssignment).where(
                 and_(
-                    BookAssignment.book_id == quiz_id,
+                    BookAssignment.book_id == topic.book_id,
                     BookAssignment.student_id == student_id,
                 )
             )
@@ -314,10 +316,10 @@ async def _get_questions(
     quiz_id: uuid.UUID,
 ) -> list[Question]:
     """Get all questions for a quiz, ordered by created_at."""
-    if quiz_source == "book":
+    if quiz_source == "topic":
         result = await db.execute(
             select(Question)
-            .where(Question.book_id == quiz_id)
+            .where(Question.topic_id == quiz_id)
             .order_by(Question.created_at.asc())
         )
     elif quiz_source == "quiz_set":
@@ -338,10 +340,10 @@ async def _get_total_quiz_time(
     quiz_id: uuid.UUID,
 ) -> int:
     """Total quiz time = sum of all question time_limit_seconds."""
-    if quiz_source == "book":
+    if quiz_source == "topic":
         result = await db.execute(
             select(func.coalesce(func.sum(Question.time_limit_seconds), 0))
-            .where(Question.book_id == quiz_id)
+            .where(Question.topic_id == quiz_id)
         )
     elif quiz_source == "quiz_set":
         result = await db.execute(
@@ -391,13 +393,10 @@ async def get_quiz_session(
     """Get quiz state: questions, progress, existing answers."""
     await _validate_assignment(db, student_id, quiz_source, quiz_id)
 
-    # Load all questions
     questions = await _get_questions(db, quiz_source, quiz_id)
     total_time = await _get_total_quiz_time(db, quiz_source, quiz_id)
-
     progress = await _get_progress(db, student_id, quiz_source, quiz_id)
 
-    # Load existing answers
     answers: dict = {}
     skipped: dict = {}
     if progress and progress.started_at:
@@ -433,10 +432,8 @@ async def start_quiz(
         raise ValueError("Quiz already completed. Cannot re-attempt.")
 
     if progress and progress.started_at:
-        # Already started, return existing (resume)
-        return progress
+        return progress  # Resume existing
 
-    # Get total time and questions count
     total_time = await _get_total_quiz_time(db, quiz_source, quiz_id)
     questions = await _get_questions(db, quiz_source, quiz_id)
     total_questions = len(questions)
@@ -446,7 +443,7 @@ async def start_quiz(
             student_id=student_id,
             quiz_source=quiz_source,
             quiz_id=quiz_id,
-            book_id=quiz_id if quiz_source == "book" else None,
+            topic_id=quiz_id if quiz_source == "topic" else None,
             is_started=True,
             started_at=datetime.now(timezone.utc),
             total_time_seconds=total_time,
@@ -475,7 +472,6 @@ async def submit_answer(
     time_taken_seconds: int | None = None,
 ) -> dict:
     """Submit or update an answer. Handles both regular answers and skips."""
-    # Validate that we're not both answering and skipping
     if is_skipped and selected_option:
         raise ValueError("Cannot both skip and provide an answer")
 
@@ -487,7 +483,7 @@ async def submit_answer(
     if progress.is_completed:
         raise ValueError("Quiz already completed")
 
-    # Check time expired — handle both naive and aware datetimes (SQLite vs PostgreSQL)
+    # Check time expired
     now = datetime.now(timezone.utc)
     started = progress.started_at
     if started.tzinfo is None:
@@ -497,22 +493,21 @@ async def submit_answer(
         await _finalize_quiz(db, progress)
         raise ValueError("Quiz time expired")
 
-    # Verify question belongs to quiz
+    # Verify question belongs to this quiz
     question = await get_question(db, question_id)
     if question is None:
         raise ValueError("Question not found")
 
-    if quiz_source == "book" and question.book_id != quiz_id:
-        raise ValueError("Question does not belong to this book")
+    if quiz_source == "topic" and question.topic_id != quiz_id:
+        raise ValueError("Question does not belong to this topic")
     elif quiz_source == "quiz_set" and question.quiz_set_id != quiz_id:
         raise ValueError("Question does not belong to this quiz set")
 
-    # Determine correctness
     is_correct = False
     if not is_skipped and selected_option:
         is_correct = selected_option.upper() == question.correct_option
 
-    # Check for existing attempt (upsert)
+    # Upsert attempt
     existing_result = await db.execute(
         select(QuizAttempt).where(
             and_(
@@ -526,7 +521,6 @@ async def submit_answer(
     existing = existing_result.scalar_one_or_none()
 
     if existing:
-        # Update existing attempt
         was_correct = existing.is_correct
         was_skipped = existing.is_skipped
 
@@ -535,7 +529,6 @@ async def submit_answer(
         existing.is_skipped = is_skipped
         existing.time_taken_seconds = time_taken_seconds
 
-        # Adjust progress counts
         if was_correct and not is_correct:
             progress.correct_count -= 1
         elif not was_correct and is_correct:
@@ -546,12 +539,11 @@ async def submit_answer(
         elif not was_skipped and is_skipped:
             progress.skipped_count += 1
     else:
-        # New attempt
         attempt = QuizAttempt(
             student_id=student_id,
             quiz_source=quiz_source,
             quiz_id=quiz_id,
-            book_id=quiz_id if quiz_source == "book" else None,
+            topic_id=quiz_id if quiz_source == "topic" else None,
             question_id=question_id,
             selected_option=selected_option.upper() if selected_option else None,
             is_correct=is_correct,
@@ -592,7 +584,7 @@ async def complete_quiz(
     if progress is None or progress.started_at is None:
         raise ValueError("Quiz not started yet")
     if progress.is_completed:
-        return progress  # Already done
+        return progress
 
     await _finalize_quiz(db, progress)
     return progress
@@ -600,7 +592,6 @@ async def complete_quiz(
 
 async def _finalize_quiz(db: AsyncSession, progress: QuizProgress) -> None:
     """Mark quiz as completed and calculate score."""
-    # Recount correct from actual attempts
     correct_result = await db.execute(
         select(func.count()).where(
             and_(
@@ -663,9 +654,9 @@ async def get_question_count(
     quiz_source: str,
     quiz_id: uuid.UUID,
 ) -> int:
-    if quiz_source == "book":
+    if quiz_source == "topic":
         result = await db.execute(
-            select(func.count()).where(Question.book_id == quiz_id)
+            select(func.count()).where(Question.topic_id == quiz_id)
         )
     elif quiz_source == "quiz_set":
         result = await db.execute(

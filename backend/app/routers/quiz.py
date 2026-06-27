@@ -39,7 +39,7 @@ router = APIRouter(tags=["quiz"])
 def _question_to_out(q) -> QuestionOut:
     return QuestionOut(
         id=str(q.id),
-        book_id=str(q.book_id) if q.book_id else None,
+        topic_id=str(q.topic_id) if q.topic_id else None,
         quiz_set_id=str(q.quiz_set_id) if q.quiz_set_id else None,
         question_text=q.question_text,
         question_image_url=q.question_image_url,
@@ -92,16 +92,16 @@ def _progress_to_out(p) -> QuizProgressOut:
 
 
 # ---------------------------------------------------------------------------
-# Tutor: Question CRUD
+# Tutor: Question CRUD  (topic-scoped)
 # ---------------------------------------------------------------------------
 
 
 @router.get(
-    "/api/books/{book_id}/questions",
+    "/api/topics/{topic_id}/questions",
     response_model=PaginatedResponse[QuestionOut],
 )
 async def list_questions_endpoint(
-    book_id: uuid.UUID,
+    topic_id: uuid.UUID,
     request: Request,
     page: int = Query(1, ge=1),
     page_size: int = Query(50, ge=1, le=100),
@@ -112,7 +112,7 @@ async def list_questions_endpoint(
 ):
     require_tutor(request)
     questions, total, pg, ps, total_pages = await list_questions(
-        db, book_id=book_id, page=page, page_size=page_size,
+        db, topic_id=topic_id, page=page, page_size=page_size,
         search=search, sort_by=sort_by, sort_order=sort_order,
     )
     return PaginatedResponse(
@@ -122,12 +122,12 @@ async def list_questions_endpoint(
 
 
 @router.post(
-    "/api/books/{book_id}/questions",
+    "/api/topics/{topic_id}/questions",
     response_model=QuestionOut,
     status_code=status.HTTP_201_CREATED,
 )
 async def create_question_endpoint(
-    book_id: uuid.UUID,
+    topic_id: uuid.UUID,
     body: QuestionCreate,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -135,7 +135,7 @@ async def create_question_endpoint(
     require_tutor(request)
     try:
         question = await create_question(
-            db, book_id=book_id,
+            db, topic_id=topic_id,
             question_text=body.question_text,
             question_image_url=body.question_image_url,
             option_a=body.option_a, option_a_image_url=body.option_a_image_url,
@@ -152,11 +152,11 @@ async def create_question_endpoint(
 
 
 @router.post(
-    "/api/books/{book_id}/questions/bulk",
+    "/api/topics/{topic_id}/questions/bulk",
     status_code=status.HTTP_201_CREATED,
 )
 async def bulk_create_questions_endpoint(
-    book_id: uuid.UUID,
+    topic_id: uuid.UUID,
     body: QuestionBulkCreate,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -164,7 +164,7 @@ async def bulk_create_questions_endpoint(
     require_tutor(request)
     try:
         questions = await bulk_create_questions(
-            db, book_id=book_id,
+            db, topic_id=topic_id,
             questions_data=[q.model_dump() for q in body.questions],
         )
     except ValueError as e:
@@ -230,9 +230,9 @@ async def delete_question_endpoint(
     await delete_question(db, question)
 
 
-@router.put("/api/books/{book_id}/questions/reorder")
+@router.put("/api/topics/{topic_id}/questions/reorder")
 async def reorder_questions_endpoint(
-    book_id: uuid.UUID,
+    topic_id: uuid.UUID,
     body: ReorderRequest,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -240,7 +240,7 @@ async def reorder_questions_endpoint(
     require_tutor(request)
     try:
         await reorder_questions(
-            db, book_id=book_id,
+            db, topic_id=topic_id,
             question_ids=[uuid.UUID(qid) for qid in body.question_ids],
         )
     except ValueError as e:
@@ -249,19 +249,19 @@ async def reorder_questions_endpoint(
 
 
 # ---------------------------------------------------------------------------
-# Student: Quiz Flow
+# Student: Quiz Flow  (topic-scoped)
 # ---------------------------------------------------------------------------
 
 
-@router.get("/api/books/{book_id}/quiz", response_model=QuizSessionOut)
+@router.get("/api/topics/{topic_id}/quiz", response_model=QuizSessionOut)
 async def get_quiz_session_endpoint(
-    book_id: uuid.UUID,
+    topic_id: uuid.UUID,
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     student = require_student(request)
     try:
-        session = await get_quiz_session(db, student_id=student.id, quiz_source="book", quiz_id=book_id)
+        session = await get_quiz_session(db, student_id=student.id, quiz_source="topic", quiz_id=topic_id)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=str(e))
 
@@ -269,7 +269,6 @@ async def get_quiz_session_endpoint(
     answers = session.get("answers", {})
     skipped = session.get("skipped", {})
 
-    # Build review data only when quiz is completed
     review = None
     if progress and progress.is_completed:
         review = []
@@ -307,23 +306,23 @@ async def get_quiz_session_endpoint(
     )
 
 
-@router.post("/api/books/{book_id}/quiz/start", response_model=QuizProgressOut)
+@router.post("/api/topics/{topic_id}/quiz/start", response_model=QuizProgressOut)
 async def start_quiz_endpoint(
-    book_id: uuid.UUID,
+    topic_id: uuid.UUID,
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     student = require_student(request)
     try:
-        progress = await start_quiz(db, student_id=student.id, quiz_source="book", quiz_id=book_id)
+        progress = await start_quiz(db, student_id=student.id, quiz_source="topic", quiz_id=topic_id)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return _progress_to_out(progress)
 
 
-@router.post("/api/books/{book_id}/quiz/submit", response_model=QuizSubmitResponse)
+@router.post("/api/topics/{topic_id}/quiz/submit", response_model=QuizSubmitResponse)
 async def submit_answer_endpoint(
-    book_id: uuid.UUID,
+    topic_id: uuid.UUID,
     body: QuizSubmitRequest,
     request: Request,
     db: AsyncSession = Depends(get_db),
@@ -331,7 +330,7 @@ async def submit_answer_endpoint(
     student = require_student(request)
     try:
         result = await submit_answer(
-            db, student_id=student.id, quiz_source="book", quiz_id=book_id,
+            db, student_id=student.id, quiz_source="topic", quiz_id=topic_id,
             question_id=uuid.UUID(body.question_id),
             selected_option=body.selected_option,
             is_skipped=body.is_skipped,
@@ -348,29 +347,28 @@ async def submit_answer_endpoint(
     )
 
 
-@router.post("/api/books/{book_id}/quiz/complete", response_model=QuizProgressOut)
+@router.post("/api/topics/{topic_id}/quiz/complete", response_model=QuizProgressOut)
 async def complete_quiz_endpoint(
-    book_id: uuid.UUID,
+    topic_id: uuid.UUID,
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    """Auto-complete quiz on exit or timeout."""
     student = require_student(request)
     try:
-        progress = await complete_quiz(db, student_id=student.id, quiz_source="book", quiz_id=book_id)
+        progress = await complete_quiz(db, student_id=student.id, quiz_source="topic", quiz_id=topic_id)
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
     return _progress_to_out(progress)
 
 
-@router.get("/api/books/{book_id}/quiz/progress", response_model=QuizProgressOut | None)
+@router.get("/api/topics/{topic_id}/quiz/progress", response_model=QuizProgressOut | None)
 async def get_quiz_progress_endpoint(
-    book_id: uuid.UUID,
+    topic_id: uuid.UUID,
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
     student = require_student(request)
-    progress = await get_quiz_progress(db, student_id=student.id, quiz_source="book", quiz_id=book_id)
+    progress = await get_quiz_progress(db, student_id=student.id, quiz_source="topic", quiz_id=topic_id)
     if progress is None:
         return None
     return _progress_to_out(progress)

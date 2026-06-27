@@ -13,10 +13,11 @@ import Dashboard from "./pages/SelfStudy/Dashboard";
 import SubjectBooks from "./pages/SelfStudy/SubjectBooks";
 import BookForm from "./pages/SelfStudy/BookForm";
 import BookAssign from "./pages/SelfStudy/BookAssign";
-import BookQuestions from "./pages/SelfStudy/BookQuestions";
+import BookTopics from "./pages/SelfStudy/BookTopics";
+import TopicForm from "./pages/SelfStudy/TopicForm";
+import TopicNotes from "./pages/SelfStudy/TopicNotes";
+import TopicQuestions from "./pages/SelfStudy/TopicQuestions";
 import QuestionForm from "./pages/SelfStudy/QuestionForm";
-import BookPreview from "./pages/SelfStudy/BookPreview";
-import BookRecap from "./pages/SelfStudy/BookRecap";
 import BookTest from "./pages/SelfStudy/BookTest";
 import QuizSetList from "./pages/QuizSets/QuizSetList";
 import QuizSetForm from "./pages/QuizSets/QuizSetForm";
@@ -85,12 +86,14 @@ function AppShell() {
           <Route path="/self-study/subjects/:id" element={<SubjectBooks />} />
           <Route path="/self-study/books/new" element={<BookForm />} />
           <Route path="/self-study/books/:id/edit" element={<BookForm />} />
-          <Route path="/self-study/books/:id/preview" element={<BookPreview />} />
+          <Route path="/self-study/books/:id/topics" element={<BookTopics />} />
+          <Route path="/self-study/books/:bookId/topics/new" element={<TopicForm />} />
           <Route path="/self-study/books/:id/assign" element={<BookAssign />} />
-          <Route path="/self-study/books/:id/recap" element={<BookRecap />} />
           <Route path="/self-study/books/:id/test" element={<BookTest />} />
-          <Route path="/self-study/books/:id/questions" element={<BookQuestions />} />
-          <Route path="/self-study/books/:bookId/questions/new" element={<QuestionForm />} />
+          <Route path="/self-study/topics/:topicId/edit" element={<TopicForm />} />
+          <Route path="/self-study/topics/:topicId/notes" element={<TopicNotes />} />
+          <Route path="/self-study/topics/:topicId/questions" element={<TopicQuestions />} />
+          <Route path="/self-study/topics/:topicId/questions/new" element={<QuestionForm />} />
           <Route path="/self-study/questions/:id/edit" element={<QuestionForm />} />
           <Route path="/quiz-sets" element={<QuizSetList />} />
           <Route path="/quiz-sets/new" element={<QuizSetForm />} />

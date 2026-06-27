@@ -66,7 +66,7 @@ class ReorderRequest(BaseModel):
 
 class QuestionOut(BaseModel):
     id: str
-    book_id: str | None = None
+    topic_id: str | None = None
     quiz_set_id: str | None = None
     question_text: str
     question_image_url: str | None = None

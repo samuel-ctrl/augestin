@@ -1,20 +1,21 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { LoadingSpinner, Toast, useToast, MathText, Button } from "@shared";
 import api from "../../api/client";
 
 export default function QuestionForm() {
-  const params = useParams<{ id: string; bookId: string; quizSetId: string }>();
-  const [searchParams] = useSearchParams();
+  const params = useParams<{ id: string; topicId: string; quizSetId: string }>();
   const navigate = useNavigate();
-  // Edit mode: /self-study/questions/:id/edit
-  // Create mode: /self-study/books/:bookId/questions/new OR /quiz-sets/:quizSetId/questions/new
-  const isEdit = !!params.id && !params.bookId && !params.quizSetId;
+
+  // Edit mode:   /self-study/questions/:id/edit
+  // Topic mode:  /self-study/topics/:topicId/questions/new
+  // QuizSet mode: /quiz-sets/:quizSetId/questions/new
+  const isEdit = !!params.id && !params.topicId && !params.quizSetId;
   const questionId = params.id;
   const isQuizSetMode = !!params.quizSetId;
 
-  const [bookId, setBookId] = useState(params.bookId || searchParams.get("book_id") || "");
-  const [quizSetId, setQuizSetId] = useState(params.quizSetId || searchParams.get("quiz_set_id") || "");
+  const [topicId, setTopicId] = useState(params.topicId || "");
+  const [quizSetId, setQuizSetId] = useState(params.quizSetId || "");
   const [sourceTitle, setSourceTitle] = useState("");
   const [questionText, setQuestionText] = useState("");
   const [optionA, setOptionA] = useState("");
@@ -35,17 +36,15 @@ export default function QuestionForm() {
   const [showImageFields, setShowImageFields] = useState(false);
   const { toast, showApiError, dismiss } = useToast();
 
+  // Load question in edit mode
   useEffect(() => {
     if (isEdit && questionId) {
       api
         .get(`/questions/${questionId}`)
         .then((res) => {
           const q = res.data;
-          if (q.book_id) {
-            setBookId(q.book_id);
-          } else if (q.quiz_set_id) {
-            setQuizSetId(q.quiz_set_id);
-          }
+          if (q.topic_id) setTopicId(q.topic_id);
+          else if (q.quiz_set_id) setQuizSetId(q.quiz_set_id);
           setQuestionText(q.question_text);
           setOptionA(q.option_a);
           setOptionB(q.option_b);
@@ -59,7 +58,10 @@ export default function QuestionForm() {
           setOptionBImageUrl(q.option_b_image_url || "");
           setOptionCImageUrl(q.option_c_image_url || "");
           setOptionDImageUrl(q.option_d_image_url || "");
-          if (q.question_image_url || q.option_a_image_url || q.option_b_image_url || q.option_c_image_url || q.option_d_image_url) {
+          if (
+            q.question_image_url || q.option_a_image_url || q.option_b_image_url ||
+            q.option_c_image_url || q.option_d_image_url
+          ) {
             setShowImageFields(true);
           }
         })
@@ -71,20 +73,22 @@ export default function QuestionForm() {
     }
   }, [questionId, isEdit, navigate]);
 
-  // Fetch book or quiz set title for header
+  // Fetch source title for header
   useEffect(() => {
-    if (bookId) {
-      api
-        .get(`/books/${bookId}`)
+    if (topicId) {
+      api.get(`/topics/${topicId}`)
         .then((res) => setSourceTitle(res.data.title))
         .catch(() => {});
     } else if (quizSetId) {
-      api
-        .get(`/quiz-sets/${quizSetId}`)
+      api.get(`/quiz-sets/${quizSetId}`)
         .then((res) => setSourceTitle(res.data.name))
         .catch(() => {});
     }
-  }, [bookId, quizSetId]);
+  }, [topicId, quizSetId]);
+
+  const backPath = quizSetId
+    ? `/quiz-sets/${quizSetId}/questions`
+    : `/self-study/topics/${topicId}/questions`;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,12 +116,9 @@ export default function QuestionForm() {
       } else if (isQuizSetMode) {
         await api.post(`/quiz-sets/${quizSetId}/questions`, payload);
       } else {
-        await api.post(`/books/${bookId}/questions`, payload);
+        await api.post(`/topics/${topicId}/questions`, payload);
       }
-      const redirectPath = quizSetId
-        ? `/quiz-sets/${quizSetId}/questions`
-        : `/self-study/books/${bookId}/questions`;
-      navigate(redirectPath);
+      navigate(backPath);
     } catch (err: unknown) {
       showApiError(err, "Failed to save question.");
     } finally {
@@ -134,12 +135,7 @@ export default function QuestionForm() {
     <div className="max-w-2xl mx-auto">
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <button
-        onClick={() => {
-          const path = quizSetId
-            ? `/quiz-sets/${quizSetId}/questions`
-            : `/self-study/books/${bookId}/questions`;
-          navigate(path);
-        }}
+        onClick={() => navigate(backPath)}
         className="text-sm text-gray-500 hover:text-gray-700 mb-4 inline-flex items-center gap-1"
       >
         &larr; Back to Questions
@@ -149,9 +145,7 @@ export default function QuestionForm() {
         <h1 className="text-xl font-semibold text-gray-800">
           {isEdit ? "Edit Question" : "Add Question"}
           {sourceTitle && (
-            <span className="text-sm font-normal text-gray-500 ml-2">
-              — {sourceTitle}
-            </span>
+            <span className="text-sm font-normal text-gray-500 ml-2">— {sourceTitle}</span>
           )}
         </h1>
         <button
@@ -163,15 +157,10 @@ export default function QuestionForm() {
         </button>
       </div>
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white rounded-lg border border-gray-200 p-6 space-y-4"
-      >
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
         {/* Question Text */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Question Text *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Question Text *</label>
           <textarea
             value={questionText}
             onChange={(e) => setQuestionText(e.target.value)}
@@ -187,7 +176,7 @@ export default function QuestionForm() {
           )}
         </div>
 
-        {/* Question Image URL */}
+        {/* Image toggle */}
         <div>
           <button
             type="button"
@@ -225,9 +214,7 @@ export default function QuestionForm() {
           { label: "Option D *", value: optionD, setter: setOptionD, imgValue: optionDImageUrl, imgSetter: setOptionDImageUrl },
         ].map(({ label, value, setter, imgValue, imgSetter }) => (
           <div key={label}>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              {label}
-            </label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{label}</label>
             <input
               type="text"
               value={value}
@@ -257,9 +244,7 @@ export default function QuestionForm() {
 
         {/* Correct Option */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Correct Answer *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Correct Answer *</label>
           <div className="flex gap-4">
             {["A", "B", "C", "D"].map((opt) => (
               <label
@@ -319,15 +304,7 @@ export default function QuestionForm() {
 
         {/* Actions */}
         <div className="flex gap-3 pt-2">
-          <Button
-            type="button" variant="outline" color="secondary" fullWidth
-            onClick={() => {
-              const path = quizSetId
-                ? `/quiz-sets/${quizSetId}/questions`
-                : `/self-study/books/${bookId}/questions`;
-              navigate(path);
-            }}
-          >
+          <Button type="button" variant="outline" color="secondary" fullWidth onClick={() => navigate(backPath)}>
             Cancel
           </Button>
           <Button type="submit" color={isEdit ? "primary" : "success"} fullWidth disabled={saving}>

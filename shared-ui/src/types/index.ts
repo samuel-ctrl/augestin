@@ -39,13 +39,48 @@ export interface Book {
   title: string;
   description?: string;
   thumbnail_url?: string;
-  video_url: string;
   standard: string;
   subject_id: string;
   created_by: string;
   created_at: string;
   updated_at: string;
-  question_count?: number;
+  topic_count?: number;
+}
+
+export interface Topic {
+  id: string;
+  book_id: string;
+  title: string;
+  position: number;
+  video_url?: string;
+  image_url?: string;
+  has_notes: boolean;
+  question_count: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface TopicProgress {
+  topic_id: string;
+  topic_title: string;
+  position: number;
+  has_video: boolean;
+  has_image: boolean;
+  is_unlocked: boolean;
+  is_complete: boolean;
+  video_complete: boolean;
+  quiz_complete: boolean;
+  question_count: number;
+}
+
+export interface TopicNotes {
+  id: string;
+  topic_id: string;
+  title: string;
+  content: any;
+  created_by?: string;
+  created_at: string;
+  updated_at?: string;
 }
 
 export interface Assignment {
@@ -62,10 +97,21 @@ export interface BookProgress {
   book_id: string;
   book_title: string;
   subject_id: string;
+  total_topics: number;
+  completed_topics: number;
+  last_watched_at?: string;
+}
+
+export interface ResumeTopicData {
+  topic_id: string;
+  topic_title: string;
+  book_id: string;
+  book_title: string;
+  subject_id: string;
+  subject_name: string;
+  thumbnail_url?: string;
   watch_percentage: number;
   last_position_seconds: number;
-  completed: boolean;
-  last_watched_at?: string;
 }
 
 export interface PaginatedResponse<T> {
@@ -112,7 +158,7 @@ export interface BreadcrumbSegment {
 
 export interface Question {
   id: string;
-  book_id?: string;
+  topic_id?: string;
   quiz_set_id?: string;
   question_text: string;
   question_image_url?: string;
@@ -199,11 +245,11 @@ export interface LearningZoneQuiz {
 
 export interface LiveQuizRoomSnapshot {
   code: string;
-  quiz_source: "quiz_set" | "book";
+  quiz_source: "quiz_set" | "topic";
   quiz_set_id: string | null;
   quiz_set_name: string | null;
-  book_id: string | null;
-  book_name: string | null;
+  topic_id: string | null;
+  topic_title: string | null;
   quiz_name: string;
   host_id: string;
   host_type: "tutor" | "student";
@@ -234,16 +280,6 @@ export interface QuizSubmitResponse {
   correct_option: string;
   explanation?: string;
   progress: QuizProgress;
-}
-
-export interface Recap {
-  id: string;
-  book_id: string;
-  created_by: string;
-  title: string;
-  content: any;
-  created_at: string;
-  updated_at: string;
 }
 
 export interface QuizSet {

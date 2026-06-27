@@ -6,7 +6,9 @@ class ProgressUpdate(BaseModel):
     last_position_seconds: float
 
 
-class ResumeBookOut(BaseModel):
+class ResumeTopicOut(BaseModel):
+    topic_id: str
+    topic_title: str
     book_id: str
     book_title: str
     subject_id: str

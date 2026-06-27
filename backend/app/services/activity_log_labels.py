@@ -64,9 +64,9 @@ ACTION_LABELS: dict[str, str] = {
     # progress
     "update_progress": "Updated progress",
 
-    # recap
-    "create_or_update_recap_endpoint": "Created/updated recap",
-    "delete_recap_endpoint": "Deleted recap",
+    # topic notes
+    "create_or_update_topic_notes_endpoint": "Created/updated topic notes",
+    "delete_topic_notes_endpoint": "Deleted topic notes",
 
     # quiz submission
     "submit_answer": "Submitted quiz answer",

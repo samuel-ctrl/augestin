@@ -5,7 +5,7 @@ interface BookCardProps {
   title: string;
   standard: string;
   thumbnailUrl?: string;
-  questionCount?: number;
+  topicCount?: number;
   onClick?: () => void;
   actions?: React.ReactNode;
 }
@@ -16,7 +16,7 @@ export function BookCard({
   title,
   standard,
   thumbnailUrl,
-  questionCount,
+  topicCount,
   onClick,
   actions,
 }: BookCardProps) {
@@ -43,9 +43,9 @@ export function BookCard({
           <span className="inline-block px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-xs rounded">
             Std: {standard}
           </span>
-          {questionCount !== undefined && questionCount > 0 && (
+          {topicCount !== undefined && topicCount > 0 && (
             <span className="inline-block px-2 py-0.5 bg-primary-50 text-primary-600 text-xs rounded">
-              {questionCount} Q{questionCount !== 1 ? "s" : ""}
+              {topicCount} Topic{topicCount !== 1 ? "s" : ""}
             </span>
           )}
         </div>

@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/quiz-rooms", tags=["quiz_rooms"])
 
 class CreateRoomRequest(BaseModel):
     quiz_set_id: uuid.UUID | None = None
-    book_id: uuid.UUID | None = None
+    topic_id: uuid.UUID | None = None
     total_time_seconds: int | None = Field(
         default=None,
         ge=live_quiz.MIN_TIME_SECONDS,
@@ -27,9 +27,9 @@ class CreateRoomRequest(BaseModel):
     @model_validator(mode="after")
     def exactly_one_source(self) -> "CreateRoomRequest":
         has_qs = self.quiz_set_id is not None
-        has_book = self.book_id is not None
-        if has_qs == has_book:
-            raise ValueError("Provide exactly one of quiz_set_id or book_id")
+        has_topic = self.topic_id is not None
+        if has_qs == has_topic:
+            raise ValueError("Provide exactly one of quiz_set_id or topic_id")
         return self
 
 
@@ -65,8 +65,8 @@ class RoomSnapshotOut(BaseModel):
     quiz_source: str
     quiz_set_id: str | None
     quiz_set_name: str | None
-    book_id: str | None
-    book_name: str | None
+    topic_id: str | None
+    topic_title: str | None
     quiz_name: str
     host_id: str
     host_type: str
@@ -102,7 +102,7 @@ async def create_room(
     room = await live_quiz.create_room(
         db, user,
         quiz_set_id=body.quiz_set_id,
-        book_id=body.book_id,
+        topic_id=body.topic_id,
         total_time_seconds=body.total_time_seconds,
     )
     return _snapshot(room, str(user.id))

@@ -68,7 +68,7 @@ export function BrandCredit({ variant, className = "", hideCredit = false }: Bra
       <footer
         className={`shrink-0 border-t border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur px-4 py-2 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between gap-2 ${className}`}
       >
-        <span>&copy; 2026 ultrAIment. All rights reserved.</span>
+        <span>&copy; 2026 UltrAIment. All rights reserved.</span>
         {!hideCredit && (
           <span>
             Developed by{" "}

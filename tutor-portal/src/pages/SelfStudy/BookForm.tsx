@@ -4,15 +4,6 @@ import { LoadingSpinner, Toast, useToast, Button } from "@shared";
 import api from "../../api/client";
 import { useLookups } from "../../context/LookupContext";
 
-interface BookData {
-  title: string;
-  description: string;
-  standard: string;
-  subject_id: string;
-  thumbnail_url?: string;
-  video_url?: string;
-}
-
 export default function BookForm() {
   const { id } = useParams<{ id: string }>();
   const [searchParams] = useSearchParams();
@@ -23,12 +14,8 @@ export default function BookForm() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [standard, setStandard] = useState("");
-  const [subjectId, setSubjectId] = useState(
-    searchParams.get("subject_id") || ""
-  );
-  const [videoUrl, setVideoUrl] = useState("");
+  const [subjectId, setSubjectId] = useState(searchParams.get("subject_id") || "");
   const [thumbnailUrl, setThumbnailUrl] = useState("");
-  const [existingData, setExistingData] = useState<BookData | null>(null);
   const [loading, setLoading] = useState(isEdit);
   const [saving, setSaving] = useState(false);
   const { toast, showApiError, dismiss } = useToast();
@@ -43,9 +30,7 @@ export default function BookForm() {
           setDescription(book.description || "");
           setStandard(book.standard);
           setSubjectId(book.subject_id);
-          setVideoUrl(book.video_url || "");
           setThumbnailUrl(book.thumbnail_url || "");
-          setExistingData(book);
         })
         .catch((err) => {
           showApiError(err, "Failed to load book details.");
@@ -57,12 +42,6 @@ export default function BookForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!isEdit && !videoUrl.trim()) {
-      showApiError(null, "Video URL is required");
-      return;
-    }
-
     setSaving(true);
     try {
       const payload: Record<string, unknown> = {
@@ -71,14 +50,7 @@ export default function BookForm() {
         standard,
       };
 
-      if (!isEdit) {
-        payload.video_url = videoUrl;
-      } else {
-        if (videoUrl.trim()) payload.video_url = videoUrl;
-      }
-
       if (isEdit) {
-        // Send empty string to clear, or the URL to update
         payload.thumbnail_url = thumbnailUrl.trim();
       } else if (thumbnailUrl.trim()) {
         payload.thumbnail_url = thumbnailUrl;
@@ -104,13 +76,7 @@ export default function BookForm() {
     <div className="max-w-lg mx-auto">
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
       <button
-        onClick={() =>
-          navigate(
-            subjectId
-              ? `/self-study/subjects/${subjectId}`
-              : "/self-study"
-          )
-        }
+        onClick={() => navigate(subjectId ? `/self-study/subjects/${subjectId}` : "/self-study")}
         className="text-sm text-gray-500 hover:text-gray-700 mb-4 inline-flex items-center gap-1"
       >
         &larr; Back
@@ -120,14 +86,9 @@ export default function BookForm() {
         {isEdit ? "Edit Book" : "Add New Book"}
       </h1>
 
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white rounded-lg border border-gray-200 p-6 space-y-4"
-      >
+      <form onSubmit={handleSubmit} className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Title *
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
           <input
             type="text"
             value={title}
@@ -138,9 +99,7 @@ export default function BookForm() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Description
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -149,41 +108,21 @@ export default function BookForm() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Standard *
-            </label>
-            <select
-              value={standard}
-              onChange={(e) => setStandard(e.target.value)}
-              required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-            >
-              <option value="">Select</option>
-              {standards.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            {isEdit ? "Video URL (leave empty to keep current)" : "Video URL *"}
-          </label>
-          <input
-            type="url"
-            value={videoUrl}
-            onChange={(e) => setVideoUrl(e.target.value)}
-            placeholder="https://drive.google.com/file/d/.../view"
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          />
-          <p className="mt-1 text-xs text-gray-400">
-            Paste a Google Drive sharing link. The file must be shared as "Anyone with the link can view".
-          </p>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Standard *</label>
+          <select
+            value={standard}
+            onChange={(e) => setStandard(e.target.value)}
+            required
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          >
+            <option value="">Select</option>
+            {standards.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>

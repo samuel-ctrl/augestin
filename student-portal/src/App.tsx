@@ -14,6 +14,7 @@ import HomeDashboard from "./pages/Home/HomeDashboard";
 import Dashboard from "./pages/SelfStudy/Dashboard";
 import SubjectView from "./pages/SelfStudy/SubjectView";
 import BookView from "./pages/SelfStudy/BookView";
+import TopicView from "./pages/SelfStudy/TopicView";
 import QuizSetDashboard from "./pages/QuizSets/QuizSetDashboard";
 import QuizSetView from "./pages/QuizSets/QuizSetView";
 import LiveQuizJoin from "./pages/QuizSets/LiveQuizJoin";
@@ -73,6 +74,7 @@ function AppShell() {
           <Route path="/self-study" element={<Dashboard />} />
           <Route path="/self-study/subjects/:id" element={<SubjectView />} />
           <Route path="/self-study/books/:id" element={<BookView />} />
+          <Route path="/self-study/topics/:topicId" element={<TopicView />} />
           <Route path="/quiz-sets" element={<QuizSetDashboard />} />
           <Route path="/quiz-sets/live" element={<LiveQuizJoin />} />
           <Route path="/quiz-sets/:id/live/:code" element={<LiveQuizRoom />} />

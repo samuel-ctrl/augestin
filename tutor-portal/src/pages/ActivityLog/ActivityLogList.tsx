@@ -152,21 +152,20 @@ export default function ActivityLogList() {
   return (
     <div>
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
-      <div className="flex items-start justify-between gap-4">
-        <PageHeader
-          title="Activity Log"
-          subtitle="Every action recorded from the moment this feature was deployed."
-        />
-        <div className="mt-1 shrink-0">
-          <Button
-            color="danger"
-            variant="outline"
-            size="sm"
-            onClick={() => setAdvDeleteOpen(true)}
-          >
-            Advanced Delete
-          </Button>
-        </div>
+      <PageHeader
+        title="Activity Log"
+        subtitle="Every action recorded from the moment this feature was deployed."
+      />
+
+      <div className="flex justify-end mb-2">
+        <Button
+          color="danger"
+          variant="outline"
+          size="sm"
+          onClick={() => setAdvDeleteOpen(true)}
+        >
+          Advanced Delete
+        </Button>
       </div>
 
       <DataTable<ActivityLogRow>

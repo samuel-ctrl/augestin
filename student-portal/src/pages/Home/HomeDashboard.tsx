@@ -1,24 +1,17 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { LoadingSpinner, EmptyState, Toast, useToast, PageHeader, BookCard } from "@shared";
-import type { AssignedQuizSet, QuizProgress } from "@shared";
+import type { AssignedQuizSet } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
 import { getRandomWelcomeQuote } from "./welcomeQuotes";
 
-interface PendingQuiz {
+interface PendingBook {
   id: string;
   title: string;
-  question_count: number;
+  topic_count: number;
   thumbnail_url?: string;
   standard: string;
-}
-
-interface ContinueWatching {
-  id: string;
-  title: string;
-  progress: QuizProgress;
-  thumbnail_url?: string;
 }
 
 interface TaskItem {
@@ -37,8 +30,7 @@ export default function HomeDashboard() {
   const navigate = useNavigate();
   const { toast, showApiError, dismiss } = useToast();
 
-  const [pendingQuizzes, setPendingQuizzes] = useState<PendingQuiz[]>([]);
-  const [continueWatching, setContinueWatching] = useState<ContinueWatching[]>([]);
+  const [pendingBooks, setPendingBooks] = useState<PendingBook[]>([]);
   const [readyQuizSets, setReadyQuizSets] = useState<AssignedQuizSet[]>([]);
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [taskFilter, setTaskFilter] = useState<TaskFilter>("all");
@@ -59,35 +51,17 @@ export default function HomeDashboard() {
         const books = booksRes.data.items || [];
         const quizSets = Array.isArray(quizSetsRes.data) ? quizSetsRes.data : [];
 
-        const pending: PendingQuiz[] = [];
-        const continuing: ContinueWatching[] = [];
+        const pending: PendingBook[] = [];
         const allTasks: TaskItem[] = [];
 
         books.forEach((book: any) => {
-          let status: TaskItem["status"] = "todo";
-          let progress = 0;
-
-          if (book.progress && book.progress.is_completed) {
-            status = "done";
-            progress = 100;
-          } else if (book.progress && book.progress.is_started) {
-            status = "in_progress";
-            progress = book.progress.score_percentage || 0;
-            continuing.push({
-              id: book.id,
-              title: book.title,
-              progress: book.progress,
-              thumbnail_url: book.thumbnail_url,
-            });
-          } else {
-            pending.push({
-              id: book.id,
-              title: book.title,
-              question_count: book.question_count || 0,
-              thumbnail_url: book.thumbnail_url,
-              standard: book.standard || "",
-            });
-          }
+          pending.push({
+            id: book.id,
+            title: book.title,
+            topic_count: book.topic_count || 0,
+            thumbnail_url: book.thumbnail_url,
+            standard: book.standard || "",
+          });
 
           allTasks.push({
             id: book.id,
@@ -95,8 +69,8 @@ export default function HomeDashboard() {
             subject: book.subject_name || "Book",
             date: book.assigned_at || book.created_at || "",
             type: "book",
-            status,
-            progress,
+            status: "todo",
+            progress: 0,
           });
         });
 
@@ -129,8 +103,7 @@ export default function HomeDashboard() {
         });
 
         setReadyQuizSets(ready);
-        setPendingQuizzes(pending);
-        setContinueWatching(continuing);
+        setPendingBooks(pending);
         setTasks(allTasks);
       } catch (err: unknown) {
         showApiError(err, "Failed to load dashboard data");
@@ -148,10 +121,7 @@ export default function HomeDashboard() {
     (t) => taskFilter === "all" || t.status === taskFilter
   );
 
-  const hasContent =
-    pendingQuizzes.length > 0 ||
-    continueWatching.length > 0 ||
-    readyQuizSets.length > 0;
+  const hasContent = pendingBooks.length > 0 || readyQuizSets.length > 0;
 
   const filterTabs: { key: TaskFilter; label: string }[] = [
     { key: "all", label: `All Tasks (${tasks.length})` },
@@ -270,44 +240,6 @@ export default function HomeDashboard() {
         />
       ) : (
         <div className="space-y-8">
-          {/* Continue Watching */}
-          {continueWatching.length > 0 && (
-            <section>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">Continue Reading</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {continueWatching.map((book) => (
-                  <button
-                    key={book.id}
-                    onClick={() => navigate(`/self-study/books/${book.id}`)}
-                    className="bg-[rgb(191_189_207_/_38%)] dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-shadow text-left"
-                  >
-                    {book.thumbnail_url && (
-                      <div className="mb-3 h-24 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
-                        <img
-                          src={assetUrl(book.thumbnail_url)}
-                          alt={book.title}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-50 text-sm line-clamp-2 mb-2">
-                      {book.title}
-                    </h3>
-                    <div className="w-full bg-gray-200 dark:bg-gray-600 rounded-full h-2">
-                      <div
-                        className="bg-primary-600 h-2 rounded-full transition-all"
-                        style={{ width: `${book.progress.score_percentage}%` }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                      {book.progress.score_percentage}% complete
-                    </p>
-                  </button>
-                ))}
-              </div>
-            </section>
-          )}
-
           {/* Ready Quiz Sets */}
           {readyQuizSets.length > 0 && (
             <section>
@@ -340,18 +272,18 @@ export default function HomeDashboard() {
             </section>
           )}
 
-          {/* Pending Quizzes */}
-          {pendingQuizzes.length > 0 && (
+          {/* My Books */}
+          {pendingBooks.length > 0 && (
             <section>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">Next Books</h2>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-50 mb-4">My Books</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {pendingQuizzes.map((book) => (
+                {pendingBooks.map((book) => (
                   <BookCard
                     key={book.id}
                     title={book.title}
                     standard={book.standard}
                     thumbnailUrl={assetUrl(book.thumbnail_url)}
-                    questionCount={book.question_count}
+                    topicCount={book.topic_count}
                     onClick={() => navigate(`/self-study/books/${book.id}`)}
                   />
                 ))}

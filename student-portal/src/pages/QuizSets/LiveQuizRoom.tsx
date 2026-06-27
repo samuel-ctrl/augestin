@@ -395,8 +395,8 @@ export default function LiveQuizRoom() {
               size="sm"
               className="mt-4"
               onClick={() =>
-                snapshot.quiz_source === "book"
-                  ? navigate(`/self-study/books/${snapshot.book_id}`)
+                snapshot.quiz_source === "topic"
+                  ? navigate(`/self-study/topics/${snapshot.topic_id ?? ""}`)
                   : navigate(`/quiz-sets/${snapshot.quiz_set_id}`)
               }
             >

@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependencies import get_db, require_tutor
 from app.models.book import Book
 from app.models.book_assignment import BookAssignment
+from app.models.topic import Topic
 from app.models.user import User
 from app.models.watch_progress import WatchProgress
 from app.schemas.pagination import PaginatedResponse
@@ -179,52 +180,79 @@ async def get_student_progress(
     if student is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Student not found")
 
-    # Start from assigned books so unstarted assignments also appear
-    query = (
-        select(Book, WatchProgress)
+    # Fetch all assigned books
+    books_result = await db.execute(
+        select(Book)
         .join(BookAssignment, BookAssignment.book_id == Book.id)
-        .outerjoin(
-            WatchProgress,
-            (WatchProgress.book_id == Book.id)
-            & (WatchProgress.student_id == student_id),
-        )
         .where(BookAssignment.student_id == student_id)
     )
-
-    count_q = select(func.count()).select_from(
-        select(BookAssignment).where(BookAssignment.student_id == student_id).subquery()
-    )
-    total = (await db.execute(count_q)).scalar() or 0
-
-    allowed = {"last_watched_at", "watch_percentage", "completed"}
-    if sort_by not in allowed:
-        sort_by = "last_watched_at"
-    sort_col = getattr(WatchProgress, sort_by)
-    order = sort_col.desc().nullslast() if sort_order == "desc" else sort_col.asc().nullsfirst()
-    query = query.order_by(order)
-
-    offset = (page - 1) * page_size
-    query = query.offset(offset).limit(page_size)
-    result = await db.execute(query)
-    rows = result.all()
-
+    books = list(books_result.scalars().all())
+    total = len(books)
     total_pages = math.ceil(total / page_size) if page_size > 0 else 0
+
+    if not books:
+        return PaginatedResponse(items=[], total=0, page=page, page_size=page_size, total_pages=0)
+
+    book_ids = [b.id for b in books]
+
+    # Count topics per book
+    topic_count_result = await db.execute(
+        select(Topic.book_id, func.count(Topic.id))
+        .where(Topic.book_id.in_(book_ids))
+        .group_by(Topic.book_id)
+    )
+    total_topics_map: dict = dict(topic_count_result.all())
+
+    # Count completed topics per book (WatchProgress.completed via topic)
+    completed_count_result = await db.execute(
+        select(Topic.book_id, func.count(WatchProgress.id))
+        .join(WatchProgress, WatchProgress.topic_id == Topic.id)
+        .where(
+            Topic.book_id.in_(book_ids),
+            WatchProgress.student_id == student_id,
+            WatchProgress.completed == True,  # noqa: E712
+        )
+        .group_by(Topic.book_id)
+    )
+    completed_topics_map: dict = dict(completed_count_result.all())
+
+    # Last watched per book
+    last_watched_result = await db.execute(
+        select(Topic.book_id, func.max(WatchProgress.last_watched_at))
+        .join(WatchProgress, WatchProgress.topic_id == Topic.id)
+        .where(
+            Topic.book_id.in_(book_ids),
+            WatchProgress.student_id == student_id,
+        )
+        .group_by(Topic.book_id)
+    )
+    last_watched_map: dict = dict(last_watched_result.all())
+
+    # Sort books by last_watched_at (null last)
+    def sort_key(b):
+        ts = last_watched_map.get(b.id)
+        return (ts is None, ts)
+
+    books.sort(key=sort_key, reverse=(sort_order == "desc"))
+
+    # Paginate
+    offset = (page - 1) * page_size
+    books = books[offset: offset + page_size]
 
     items = [
         BookProgressOut(
-            book_id=str(book.id),
-            book_title=book.title,
-            subject_id=str(book.subject_id),
-            watch_percentage=wp.watch_percentage if wp else 0.0,
-            last_position_seconds=wp.last_position_seconds if wp else 0.0,
-            completed=wp.completed if wp else False,
+            book_id=str(b.id),
+            book_title=b.title,
+            subject_id=str(b.subject_id),
+            total_topics=total_topics_map.get(b.id, 0),
+            completed_topics=completed_topics_map.get(b.id, 0),
             last_watched_at=(
-                wp.last_watched_at.isoformat()
-                if wp and wp.last_watched_at
+                last_watched_map[b.id].isoformat()
+                if last_watched_map.get(b.id)
                 else None
             ),
         )
-        for book, wp in rows
+        for b in books
     ]
 
     return PaginatedResponse(

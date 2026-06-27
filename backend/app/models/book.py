@@ -13,7 +13,6 @@ class Book(AuditBase):
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     thumbnail_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    video_url: Mapped[str] = mapped_column(String, nullable=False)
     standard: Mapped[str] = mapped_column(String(10), nullable=False)
     subject_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("subjects.id", ondelete="CASCADE"), nullable=False
@@ -22,9 +21,6 @@ class Book(AuditBase):
     # Relationships
     subject = relationship("Subject", back_populates="books")
     assignments = relationship("BookAssignment", back_populates="book", cascade="all, delete-orphan")
-    watch_progress = relationship("WatchProgress", back_populates="book", cascade="all, delete-orphan")
-    questions = relationship("Question", back_populates="book", cascade="all, delete-orphan")
-    quiz_progress = relationship("QuizProgress", back_populates="book", cascade="all, delete-orphan")
-    recap = relationship("BookRecap", back_populates="book", cascade="all, delete-orphan", uselist=False)
+    topics = relationship("Topic", back_populates="book", cascade="all, delete-orphan", order_by="Topic.position")
     test = relationship("BookTest", back_populates="book", cascade="all, delete-orphan", uselist=False)
     doubts = relationship("Doubt", back_populates="book")

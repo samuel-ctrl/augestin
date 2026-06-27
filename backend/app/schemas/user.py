@@ -38,9 +38,8 @@ class BookProgressOut(BaseModel):
     book_id: str
     book_title: str
     subject_id: str
-    watch_percentage: float
-    last_position_seconds: float
-    completed: bool
+    total_topics: int
+    completed_topics: int
     last_watched_at: str | None = None
 
 

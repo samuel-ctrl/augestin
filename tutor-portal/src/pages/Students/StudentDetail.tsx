@@ -13,30 +13,32 @@ import api from "../../api/client";
 const progressColumns: ColumnDef<BookProgress>[] = [
   { key: "book_title", label: "Book" },
   {
-    key: "watch_percentage",
+    key: "completed_topics",
     label: "Progress",
-    render: (v) => {
-      const pct = v as number;
+    render: (v, row) => {
+      const completed = v as number;
+      const total = row.total_topics;
+      const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
       return (
         <div className="flex items-center gap-2">
           <div className="flex-1 bg-gray-200 rounded-full h-2 max-w-[120px]">
             <div
-              className={`h-2 rounded-full ${pct >= 90 ? "bg-green-500" : "bg-primary-500"}`}
-              style={{ width: `${Math.min(100, pct)}%` }}
+              className={`h-2 rounded-full ${pct === 100 ? "bg-green-500" : "bg-primary-500"}`}
+              style={{ width: `${pct}%` }}
             />
           </div>
-          <span className="text-xs text-gray-500 w-10 text-right">
-            {Math.round(pct)}%
+          <span className="text-xs text-gray-500 w-16 text-right">
+            {completed}/{total}
           </span>
         </div>
       );
     },
   },
   {
-    key: "completed",
+    key: "total_topics",
     label: "Status",
-    render: (v) =>
-      v ? (
+    render: (v, row) =>
+      row.completed_topics === row.total_topics && row.total_topics > 0 ? (
         <span className="text-green-600 text-xs font-medium">Completed</span>
       ) : (
         <span className="text-gray-400 text-xs">In Progress</span>
@@ -75,10 +77,10 @@ export default function StudentDetail() {
         // Compute perf stats from progress
         if (progressRes?.data?.items) {
           const items = progressRes.data.items;
-          const completed = items.filter((p: any) => p.completed).length;
-          const pending = items.filter((p: any) => !p.completed).length;
-          const scores = items.filter((p: any) => p.watch_percentage > 0).map((p: any) => p.watch_percentage);
-          const avg = scores.length > 0 ? scores.reduce((a: number, b: number) => a + b, 0) / scores.length : 0;
+          const completed = items.filter((p: any) => p.completed_topics === p.total_topics && p.total_topics > 0).length;
+          const pending = items.filter((p: any) => !(p.completed_topics === p.total_topics && p.total_topics > 0)).length;
+          const pcts = items.filter((p: any) => p.total_topics > 0).map((p: any) => Math.round((p.completed_topics / p.total_topics) * 100));
+          const avg = pcts.length > 0 ? pcts.reduce((a: number, b: number) => a + b, 0) / pcts.length : 0;
           setPerfStats({ avg_score: Math.round(avg), completed_chapters: completed, pending_tasks: pending });
         }
       })
@@ -249,16 +251,16 @@ export default function StudentDetail() {
             <div className="flex items-center gap-2 mt-2">
               <div className="flex-1 bg-gray-200 rounded-full h-2">
                 <div
-                  className={`h-2 rounded-full ${row.watch_percentage >= 90 ? "bg-green-500" : "bg-primary-500"}`}
-                  style={{ width: `${Math.min(100, row.watch_percentage)}%` }}
+                  className={`h-2 rounded-full ${row.completed_topics === row.total_topics && row.total_topics > 0 ? "bg-green-500" : "bg-primary-500"}`}
+                  style={{ width: row.total_topics > 0 ? `${Math.round((row.completed_topics / row.total_topics) * 100)}%` : "0%" }}
                 />
               </div>
-              <span className="text-xs text-gray-500 w-10 text-right">
-                {Math.round(row.watch_percentage)}%
+              <span className="text-xs text-gray-500 w-14 text-right">
+                {row.completed_topics}/{row.total_topics}
               </span>
             </div>
             <div className="flex items-center justify-between mt-2">
-              {row.completed ? (
+              {row.completed_topics === row.total_topics && row.total_topics > 0 ? (
                 <span className="text-green-600 text-xs font-medium">Completed</span>
               ) : (
                 <span className="text-gray-400 text-xs">In Progress</span>

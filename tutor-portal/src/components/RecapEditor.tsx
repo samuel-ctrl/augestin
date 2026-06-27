@@ -9,7 +9,6 @@ import CodeBlock from "@tiptap/extension-code-block";
 import { LoadingSpinner, Button } from "@shared";
 
 interface RecapEditorProps {
-  bookId: string;
   onSave: (content: any) => Promise<void>;
   onTitleChange?: (title: string) => void;
   onDirtyChange?: (dirty: boolean) => void;
@@ -113,7 +112,6 @@ function InsertModal({
 }
 
 export default function RecapEditor({
-  bookId,
   onSave,
   onTitleChange,
   onDirtyChange,

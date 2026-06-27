@@ -24,39 +24,40 @@ async def get_dashboard_stats(
         )
     ).scalar() or 0
 
-    # Average quiz score (completed quizzes only)
+    # Average quiz score (completed topic quizzes only)
     avg_score = (
         await db.execute(
             select(func.avg(QuizProgress.score_percentage)).where(
-                QuizProgress.is_completed == True
+                QuizProgress.is_completed == True,  # noqa: E712
+                QuizProgress.quiz_source == "topic",
             )
         )
     ).scalar()
     avg_quiz_score = round(avg_score, 1) if avg_score is not None else 0
 
-    # Assignment completion rate: completed quiz progress / total assignments
+    # Assignment completion rate: students who completed any topic quiz / students with assignments
     total_assignments = (
         await db.execute(select(func.count()).select_from(BookAssignment))
     ).scalar() or 0
 
-    completed_assignments = (
+    students_with_assignments = (
         await db.execute(
-            select(func.count()).select_from(
-                select(BookAssignment)
-                .join(
-                    QuizProgress,
-                    (QuizProgress.student_id == BookAssignment.student_id)
-                    & (QuizProgress.book_id == BookAssignment.book_id)
-                    & (QuizProgress.is_completed == True),
-                )
-                .subquery()
+            select(func.count(func.distinct(BookAssignment.student_id)))
+        )
+    ).scalar() or 0
+
+    students_completed_quiz = (
+        await db.execute(
+            select(func.count(func.distinct(QuizProgress.student_id))).where(
+                QuizProgress.is_completed == True,  # noqa: E712
+                QuizProgress.quiz_source == "topic",
             )
         )
     ).scalar() or 0
 
     completion_rate = (
-        round(min(100.0, (completed_assignments / total_assignments) * 100), 1)
-        if total_assignments > 0
+        round(min(100.0, (students_completed_quiz / students_with_assignments) * 100), 1)
+        if students_with_assignments > 0
         else 0
     )
 
@@ -65,7 +66,10 @@ async def get_dashboard_stats(
         select(func.count())
         .select_from(
             select(QuizProgress.student_id)
-            .where(QuizProgress.is_completed == True)
+            .where(
+                QuizProgress.is_completed == True,  # noqa: E712
+                QuizProgress.quiz_source == "topic",
+            )
             .group_by(QuizProgress.student_id)
             .having(func.avg(QuizProgress.score_percentage) >= 80)
             .subquery()
@@ -73,16 +77,16 @@ async def get_dashboard_stats(
     )
     top_performers = (await db.execute(top_performers_q)).scalar() or 0
 
-    # Quiz completion rate (started vs completed) as proxy for on-time
+    # Quiz completion rate (started vs completed)
     total_started = (
         await db.execute(
-            select(func.count()).where(QuizProgress.is_started == True)
+            select(func.count()).where(QuizProgress.is_started == True)  # noqa: E712
         )
     ).scalar() or 0
 
     total_completed = (
         await db.execute(
-            select(func.count()).where(QuizProgress.is_completed == True)
+            select(func.count()).where(QuizProgress.is_completed == True)  # noqa: E712
         )
     ).scalar() or 0
 

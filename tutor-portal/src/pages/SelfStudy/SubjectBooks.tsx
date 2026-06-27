@@ -68,11 +68,7 @@ export default function SubjectBooks() {
   );
 
   const columns: ColumnDef<Book>[] = [
-    {
-      key: "title",
-      label: "Title",
-      sortable: true,
-    },
+    { key: "title", label: "Title", sortable: true },
     {
       key: "standard",
       label: "Standard",
@@ -85,15 +81,15 @@ export default function SubjectBooks() {
       ),
     },
     {
-      key: "question_count",
-      label: "Questions",
-      sortable: true,
-      width: "100px",
+      key: "topic_count",
+      label: "Topics",
+      sortable: false,
+      width: "90px",
       render: (value) => {
         const count = Number(value) || 0;
         return count > 0 ? (
           <span className="px-2 py-0.5 bg-primary-50 text-primary-600 text-xs rounded">
-            {count} Q{count !== 1 ? "s" : ""}
+            {count} Topic{count !== 1 ? "s" : ""}
           </span>
         ) : (
           <span className="text-gray-400 text-xs">—</span>
@@ -129,13 +125,12 @@ export default function SubjectBooks() {
         searchPlaceholder="Search books..."
         defaultSortBy="created_at"
         defaultSortOrder="asc"
-        onRowClick={(book) => navigate(`/self-study/books/${book.id}/preview`)}
+        onRowClick={(book) => navigate(`/self-study/books/${book.id}/topics`)}
         rowKey={(book) => book.id}
         addButtonLabel="+ Add Book"
         onAddClick={() => navigate(`/self-study/books/new?subject_id=${subjectId}`)}
         actions={(book): DropdownMenuItem[] => [
-          { label: "Preview", onClick: () => navigate(`/self-study/books/${book.id}/preview`) },
-          { label: "Quiz", onClick: () => navigate(`/self-study/books/${book.id}/questions`) },
+          { label: "Manage Topics", onClick: () => navigate(`/self-study/books/${book.id}/topics`) },
           { label: "Assign", onClick: () => navigate(`/self-study/books/${book.id}/assign`) },
           { label: "Edit", onClick: () => navigate(`/self-study/books/${book.id}/edit`) },
           { label: "Delete", onClick: () => setDeleteTarget(book), variant: "danger" },
@@ -145,8 +140,8 @@ export default function SubjectBooks() {
             title={book.title}
             standard={book.standard}
             thumbnailUrl={assetUrl(book.thumbnail_url)}
-            onClick={() => navigate(`/self-study/books/${book.id}/preview`)}
-            questionCount={book.question_count}
+            onClick={() => navigate(`/self-study/books/${book.id}/topics`)}
+            topicCount={book.topic_count}
             actions={
               cardActions && (
                 <div onClick={(e) => e.stopPropagation()}>
@@ -161,7 +156,7 @@ export default function SubjectBooks() {
       <ConfirmDialog
         open={!!deleteTarget}
         title="Delete Book"
-        alertMessage="The video, assignments, and progress will be permanently removed."
+        alertMessage="All topics, assignments, and progress will be permanently removed."
         message={`Are you sure you want to delete "${deleteTarget?.title}"?`}
         confirmLabel="Delete"
         variant="danger"
@@ -172,4 +167,3 @@ export default function SubjectBooks() {
     </div>
   );
 }
-

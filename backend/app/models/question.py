@@ -12,16 +12,16 @@ class Question(AuditBase):
     __table_args__ = (
         CheckConstraint("correct_option IN ('A','B','C','D')", name="ck_question_correct_option"),
         CheckConstraint(
-            "NOT (book_id IS NULL AND quiz_set_id IS NULL) AND "
-            "NOT (book_id IS NOT NULL AND quiz_set_id IS NOT NULL)",
+            "NOT (topic_id IS NULL AND quiz_set_id IS NULL) AND "
+            "NOT (topic_id IS NOT NULL AND quiz_set_id IS NOT NULL)",
             name="ck_question_source_check"
         ),
-        Index("ix_questions_book_id", "book_id"),
+        Index("ix_questions_topic_id", "topic_id"),
         Index("ix_questions_quiz_set_id", "quiz_set_id"),
     )
 
-    book_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("books.id", ondelete="CASCADE"), nullable=True
+    topic_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("topics.id", ondelete="CASCADE"), nullable=True
     )
     quiz_set_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("quiz_sets.id", ondelete="CASCADE"), nullable=True
@@ -41,5 +41,5 @@ class Question(AuditBase):
     time_limit_seconds: Mapped[int] = mapped_column(Integer, default=60)
 
     # Relationships
-    book = relationship("Book", back_populates="questions")
+    topic = relationship("Topic", back_populates="questions")
     quiz_set = relationship("QuizSet", back_populates="questions")

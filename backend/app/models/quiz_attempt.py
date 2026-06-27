@@ -10,19 +10,19 @@ from app.models.audit import AuditBase
 class QuizAttempt(AuditBase):
     __tablename__ = "quiz_attempts"
     __table_args__ = (
-        Index("ix_quiz_attempt_student_book", "student_id", "book_id"),
+        Index("ix_quiz_attempt_student_topic", "student_id", "topic_id"),
         Index("ix_quiz_attempt_source", "quiz_source", "quiz_id", "student_id"),
     )
 
     student_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
     )
-    quiz_source: Mapped[str] = mapped_column(String(20), nullable=False)  # "book" | "quiz_set"
+    quiz_source: Mapped[str] = mapped_column(String(20), nullable=False)  # "topic" | "quiz_set"
     quiz_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), nullable=False
     )
-    book_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("books.id", ondelete="CASCADE"), nullable=True
+    topic_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("topics.id", ondelete="CASCADE"), nullable=True
     )
     question_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("questions.id", ondelete="CASCADE"), nullable=False
@@ -35,5 +35,5 @@ class QuizAttempt(AuditBase):
 
     # Relationships
     student = relationship("User")
-    book = relationship("Book")
+    topic = relationship("Topic")
     question = relationship("Question")

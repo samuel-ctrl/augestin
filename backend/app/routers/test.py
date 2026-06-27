@@ -1,22 +1,31 @@
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Query, status
-from sqlalchemy import select, and_
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, require_student, require_tutor
 from app.models.book_assignment import BookAssignment
 from app.models.test import BookTest, TestSubmission
 from app.models.user import User
-from app.schemas.test import (
-    BookTestCreate, BookTestUpdate, BookTestOut, TestSubmissionOut,
-    TestSubmissionStatus, TestSubmitRequest
-)
 from app.schemas.pagination import PaginatedResponse
-from app.services.test import (
-    get_test, create_or_update_test, delete_test, list_submissions,
-    toggle_submission, get_my_submission
+from app.schemas.test import (
+    BookTestCreate,
+    BookTestOut,
+    BookTestUpdate,
+    TestSubmissionOut,
+    TestSubmissionStatus,
+    TestSubmitRequest,
 )
+from app.services.test import (
+    create_or_update_test,
+    delete_test,
+    get_my_submission,
+    get_test,
+    list_submissions,
+    toggle_submission,
+)
+from app.services.topic_progress import is_test_unlocked
 
 router = APIRouter(tags=["test"])
 
@@ -32,7 +41,6 @@ async def get_book_test(
     db: AsyncSession = Depends(get_db),
 ):
     """Get test for a book. Tutor or student."""
-    # Allow both tutor and student
     user = None
     try:
         user = require_student(request)
@@ -40,10 +48,7 @@ async def get_book_test(
         try:
             user = require_tutor(request)
         except HTTPException:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Unauthorized"
-            )
+            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
 
     test = await get_test(db, book_id)
     if test is None:
@@ -66,13 +71,11 @@ async def create_or_update_book_test(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    """Create or update test for a book. Tutor only."""
     require_tutor(request)
 
     try:
         test = await create_or_update_test(
-            db,
-            book_id=book_id,
+            db, book_id=book_id,
             drive_link=body.drive_link,
             instructions=body.instructions,
         )
@@ -95,13 +98,10 @@ async def delete_book_test(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    """Delete test for a book. Tutor only."""
     require_tutor(request)
-
     test = await get_test(db, book_id)
     if test is None:
         raise HTTPException(status_code=404, detail="Test not found")
-
     await delete_test(db, test)
 
 
@@ -114,10 +114,7 @@ async def list_book_test_submissions(
     page_size: int = Query(50, ge=1, le=100),
     search: str = Query(""),
 ):
-    """List submissions for a test. Tutor only."""
     require_tutor(request)
-
-    # Verify test exists
     test = await get_test(db, book_id)
     if test is None:
         raise HTTPException(status_code=404, detail="Test not found")
@@ -128,11 +125,8 @@ async def list_book_test_submissions(
 
     items = []
     for submission in submissions:
-        # Get student info from the submission or from the query
         student_name = getattr(submission, "_student_name", "")
         student_login_id = getattr(submission, "_student_login_id", "")
-
-        # If not set, fetch from database
         if not student_name:
             result = await db.execute(select(User).where(User.id == submission.student_id))
             user = result.scalar_one_or_none()
@@ -152,11 +146,7 @@ async def list_book_test_submissions(
         ))
 
     return PaginatedResponse(
-        items=items,
-        total=total,
-        page=page,
-        page_size=page_size,
-        total_pages=total_pages,
+        items=items, total=total, page=page, page_size=page_size, total_pages=total_pages,
     )
 
 
@@ -170,29 +160,25 @@ async def get_my_test_submission(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
-    """Get student's submission status for a test."""
     student = require_student(request)
 
-    # Verify student is assigned to this book
     result = await db.execute(
         select(BookAssignment).where(
-            and_(
-                BookAssignment.book_id == book_id,
-                BookAssignment.student_id == student.id,
-            )
+            and_(BookAssignment.book_id == book_id, BookAssignment.student_id == student.id)
         )
     )
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=403, detail="Not assigned to this book")
 
-    # Get test
     test = await get_test(db, book_id)
     if test is None:
         raise HTTPException(status_code=404, detail="Test not found")
 
-    # Get submission
-    submission = await get_my_submission(db, test.id, student.id)
+    # Gate: test only accessible when all topics are complete
+    if not await is_test_unlocked(db, student_id=student.id, book_id=book_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Complete all topics to unlock the test")
 
+    submission = await get_my_submission(db, test.id, student.id)
     return TestSubmissionStatus(
         has_submitted=submission is not None and submission.submitted_at is not None,
         submitted_at=submission.submitted_at if submission else None,
@@ -207,25 +193,23 @@ async def submit_test(
     db: AsyncSession = Depends(get_db),
     body: TestSubmitRequest = None,
 ):
-    """Toggle test submission status for student."""
     student = require_student(request)
 
-    # Verify student is assigned to this book
     result = await db.execute(
         select(BookAssignment).where(
-            and_(
-                BookAssignment.book_id == book_id,
-                BookAssignment.student_id == student.id,
-            )
+            and_(BookAssignment.book_id == book_id, BookAssignment.student_id == student.id)
         )
     )
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=403, detail="Not assigned to this book")
 
-    # Get test
     test = await get_test(db, book_id)
     if test is None:
         raise HTTPException(status_code=404, detail="Test not found")
+
+    # Gate: test only accessible when all topics are complete
+    if not await is_test_unlocked(db, student_id=student.id, book_id=book_id):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Complete all topics to unlock the test")
 
     submission_link = body.submission_link if body else None
     submission = await toggle_submission(db, test.id, student.id, submission_link=submission_link)

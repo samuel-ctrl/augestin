@@ -20,7 +20,7 @@ export default function LiveQuizJoin() {
     setJoining(true);
     try {
       const res = await api.post<LiveQuizRoomSnapshot>(`/quiz-rooms/${trimmed}/join`);
-      const id = res.data.quiz_source === "book" ? res.data.book_id : res.data.quiz_set_id;
+      const id = res.data.quiz_source === "topic" ? res.data.topic_id : res.data.quiz_set_id;
       navigate(`/quiz-sets/${id}/live/${res.data.code}`);
     } catch (err: unknown) {
       const detail = (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail;

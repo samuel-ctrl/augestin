@@ -5,7 +5,7 @@ import api from "../../api/client";
 import QuestionCard from "./QuestionCard";
 
 interface QuizPanelProps {
-  quizSource: "book" | "quiz_set";
+  quizSource: "topic" | "quiz_set";
   quizId: string;
   displayTitle?: string;
   /** Notified whenever the current student's completion state changes. */
@@ -34,13 +34,13 @@ export default function QuizPanel({ quizSource, quizId, displayTitle, onComplete
 
   // Helper function to generate API paths
   const getApiPath = useCallback((endpoint: string) => {
-    const basePath = quizSource === "book" ? `/books/${quizId}` : `/quiz-sets/${quizId}`;
+    const basePath = quizSource === "topic" ? `/topics/${quizId}` : `/quiz-sets/${quizId}`;
     return `${basePath}${endpoint}`;
   }, [quizSource, quizId]);
 
   const fetchSession = useCallback(async () => {
     try {
-      const basePath = quizSource === "book" ? `/books/${quizId}/quiz` : `/quiz-sets/${quizId}/quiz`;
+      const basePath = quizSource === "topic" ? `/topics/${quizId}/quiz` : `/quiz-sets/${quizId}/quiz`;
       const res = await api.get(basePath);
       const session = res.data;
       setQuestions(session.questions);
@@ -75,7 +75,7 @@ export default function QuizPanel({ quizSource, quizId, displayTitle, onComplete
       }
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
-      setError(status === 403 ? "This book is not assigned to you." : "Failed to load quiz.");
+      setError(status === 403 ? "This quiz is not available to you." : "Failed to load quiz.");
     }
   }, [quizId]);
 
@@ -115,8 +115,8 @@ export default function QuizPanel({ quizSource, quizId, displayTitle, onComplete
   useEffect(() => {
     if (quizState !== "active") return;
     const handleUnload = () => {
-      const beaconPath = quizSource === "book"
-        ? `/api/books/${quizId}/quiz/complete`
+      const beaconPath = quizSource === "topic"
+        ? `/api/topics/${quizId}/quiz/complete`
         : `/api/quiz-sets/${quizId}/quiz/complete`;
       navigator.sendBeacon(
         beaconPath,

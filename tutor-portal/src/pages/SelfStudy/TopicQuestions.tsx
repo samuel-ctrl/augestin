@@ -22,16 +22,16 @@ function resolveImageUrl(url: string, size: number): string {
   return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${size}`;
 }
 
-interface BookInfo {
+interface TopicInfo {
   id: string;
   title: string;
-  subject_id: string;
+  book_id: string;
 }
 
-export default function BookQuestions() {
-  const { id: bookId } = useParams<{ id: string }>();
+export default function TopicQuestions() {
+  const { topicId } = useParams<{ topicId: string }>();
   const navigate = useNavigate();
-  const [book, setBook] = useState<BookInfo | null>(null);
+  const [topic, setTopic] = useState<TopicInfo | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,14 +42,14 @@ export default function BookQuestions() {
   const fetchData = useCallback(async () => {
     setError(null);
     try {
-      const [bookRes, questionsRes] = await Promise.all([
-        api.get(`/books/${bookId}`),
-        api.get(`/books/${bookId}/questions`, {
+      const [topicRes, questionsRes] = await Promise.all([
+        api.get(`/topics/${topicId}`),
+        api.get(`/topics/${topicId}/questions`, {
           params: { page: 1, page_size: 100, sort_by: "created_at", sort_order: "asc" },
         }),
       ]);
-      setBook(bookRes.data);
-      setQuestions(questionsRes.data.items);
+      setTopic(topicRes.data);
+      setQuestions(questionsRes.data.items || []);
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 404) {
@@ -60,7 +60,7 @@ export default function BookQuestions() {
     } finally {
       setLoading(false);
     }
-  }, [bookId, navigate]);
+  }, [topicId, navigate]);
 
   useEffect(() => {
     fetchData();
@@ -90,12 +90,7 @@ export default function BookQuestions() {
       />
     );
   }
-  if (!book) return null;
-
-  const optionLabel = (opt: string) => {
-    const labels: Record<string, string> = { A: "option_a", B: "option_b", C: "option_c", D: "option_d" };
-    return labels[opt] || opt;
-  };
+  if (!topic) return null;
 
   return (
     <div>
@@ -103,48 +98,40 @@ export default function BookQuestions() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <button
-            onClick={() => navigate(`/self-study/subjects/${book.subject_id}`)}
+            onClick={() => navigate(`/self-study/books/${topic.book_id}/topics`)}
             className="text-sm text-gray-500 hover:text-gray-700 mb-1 inline-flex items-center gap-1"
           >
-            &larr; Back to Books
+            &larr; Back to Topics
           </button>
           <h1 className="text-xl font-semibold text-gray-800">
-            {book.title} — Questions
+            {topic.title} — Quiz Questions
           </h1>
           <p className="text-sm text-gray-500 mt-0.5">
             {questions.length} question{questions.length !== 1 ? "s" : ""}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button color="secondary" onClick={() => navigate(`/self-study/books/${bookId}/recap`)}>
-            📝 Manage Recap
-          </Button>
-          <Button color="secondary" onClick={() => navigate(`/self-study/books/${bookId}/test`)}>
-            📋 Manage Test
-          </Button>
-          <Button color="success" onClick={() => navigate(`/self-study/books/${bookId}/questions/new`)}>
-            + Add Question
-          </Button>
-        </div>
+        <Button
+          color="success"
+          onClick={() => navigate(`/self-study/topics/${topicId}/questions/new`)}
+        >
+          + Add Question
+        </Button>
       </div>
 
       {questions.length === 0 ? (
         <EmptyState
           icon={<span>?</span>}
           title="No questions yet"
-          description="Add quiz questions for this book."
+          description="Add quiz questions for this topic."
           action={{
             label: "Add Question",
-            onClick: () => navigate(`/self-study/books/${bookId}/questions/new`),
+            onClick: () => navigate(`/self-study/topics/${topicId}/questions/new`),
           }}
         />
       ) : (
         <div className="space-y-3">
           {questions.map((q, idx) => (
-            <div
-              key={q.id}
-              className="bg-white rounded-lg border border-gray-200 overflow-hidden"
-            >
+            <div key={q.id} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
               <div
                 className="flex items-center justify-between p-4 cursor-pointer hover:bg-gray-50"
                 onClick={() => setExpandedId(expandedId === q.id ? null : q.id)}
@@ -164,19 +151,13 @@ export default function BookQuestions() {
                   <span className="text-xs text-gray-400">{q.time_limit_seconds}s</span>
                   <Button
                     variant="ghost" color="primary" size="xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      navigate(`/self-study/questions/${q.id}/edit`);
-                    }}
+                    onClick={(e) => { e.stopPropagation(); navigate(`/self-study/questions/${q.id}/edit`); }}
                   >
                     Edit
                   </Button>
                   <Button
                     variant="ghost" color="danger" size="xs"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeleteTarget(q);
-                    }}
+                    onClick={(e) => { e.stopPropagation(); setDeleteTarget(q); }}
                   >
                     Delete
                   </Button>
@@ -202,9 +183,7 @@ export default function BookQuestions() {
                         <div
                           key={opt}
                           className={`p-2 rounded text-sm border ${
-                            isCorrect
-                              ? "border-green-300 bg-green-50"
-                              : "border-gray-200 bg-gray-50"
+                            isCorrect ? "border-green-300 bg-green-50" : "border-gray-200 bg-gray-50"
                           }`}
                         >
                           <span className="font-medium text-gray-500 mr-1">{opt}.</span>
