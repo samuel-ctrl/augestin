@@ -4,8 +4,15 @@ import { DataTable, Toast, useToast, PageHeader } from "@shared";
 import type { AssignedTestSet, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
+import { toDirectImageUrl, isGoogleDriveUrl } from "@shared";
 
-const DEFAULT_THUMBNAIL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200' fill='%23e5e7eb'%3E%3Crect width='300' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-size='40'%3E%F0%9F%93%9D%3C/text%3E%3C/svg%3E";
+function thumbnailSrc(url: string | null | undefined): string {
+  if (!url) return DEFAULT_THUMBNAIL;
+  if (isGoogleDriveUrl(url)) return toDirectImageUrl(url);
+  return assetUrl(url) || DEFAULT_THUMBNAIL;
+}
+
+const DEFAULT_THUMBNAIL ="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200' fill='%23e5e7eb'%3E%3Crect width='300' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-size='40'%3E%F0%9F%93%9D%3C/text%3E%3C/svg%3E";
 
 export default function TestSetDashboard() {
   const navigate = useNavigate();
@@ -35,7 +42,7 @@ export default function TestSetDashboard() {
       render: (_val, row) => (
         <div className="w-14 h-10 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
           <img
-            src={row.thumbnail_url ? assetUrl(row.thumbnail_url) : DEFAULT_THUMBNAIL}
+            src={thumbnailSrc(row.thumbnail_url)}
             alt={row.name}
             className="w-full h-full object-cover"
             onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_THUMBNAIL; }}
@@ -94,7 +101,7 @@ export default function TestSetDashboard() {
             >
               <div className="mb-3 h-32 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
                 <img
-                  src={row.thumbnail_url ? assetUrl(row.thumbnail_url) : DEFAULT_THUMBNAIL}
+                  src={thumbnailSrc(row.thumbnail_url)}
                   alt={row.name}
                   className="w-full h-full object-cover"
                   onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_THUMBNAIL; }}

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { DataTable, PageHeader, Toast, useToast } from "@shared";
+import { Button, DataTable, PageHeader, Toast, useToast } from "@shared";
 import type {
   ColumnDef,
   FilterDef,
@@ -10,17 +10,12 @@ import api from "../../api/client";
 import type { ActivityActionOption, ActivityLogRow } from "./types";
 import { ActorTypeBadge, OutcomeBadge, formatDateTime, formatDuration } from "./badges";
 import ActivityLogDetail from "./ActivityLogDetail";
+import AdvancedDeletePanel from "./AdvancedDeletePanel";
+import { OUTCOME_OPTIONS } from "./constants";
 
 const ACTOR_TYPE_OPTIONS = [
   { value: "tutor", label: "Tutor" },
   { value: "student", label: "Student" },
-];
-
-const OUTCOME_OPTIONS = [
-  { value: "success", label: "Success" },
-  { value: "client_error", label: "Client error" },
-  { value: "server_error", label: "Server error" },
-  { value: "exception", label: "Exception" },
 ];
 
 const TIME_WINDOW_OPTIONS = [
@@ -118,6 +113,8 @@ const columns: ColumnDef<ActivityLogRow>[] = [
 export default function ActivityLogList() {
   const [selected, setSelected] = useState<ActivityLogRow | null>(null);
   const [actionOptions, setActionOptions] = useState<ActivityActionOption[]>([]);
+  const [advDeleteOpen, setAdvDeleteOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
   const { toast, showApiError, dismiss } = useToast();
 
   useEffect(() => {
@@ -155,12 +152,25 @@ export default function ActivityLogList() {
   return (
     <div>
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
-      <PageHeader
-        title="Activity Log"
-        subtitle="Every action recorded from the moment this feature was deployed. Read-only."
-      />
+      <div className="flex items-start justify-between gap-4">
+        <PageHeader
+          title="Activity Log"
+          subtitle="Every action recorded from the moment this feature was deployed."
+        />
+        <div className="mt-1 shrink-0">
+          <Button
+            color="danger"
+            variant="outline"
+            size="sm"
+            onClick={() => setAdvDeleteOpen(true)}
+          >
+            Advanced Delete
+          </Button>
+        </div>
+      </div>
 
       <DataTable<ActivityLogRow>
+        key={refreshKey}
         fetchFn={fetchLogs}
         columns={columns}
         filters={filters}
@@ -173,6 +183,12 @@ export default function ActivityLogList() {
       />
 
       <ActivityLogDetail row={selected} onClose={() => setSelected(null)} />
+
+      <AdvancedDeletePanel
+        open={advDeleteOpen}
+        onClose={() => setAdvDeleteOpen(false)}
+        onDeleted={() => setRefreshKey((k) => k + 1)}
+      />
     </div>
   );
 }

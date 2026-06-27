@@ -79,6 +79,13 @@ export function extractErrorMessage(err: unknown, fallback: string): string {
     return detail;
   }
 
+  // Network error or proxy error — server unreachable
+  const serverUnreachable = (err as { serverUnreachable?: boolean })?.serverUnreachable;
+  const message = (err as { message?: string })?.message;
+  if (serverUnreachable || message === "Network Error") {
+    return "Server is currently unavailable. Please try again in a few minutes. If the issue persists, contact the help desk at 7339685046 or augustinjosephraj7@gmail.com.";
+  }
+
   // Check for network/status errors
   const status = (err as { response?: { status?: number } })?.response?.status;
   if (status === 401) return "Your session has expired. Please log in again.";
@@ -87,13 +94,6 @@ export function extractErrorMessage(err: unknown, fallback: string): string {
   if (status === 409) return "This action conflicts with existing data. Please check for duplicates.";
   if (status === 413) return "The file you're trying to upload is too large.";
   if (status && status >= 500) return "Something went wrong on our end. Please try again later.";
-
-  // Network error (no response) — server unreachable
-  const serverUnreachable = (err as { serverUnreachable?: boolean })?.serverUnreachable;
-  const message = (err as { message?: string })?.message;
-  if (serverUnreachable || message === "Network Error") {
-    return "Server is currently unreachable. Please try again later or contact the help desk at 7339685046 or augustinjosephraj7@gmail.com for assistance.";
-  }
 
   return fallback;
 }

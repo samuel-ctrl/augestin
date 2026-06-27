@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 
 class ActivityLogOut(BaseModel):
@@ -39,3 +39,21 @@ class ActivityLogOut(BaseModel):
 class ActivityActionOut(BaseModel):
     value: str
     label: str
+
+
+class BulkDeleteRequest(BaseModel):
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    outcomes: list[str] | None = None
+
+    @model_validator(mode="after")
+    def require_at_least_one_filter(self) -> "BulkDeleteRequest":
+        has_date = self.start_date is not None or self.end_date is not None
+        has_outcomes = bool(self.outcomes)
+        if not has_date and not has_outcomes:
+            raise ValueError("At least one filter (date range or outcomes) must be provided.")
+        return self
+
+
+class BulkDeleteResponse(BaseModel):
+    deleted: int

@@ -17,7 +17,12 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (!error.response) {
-      // No response at all — server is unreachable
+      // No response at all — server is unreachable (network down)
+      error.serverUnreachable = true;
+      return Promise.reject(error);
+    }
+    if (error.response.status === 502 || error.response.status === 503) {
+      // Proxy/load-balancer could not reach the backend (service stopped or scaling)
       error.serverUnreachable = true;
       return Promise.reject(error);
     }

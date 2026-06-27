@@ -106,10 +106,56 @@ class TestActivityLogApi:
             assert item["label"]
 
     async def test_no_write_api(self, client: AsyncClient, tutor: User):
-        """Confirm logs are immutable: no POST / PUT / PATCH / DELETE endpoints exist."""
-        for method in ("post", "put", "patch", "delete"):
+        """Confirm the root collection has no unintended write methods."""
+        for method in ("put", "patch", "delete"):
             m = getattr(client, method)
             resp = await m("/api/activity-logs", headers=tutor_headers(tutor))
             assert resp.status_code == 405, (
                 f"{method.upper()} /api/activity-logs should return 405, got {resp.status_code}"
             )
+
+
+@pytest.mark.asyncio
+class TestBulkDelete:
+    async def test_delete_by_date_range(self, client: AsyncClient, tutor: User, db: AsyncSession):
+        await _seed_logs(db, tutor)
+        resp = await client.post(
+            "/api/activity-logs/bulk-delete",
+            json={"start_date": "2000-01-01T00:00:00Z", "end_date": "2100-01-01T00:00:00Z"},
+            headers=tutor_headers(tutor),
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["deleted"] >= 3
+
+    async def test_delete_by_outcome(self, client: AsyncClient, tutor: User, db: AsyncSession):
+        await _seed_logs(db, tutor)
+        resp = await client.post(
+            "/api/activity-logs/bulk-delete",
+            json={"outcomes": ["success"]},
+            headers=tutor_headers(tutor),
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["deleted"] >= 1
+        # Verify success rows are gone
+        list_resp = await client.get(
+            "/api/activity-logs?outcome=success", headers=tutor_headers(tutor)
+        )
+        assert list_resp.json()["total"] == 0
+
+    async def test_empty_body_rejected(self, client: AsyncClient, tutor: User):
+        resp = await client.post(
+            "/api/activity-logs/bulk-delete",
+            json={},
+            headers=tutor_headers(tutor),
+        )
+        assert resp.status_code == 422
+
+    async def test_student_forbidden(self, client: AsyncClient, student: User):
+        resp = await client.post(
+            "/api/activity-logs/bulk-delete",
+            json={"outcomes": ["success"]},
+            headers=student_headers(student),
+        )
+        assert resp.status_code == 403

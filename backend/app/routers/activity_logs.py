@@ -7,8 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.dependencies import get_db, require_tutor
 from app.models.activity_log import ActivityLog
-from app.schemas.activity_log import ActivityActionOut, ActivityLogOut
+from app.schemas.activity_log import (
+    ActivityActionOut,
+    ActivityLogOut,
+    BulkDeleteRequest,
+    BulkDeleteResponse,
+)
 from app.schemas.pagination import PaginatedResponse
+from app.services.activity_log import bulk_delete_logs
 from app.services.activity_log_labels import ACTION_LABELS, label_for
 
 router = APIRouter(prefix="/api/activity-logs", tags=["activity-logs"])
@@ -113,6 +119,22 @@ async def list_activity_logs(
         page_size=page_size,
         total_pages=total_pages,
     )
+
+
+@router.post("/bulk-delete", response_model=BulkDeleteResponse)
+async def bulk_delete_activity_logs(
+    request: Request,
+    body: BulkDeleteRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    require_tutor(request)
+    count = await bulk_delete_logs(
+        db,
+        start_date=body.start_date,
+        end_date=body.end_date,
+        outcomes=body.outcomes,
+    )
+    return BulkDeleteResponse(deleted=count)
 
 
 @router.get("/actions", response_model=list[ActivityActionOut])

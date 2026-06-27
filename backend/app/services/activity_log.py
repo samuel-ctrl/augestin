@@ -11,6 +11,9 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any
 
+from sqlalchemy import delete
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app import database  # use module ref so tests can patch async_session
 from app.models.activity_log import ActivityLog
 
@@ -145,6 +148,28 @@ async def log_activity(
     except Exception as exc:
         print(f"\n!!! LOG FAILED: action={action}, err={exc!r}", file=sys.stderr, flush=True)
         logger.exception("Failed to write activity log row (action=%s, path=%s)", action, path)
+
+
+async def bulk_delete_logs(
+    db: AsyncSession,
+    *,
+    start_date: datetime | None = None,
+    end_date: datetime | None = None,
+    outcomes: list[str] | None = None,
+) -> int:
+    """Delete activity log rows matching the given filters. Returns deleted row count."""
+    if not start_date and not end_date and not outcomes:
+        raise ValueError("At least one filter (date range or outcomes) must be provided.")
+    q = delete(ActivityLog)
+    if start_date:
+        q = q.where(ActivityLog.ended_at >= start_date)
+    if end_date:
+        q = q.where(ActivityLog.ended_at <= end_date)
+    if outcomes:
+        q = q.where(ActivityLog.outcome.in_(outcomes))
+    result = await db.execute(q)
+    await db.commit()
+    return max(0, result.rowcount)
 
 
 def log_activity_background(**kwargs: Any) -> None:
