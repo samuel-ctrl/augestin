@@ -77,7 +77,7 @@ export default function QuizPanel({ quizSource, quizId, displayTitle, onComplete
       const status = (err as { response?: { status?: number } })?.response?.status;
       setError(status === 403 ? "This quiz is not available to you." : "Failed to load quiz.");
     }
-  }, [quizId]);
+  }, [quizId, quizSource]);
 
   useEffect(() => {
     fetchSession();

@@ -57,7 +57,7 @@ export default function BookTopics() {
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 404) {
-        navigate("/self-study");
+        navigate(-1);
       } else {
         setError(extractErrorMessage(err, "Failed to load book."));
       }
