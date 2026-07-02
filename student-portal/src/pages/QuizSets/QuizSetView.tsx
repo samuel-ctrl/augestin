@@ -102,8 +102,8 @@ export default function QuizSetView() {
         actions={
           <Button
             color="success"
-            variant="outline"
             size="sm"
+            className="!bg-white !text-emerald-700 hover:!bg-emerald-50"
             onClick={handleHostLive}
             loading={hosting}
           >
