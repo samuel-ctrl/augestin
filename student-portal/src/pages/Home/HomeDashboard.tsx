@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { LoadingSpinner, EmptyState, Toast, useToast, PageHeader, BookCard } from "@shared";
+import { LoadingSpinner, EmptyState, Toast, useToast, PageHeader, BookCard, QuizThumbnail } from "@shared";
 import type { AssignedQuizSet } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
@@ -251,15 +251,7 @@ export default function HomeDashboard() {
                     onClick={() => navigate(`/quiz-sets/${qs.id}`)}
                     className="bg-[rgb(191_189_207_/_38%)] dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-shadow text-left"
                   >
-                    {qs.thumbnail_url && (
-                      <div className="mb-3 h-24 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
-                        <img
-                          src={assetUrl(qs.thumbnail_url)}
-                          alt={qs.name}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                    )}
+                    <QuizThumbnail src={assetUrl(qs.thumbnail_url)} alt={qs.name} className="mb-3 h-24 rounded" />
                     <h3 className="font-semibold text-gray-900 dark:text-gray-50 text-sm line-clamp-2">
                       {qs.name}
                     </h3>

@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { DataTable, Toast, useToast } from "@shared";
+import { DataTable, Toast, useToast, BookThumbnail } from "@shared";
 import type {
   LearningZoneQuiz,
   LiveQuizRoomSnapshot,
@@ -9,8 +9,13 @@ import type {
   TableQueryParams,
 } from "@shared";
 import api from "../../api/client";
+import { assetUrl } from "../../api/config";
+import { toDirectImageUrl, isGoogleDriveUrl } from "@shared";
 
-const DEFAULT_THUMBNAIL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200' fill='%23e5e7eb'%3E%3Crect width='300' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-size='40'%3E%F0%9F%93%9A%3C/text%3E%3C/svg%3E";
+function resolveThumbnailUrl(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  return isGoogleDriveUrl(url) ? toDirectImageUrl(url) : assetUrl(url);
+}
 
 export default function LearningZoneQuizList() {
   const navigate = useNavigate();
@@ -54,6 +59,19 @@ export default function LearningZoneQuizList() {
   }, []);
 
   const columns: ColumnDef<LearningZoneQuiz>[] = [
+    {
+      key: "book_thumbnail_url",
+      label: "",
+      sortable: false,
+      width: "72px",
+      render: (_val, row) => (
+        <BookThumbnail
+          src={resolveThumbnailUrl(row.book_thumbnail_url)}
+          alt={row.book_title}
+          className={`w-14 h-10 rounded ${!row.is_quiz_unlocked ? "grayscale" : ""}`}
+        />
+      ),
+    },
     { key: "book_title", label: "Title", sortable: false },
     { key: "subject_name", label: "Subject", sortable: false, width: "150px" },
     {
@@ -103,15 +121,14 @@ export default function LearningZoneQuizList() {
               ? "bg-[rgb(191_189_207_/_38%)] border-gray-200 dark:border-gray-700 hover:shadow-lg hover:border-primary-300"
               : "bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700 opacity-70"
           }`}>
-            <div className="mb-3 h-32 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden relative">
-              <img
-                src={row.book_thumbnail_url || DEFAULT_THUMBNAIL}
+            <div className="relative mb-3">
+              <BookThumbnail
+                src={resolveThumbnailUrl(row.book_thumbnail_url)}
                 alt={row.book_title}
-                className={`w-full h-full object-cover ${!row.is_quiz_unlocked ? "grayscale" : ""}`}
-                onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_THUMBNAIL; }}
+                className={`h-32 rounded ${!row.is_quiz_unlocked ? "grayscale" : ""}`}
               />
               {!row.is_quiz_unlocked && (
-                <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded">
                   <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                       d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />

@@ -1,11 +1,15 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { DataTable, Toast, useToast, PageHeader, Button } from "@shared";
+import { DataTable, Toast, useToast, PageHeader, Button, QuizThumbnail, toDirectImageUrl, isGoogleDriveUrl } from "@shared";
 import type { AssignedQuizSet, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
+import { assetUrl } from "../../api/config";
 import LearningZoneQuizList from "./LearningZoneQuizList";
 
-const DEFAULT_THUMBNAIL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200' fill='%23e5e7eb'%3E%3Crect width='300' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-size='40'%3E%F0%9F%A7%A9%3C/text%3E%3C/svg%3E";
+function resolveThumbnailUrl(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  return isGoogleDriveUrl(url) ? toDirectImageUrl(url) : assetUrl(url);
+}
 
 type Tab = "general" | "learning_zone";
 
@@ -29,6 +33,15 @@ export default function QuizSetDashboard() {
   }, []);
 
   const columns: ColumnDef<AssignedQuizSet>[] = [
+    {
+      key: "thumbnail_url",
+      label: "",
+      sortable: false,
+      width: "72px",
+      render: (_val, row) => (
+        <QuizThumbnail src={resolveThumbnailUrl(row.thumbnail_url)} alt={row.name} className="w-14 h-10 rounded" />
+      ),
+    },
     { key: "name", label: "Name", sortable: false },
     {
       key: "question_count",
@@ -60,7 +73,11 @@ export default function QuizSetDashboard() {
         title="Quizzes"
         subtitle="Available quizzes assigned to you"
         actions={
-          <Button color="primary" variant="outline" size="sm" onClick={() => navigate("/quiz-sets/live")}>
+          <Button
+            size="sm"
+            className="!bg-white !text-primary-700 hover:!bg-blue-50"
+            onClick={() => navigate("/quiz-sets/live")}
+          >
             Join Live Quiz
           </Button>
         }
@@ -102,14 +119,7 @@ export default function QuizSetDashboard() {
               className="bg-[rgb(191_189_207_/_38%)] rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg hover:border-primary-300 transition-all cursor-pointer"
               onClick={() => navigate(`/quiz-sets/${row.id}`)}
             >
-              <div className="mb-3 h-32 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
-                <img
-                  src={row.thumbnail_url || DEFAULT_THUMBNAIL}
-                  alt={row.name}
-                  className="w-full h-full object-cover"
-                  onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_THUMBNAIL; }}
-                />
-              </div>
+              <QuizThumbnail src={resolveThumbnailUrl(row.thumbnail_url)} alt={row.name} className="mb-3 h-32 rounded" />
               <h3 className="font-semibold text-gray-900 dark:text-gray-50 text-sm line-clamp-2">
                 {row.name}
               </h3>
