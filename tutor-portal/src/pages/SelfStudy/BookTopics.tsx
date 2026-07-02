@@ -8,6 +8,8 @@ import {
   useToast,
   extractErrorMessage,
   Button,
+  isGoogleDriveUrl,
+  toDirectImageUrl,
 } from "@shared";
 import type { Topic } from "@shared";
 import api from "../../api/client";
@@ -298,7 +300,11 @@ function TopicRow({
       {/* Thumbnail or placeholder */}
       {topic.image_url ? (
         <img
-          src={assetUrl(topic.image_url)}
+          src={
+            isGoogleDriveUrl(topic.image_url)
+              ? toDirectImageUrl(topic.image_url)
+              : assetUrl(topic.image_url)
+          }
           alt=""
           className="w-10 h-10 rounded object-cover shrink-0 border border-gray-200"
           onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
