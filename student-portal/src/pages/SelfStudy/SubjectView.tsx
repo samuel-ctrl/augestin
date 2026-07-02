@@ -1,9 +1,14 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { BookCard, DataTable, EmptyState, LoadingSpinner, PageHeader, extractErrorMessage } from "@shared";
+import { BookCard, BookThumbnail, DataTable, EmptyState, LoadingSpinner, PageHeader, extractErrorMessage, toDirectImageUrl, isGoogleDriveUrl } from "@shared";
 import type { Subject, Book, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
+
+function resolveThumbnailUrl(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  return isGoogleDriveUrl(url) ? toDirectImageUrl(url) : assetUrl(url);
+}
 
 export default function SubjectView() {
   const { id: subjectId } = useParams<{ id: string }>();
@@ -41,6 +46,15 @@ export default function SubjectView() {
   );
 
   const columns: ColumnDef<Book>[] = [
+    {
+      key: "thumbnail_url",
+      label: "",
+      sortable: false,
+      width: "72px",
+      render: (_val, row) => (
+        <BookThumbnail src={resolveThumbnailUrl(row.thumbnail_url)} alt={row.title} className="w-14 h-10 rounded" />
+      ),
+    },
     {
       key: "title",
       label: "Title",
@@ -107,7 +121,7 @@ export default function SubjectView() {
           <BookCard
             title={book.title}
             standard={book.standard}
-            thumbnailUrl={assetUrl(book.thumbnail_url)}
+            thumbnailUrl={resolveThumbnailUrl(book.thumbnail_url)}
             topicCount={book.topic_count}
             onClick={() => navigate(`/self-study/books/${book.id}`)}
           />

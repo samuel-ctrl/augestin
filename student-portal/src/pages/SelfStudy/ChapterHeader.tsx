@@ -1,9 +1,7 @@
-import { isGoogleDriveUrl, toDirectImageUrl } from "@shared";
+import { isGoogleDriveUrl, toDirectImageUrl, BookThumbnail } from "@shared";
 import type { Book, Subject } from "@shared";
 import { assetUrl } from "../../api/config";
 import ProgressRing from "./ProgressRing";
-
-const DEFAULT_THUMBNAIL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200' fill='%23e5e7eb'%3E%3Crect width='300' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-size='40'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E";
 
 interface ChapterHeaderProps {
   book: Book;
@@ -34,15 +32,9 @@ export default function ChapterHeader({ book, subject, percentComplete, allCompl
       </button>
 
       <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <img
-          src={
-            book.thumbnail_url
-              ? (isGoogleDriveUrl(book.thumbnail_url) ? toDirectImageUrl(book.thumbnail_url) : assetUrl(book.thumbnail_url))
-              : DEFAULT_THUMBNAIL
-          }
-          alt=""
-          className="w-full sm:w-32 h-32 rounded-xl object-cover shrink-0 bg-white/10"
-          onError={(e) => { (e.target as HTMLImageElement).src = DEFAULT_THUMBNAIL; }}
+        <BookThumbnail
+          src={book.thumbnail_url ? (isGoogleDriveUrl(book.thumbnail_url) ? toDirectImageUrl(book.thumbnail_url) : assetUrl(book.thumbnail_url)) : undefined}
+          className="w-full sm:w-32 h-32 rounded-xl shrink-0"
         />
 
         <div className="flex-1 min-w-0">

@@ -1,5 +1,6 @@
 import React from "react";
 import { isGoogleDriveUrl, toDirectImageUrl } from "../utils/googleDrive";
+import { BookThumbnail } from "./BookThumbnail";
 
 interface BookCardProps {
   title: string;
@@ -10,8 +11,6 @@ interface BookCardProps {
   actions?: React.ReactNode;
 }
 
-const DEFAULT_THUMBNAIL = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 200' fill='%23e5e7eb'%3E%3Crect width='300' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%239ca3af' font-size='40'%3E%F0%9F%93%96%3C/text%3E%3C/svg%3E";
-
 export function BookCard({
   title,
   standard,
@@ -20,6 +19,8 @@ export function BookCard({
   onClick,
   actions,
 }: BookCardProps) {
+  const resolvedSrc = thumbnailUrl && isGoogleDriveUrl(thumbnailUrl) ? toDirectImageUrl(thumbnailUrl) : thumbnailUrl;
+
   return (
     <div
       className={`bg-[rgb(191_189_207_/_38%)] dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 transition-shadow hover:shadow-md ${
@@ -27,16 +28,7 @@ export function BookCard({
       }`}
       onClick={onClick}
     >
-      <div className="relative aspect-video bg-gray-100 dark:bg-gray-700 rounded-t-lg overflow-hidden">
-        <img
-          src={thumbnailUrl && isGoogleDriveUrl(thumbnailUrl) ? toDirectImageUrl(thumbnailUrl) : (thumbnailUrl || DEFAULT_THUMBNAIL)}
-          alt={title}
-          className="w-full h-full object-cover"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = DEFAULT_THUMBNAIL;
-          }}
-        />
-      </div>
+      <BookThumbnail src={resolvedSrc} alt={title} className="aspect-video rounded-t-lg" />
       <div className="p-3">
         <h4 className="font-medium text-gray-800 dark:text-gray-100 text-sm truncate">{title}</h4>
         <div className="flex items-center gap-1.5 mt-1">

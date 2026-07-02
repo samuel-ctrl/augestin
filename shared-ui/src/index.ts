@@ -96,6 +96,7 @@ export type { DropdownMenuItem } from "./components/DropdownMenu";
 export { SubjectCard } from "./components/SubjectCard";
 export { SubjectTile } from "./components/SubjectTile";
 export { BookCard } from "./components/BookCard";
+export { BookThumbnail, BookPlaceholderIcon } from "./components/BookThumbnail";
 export { AttachmentGallery } from "./components/AttachmentGallery";
 export { VideoPlayer } from "./components/VideoPlayer";
 export { IconPicker } from "./components/IconPicker";
