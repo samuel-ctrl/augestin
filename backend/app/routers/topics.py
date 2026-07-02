@@ -308,6 +308,7 @@ async def get_book_topic_progress(
             video_complete=p.video_complete,
             quiz_complete=p.quiz_complete,
             question_count=p.question_count,
+            score_percentage=p.score_percentage,
         )
         for p in progress_list
     ]

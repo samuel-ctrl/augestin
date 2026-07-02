@@ -28,6 +28,7 @@ class TopicProgressData:
     video_complete: bool
     quiz_complete: bool
     question_count: int
+    score_percentage: float | None
 
 
 async def get_topic_progress(
@@ -109,6 +110,7 @@ async def get_topic_progress(
             video_complete=video_complete,
             quiz_complete=quiz_complete,
             question_count=q_count,
+            score_percentage=(qp.score_percentage if qp else None),
         ))
 
         prev_complete = is_complete

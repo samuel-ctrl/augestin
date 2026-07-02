@@ -45,6 +45,7 @@ class TopicProgressOut(BaseModel):
     video_complete: bool
     quiz_complete: bool
     question_count: int
+    score_percentage: float | None = None
 
 
 class TopicNotesCreate(BaseModel):

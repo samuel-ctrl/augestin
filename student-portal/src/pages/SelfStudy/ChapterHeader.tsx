@@ -1,0 +1,67 @@
+import type { Book, Subject } from "@shared";
+import { assetUrl } from "../../api/config";
+import ProgressRing from "./ProgressRing";
+
+interface ChapterHeaderProps {
+  book: Book;
+  subject: Subject;
+  percentComplete: number;
+  onContinueLearning: () => void;
+  onBack: () => void;
+}
+
+export default function ChapterHeader({ book, subject, percentComplete, onContinueLearning, onBack }: ChapterHeaderProps) {
+  return (
+    <div
+      className="mb-6 rounded-2xl p-5 sm:p-6 relative overflow-hidden"
+      style={{ background: "linear-gradient(135deg, #0d47a1 0%, rgba(21, 101, 192, 0.8) 50%, #0d47a1 100%)" }}
+    >
+      <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-28 h-28 bg-blue-300/15 rounded-full" />
+      <div className="absolute -bottom-4 left-[45%] -translate-x-1/2 w-20 h-20 bg-blue-400/12 rounded-full" />
+
+      <button
+        onClick={onBack}
+        className="relative z-10 text-sm text-blue-200 hover:text-white mb-3 inline-flex items-center gap-1 transition-colors"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+        </svg>
+        {subject.name}
+      </button>
+
+      <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        {book.thumbnail_url && (
+          <img
+            src={assetUrl(book.thumbnail_url)}
+            alt=""
+            className="w-full sm:w-32 h-32 rounded-xl object-cover shrink-0"
+          />
+        )}
+
+        <div className="flex-1 min-w-0">
+          <p className="text-xs font-medium text-blue-200 uppercase tracking-wide mb-1">
+            {book.standard} &middot; {subject.name}
+          </p>
+          <h1 className="text-xl sm:text-2xl font-bold text-white">{book.title}</h1>
+          {book.description && (
+            <p className="text-sm text-blue-100 mt-1 line-clamp-2">{book.description}</p>
+          )}
+          <button
+            onClick={onContinueLearning}
+            className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-white text-primary-700 text-sm font-medium rounded-lg hover:bg-blue-50 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8 5v14l11-7z" />
+            </svg>
+            Continue Learning
+          </button>
+        </div>
+
+        <div className="flex flex-col items-center gap-1 mx-auto sm:mx-0">
+          <ProgressRing percentage={percentComplete} />
+          <span className="text-xs text-blue-100">Completed</span>
+        </div>
+      </div>
+    </div>
+  );
+}

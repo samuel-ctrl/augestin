@@ -71,6 +71,7 @@ export interface TopicProgress {
   video_complete: boolean;
   quiz_complete: boolean;
   question_count: number;
+  score_percentage?: number | null;
 }
 
 export interface TopicNotes {
