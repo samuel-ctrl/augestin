@@ -242,7 +242,7 @@ export default function BookView() {
               isWatched={isWatched}
               markingWatched={markingWatched}
               onMarkWatched={handleMarkWatched}
-              onQuizCompletedChange={() => refetchProgress()}
+              onQuizCompletedChange={refetchProgress}
             />
           )}
 
