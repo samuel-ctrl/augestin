@@ -211,6 +211,7 @@ export default function BookView() {
         book={book}
         subject={subject}
         percentComplete={percentComplete}
+        allComplete={allComplete}
         onContinueLearning={handleContinueLearning}
         onBack={() => navigate(`/self-study/subjects/${subject.id}`)}
       />
