@@ -44,9 +44,9 @@ function DriveVideoPlayer({ src }: { src: string }) {
   }
 
   return (
-    <div className="relative bg-black rounded-lg overflow-hidden">
+    <div className="relative bg-black rounded-lg">
       {status === "loading" && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10">
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-900 z-10 rounded-lg">
           <div className="text-center">
             <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2" />
             <p className="text-sm text-gray-300">Loading video...</p>
@@ -54,7 +54,7 @@ function DriveVideoPlayer({ src }: { src: string }) {
         </div>
       )}
       {status === "error" && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10 rounded-lg">
           <div className="text-center px-4">
             <p className="text-sm text-gray-600 font-medium">Video unavailable</p>
             <p className="text-xs text-gray-400 mt-1">
@@ -63,12 +63,16 @@ function DriveVideoPlayer({ src }: { src: string }) {
           </div>
         </div>
       )}
+      {/* min-height is a floor, not a ratio: Drive's own control bar can wrap to two rows
+          on narrower widths and needs more vertical room than 16:9 alone provides. We must
+          never clip it with overflow-hidden — that turns "slightly short" into "controls
+          gone". */}
       <iframe
         src={embedUrl}
-        className="w-full aspect-video"
+        className="w-full aspect-video min-h-[360px] rounded-lg"
         allow="autoplay; encrypted-media"
         allowFullScreen
-        sandbox="allow-same-origin allow-scripts"
+        sandbox="allow-same-origin allow-scripts allow-popups allow-popups-to-escape-sandbox"
         onLoad={() => setStatus("loaded")}
         onError={() => setStatus("error")}
       />
