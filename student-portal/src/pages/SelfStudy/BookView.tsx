@@ -1,15 +1,42 @@
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { LoadingSpinner, EmptyState, extractErrorMessage } from "@shared";
+import {
+  PlayCircle,
+  HelpCircle,
+  FileText,
+  ClipboardCheck,
+  MessageCircleQuestion,
+  Lock,
+  ExternalLink,
+  CheckCircle2,
+  Plus,
+  AlertTriangle,
+  BookOpen,
+  PencilRuler,
+} from "lucide-react";
+import { LoadingSpinner, EmptyState, extractErrorMessage, Card, Button, useSetBreadcrumbs } from "@shared";
 import type { Book, Subject, Doubt, Topic, TopicNotes, TopicProgress, PaginatedResponse } from "@shared";
 import api from "../../api/client";
 import ChapterHeader from "./ChapterHeader";
 import TopicsSidebar from "./TopicsSidebar";
 import TopicContentPanel, { type ContentTab } from "./TopicContentPanel";
-import StatsRow from "./StatsRow";
 import RecommendedNextCard from "./RecommendedNextCard";
 
 type Tab = ContentTab | "test" | "doubts";
+type TabGroup = "study" | "practice";
+
+const TAB_GROUP: Record<Tab, TabGroup> = {
+  record: "study",
+  quiz: "study",
+  recap: "study",
+  test: "practice",
+  doubts: "practice",
+};
+
+const GROUPS: { key: TabGroup; label: string; icon: typeof BookOpen; firstTab: Tab }[] = [
+  { key: "study", label: "Study Materials", icon: BookOpen, firstTab: "record" },
+  { key: "practice", label: "Practice & Discuss", icon: PencilRuler, firstTab: "test" },
+];
 
 function getDefaultTopicId(topics: TopicProgress[]): string | null {
   if (topics.length === 0) return null;
@@ -165,18 +192,15 @@ export default function BookView() {
   const allComplete = totalCount > 0 && completedCount === totalCount;
   const percentComplete = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-  const videosWatched = useMemo(() => ({
-    done: topicsProgress.filter((t) => t.has_video && t.video_complete).length,
-    total: topicsProgress.filter((t) => t.has_video).length,
-  }), [topicsProgress]);
-
-  const quizAvgScore = useMemo(() => {
-    const attempted = topicsProgress.filter((t) => t.question_count > 0 && t.score_percentage != null);
-    if (attempted.length === 0) return null;
-    return attempted.reduce((sum, t) => sum + (t.score_percentage ?? 0), 0) / attempted.length;
-  }, [topicsProgress]);
-
-  const testStatus = !test ? "not_available" : testSubmitted ? "submitted" : "pending";
+  useSetBreadcrumbs(
+    subject && book
+      ? [
+          { label: "Learn Zone", path: "/self-study" },
+          { label: subject.name, path: `/self-study/subjects/${subject.id}` },
+          { label: book.title },
+        ]
+      : []
+  );
 
   const nextTopic = useMemo(() => {
     const idx = topicsProgress.findIndex((t) => t.topic_id === selectedTopicId);
@@ -185,18 +209,22 @@ export default function BookView() {
     return next.is_complete ? null : next;
   }, [topicsProgress, selectedTopicId]);
 
+  const activeGroup = TAB_GROUP[activeTab];
+
+  // Inner tabs render as an underline tab-bar inside the content card header.
   const tabClass = (tab: Tab) =>
-    `px-4 py-2 text-sm rounded-lg font-medium transition-colors ${
+    `inline-flex items-center gap-1.5 px-4 py-3 text-sm font-medium whitespace-nowrap border-b-2 -mb-px transition-colors ${
       activeTab === tab
-        ? "bg-primary-600 text-white"
-        : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+        ? "border-primary-600 text-primary-700 dark:text-primary-300"
+        : "border-transparent text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
     }`;
 
   if (loading) return <LoadingSpinner fullPage />;
   if (error) {
     return (
       <EmptyState
-        icon={<span>!</span>}
+        variant="error"
+        icon={<AlertTriangle className="w-6 h-6" />}
         title="Something went wrong"
         description={error}
         action={{ label: "Try Again", onClick: () => { setError(null); setLoading(true); fetchData(); } }}
@@ -209,199 +237,235 @@ export default function BookView() {
     <div>
       <ChapterHeader
         book={book}
-        subject={subject}
+        topicCount={totalCount}
         percentComplete={percentComplete}
         allComplete={allComplete}
         onContinueLearning={handleContinueLearning}
-        onBack={() => navigate(`/self-study/subjects/${subject.id}`)}
       />
 
-      <div className="flex gap-1 mb-4 flex-wrap">
-        <button onClick={() => setActiveTab("record")} className={tabClass("record")}>Record</button>
-        <button onClick={() => setActiveTab("quiz")} className={tabClass("quiz")}>
-          Quiz{topicDetail && topicDetail.question_count > 0 ? ` (${topicDetail.question_count})` : ""}
-        </button>
-        <button onClick={() => setActiveTab("recap")} className={tabClass("recap")}>Recap</button>
-        <button onClick={() => setActiveTab("test")} className={tabClass("test")}>Test</button>
-        <button onClick={() => setActiveTab("doubts")} className={`${tabClass("doubts")} flex items-center gap-1.5`}>
-          Doubts
-          {doubtsCount > 0 && (
-            <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-              activeTab === "doubts" ? "bg-white/20 text-white" : "bg-primary-100 text-primary-600"
-            }`}>{doubtsCount}</span>
-          )}
-        </button>
+      {/* Top-level stepper: Study Materials → Practice & Discuss */}
+      <div className="flex gap-1.5 mb-4 p-1.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full">
+        {GROUPS.map((group) => {
+          const isActive = activeGroup === group.key;
+          const Icon = group.icon;
+          return (
+            <button
+              key={group.key}
+              onClick={() => setActiveTab(group.firstTab)}
+              aria-current={isActive ? "step" : undefined}
+              className={`flex-1 min-w-0 inline-flex items-center justify-center gap-2 px-3 sm:px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${
+                isActive
+                  ? "bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300"
+                  : "text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
+              }`}
+            >
+              <Icon className="w-4 h-4 shrink-0 hidden sm:block" />
+              <span className="truncate">{group.label}</span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="lg:col-span-2">
-          {(activeTab === "record" || activeTab === "quiz" || activeTab === "recap") && (
-            <TopicContentPanel
-              topic={topicDetail}
-              notes={notes}
-              activeTab={activeTab}
-              isWatched={isWatched}
-              markingWatched={markingWatched}
-              onMarkWatched={handleMarkWatched}
-              onQuizCompletedChange={refetchProgress}
-            />
-          )}
-
-          {activeTab === "test" && (
-            allComplete ? (
-              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-1">Book Test</h2>
-                {test ? (
-                  <>
-                    {test.instructions && (
-                      <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                        <h3 className="text-sm font-medium text-blue-900 mb-1">Instructions:</h3>
-                        <p className="text-sm text-blue-800 whitespace-pre-wrap">{test.instructions}</p>
-                      </div>
-                    )}
-                    <div className="mb-4">
-                      <a
-                        href={test.drive_link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm"
-                      >
-                        Open Test File
-                      </a>
-                    </div>
-                    <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
-                      <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Submit Your Answer</h3>
-                      {testSubmitted ? (
-                        <div className="space-y-3">
-                          <div className="flex items-center gap-2 text-green-700 text-sm font-medium">
-                            <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-                            Submitted
-                          </div>
-                          {testSubmissionLink && (
-                            <a href={testSubmissionLink} target="_blank" rel="noopener noreferrer"
-                              className="text-sm text-primary-600 hover:underline block truncate"
-                            >{testSubmissionLink}</a>
-                          )}
-                          <button
-                            disabled={testSubmitting}
-                            onClick={async () => {
-                              setTestSubmitting(true);
-                              try {
-                                await api.put(`/books/${bookId}/test/submit`, {});
-                                setTestSubmitted(false);
-                                setTestSubmissionLink("");
-                              } catch {} finally { setTestSubmitting(false); }
-                            }}
-                            className="px-4 py-1.5 text-sm bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
-                          >
-                            {testSubmitting ? "Saving..." : "Undo Submission"}
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          <input
-                            type="url"
-                            value={testSubmissionLink}
-                            onChange={(e) => setTestSubmissionLink(e.target.value)}
-                            placeholder="Paste your Google Drive answer link..."
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500"
-                          />
-                          <button
-                            disabled={testSubmitting || !testSubmissionLink.trim()}
-                            onClick={async () => {
-                              setTestSubmitting(true);
-                              try {
-                                const res = await api.put(`/books/${bookId}/test/submit`, {
-                                  submission_link: testSubmissionLink.trim() || null,
-                                });
-                                setTestSubmitted(res.data.has_submitted);
-                                setTestSubmissionLink(res.data.submission_link || "");
-                              } catch {} finally { setTestSubmitting(false); }
-                            }}
-                            className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
-                          >
-                            {testSubmitting ? "Submitting..." : "Submit Test"}
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-sm text-gray-500 dark:text-gray-400">No test available for this book yet.</p>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                <svg className="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                </svg>
-                <p className="text-sm text-gray-400 dark:text-gray-500">
-                  Complete all topics to unlock the book test
-                </p>
-              </div>
-            )
-          )}
-
-          {activeTab === "doubts" && (
-            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50">Doubts ({doubtsCount})</h2>
-                <button
-                  onClick={() => navigate(`/doubts/new?book_id=${bookId}`)}
-                  className="px-4 py-1.5 bg-primary-600 text-white text-sm rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  + Ask a Doubt
-                </button>
-              </div>
-              {doubts.length === 0 ? (
-                <p className="text-sm text-gray-500 dark:text-gray-400">No doubts for this book yet. Be the first to ask!</p>
+        <div className={activeGroup === "study" ? "lg:col-span-2" : "lg:col-span-3"}>
+          <Card padding="none" className="overflow-hidden">
+            {/* Inner tabs — the header of this content card, under the stepper */}
+            <div className="flex items-center gap-1 border-b border-gray-100 dark:border-gray-800 px-2 sm:px-4 overflow-x-auto">
+              {activeGroup === "study" ? (
+                <>
+                  <button onClick={() => setActiveTab("record")} className={tabClass("record")}>
+                    <PlayCircle className="w-3.5 h-3.5" /> Record
+                  </button>
+                  <button onClick={() => setActiveTab("quiz")} className={tabClass("quiz")}>
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    Quiz{topicDetail && topicDetail.question_count > 0 ? ` (${topicDetail.question_count})` : ""}
+                  </button>
+                  <button onClick={() => setActiveTab("recap")} className={tabClass("recap")}>
+                    <FileText className="w-3.5 h-3.5" /> Recap
+                  </button>
+                </>
               ) : (
-                <div className="space-y-3">
-                  {doubts.map((doubt) => (
-                    <div
-                      key={doubt.id}
-                      onClick={() => navigate(`/doubts/${doubt.id}`)}
-                      className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-50">{doubt.title}</h3>
-                        <span className={`px-1.5 py-0.5 text-[10px] rounded-full ${
-                          doubt.status === "open" ? "bg-yellow-100 text-yellow-800" :
-                          doubt.status === "resolved" ? "bg-green-100 text-green-800" :
-                          "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
-                        }`}>{doubt.status}</span>
-                      </div>
-                      <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">{doubt.description}</p>
-                      <div className="flex items-center gap-2 mt-1 text-xs text-gray-400 dark:text-gray-500">
-                        <span>{doubt.student_name}</span>
-                        <span>{doubt.comment_count} comments</span>
-                      </div>
-                    </div>
-                  ))}
-                  {doubtsCount > doubts.length && (
-                    <button onClick={() => navigate(`/doubts?book_id=${bookId}`)} className="text-sm text-primary-600 hover:underline">
-                      View all {doubtsCount} doubts
-                    </button>
-                  )}
-                </div>
+                <>
+                  <button onClick={() => setActiveTab("test")} className={tabClass("test")}>
+                    {allComplete ? <ClipboardCheck className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
+                    Test
+                  </button>
+                  <button onClick={() => setActiveTab("doubts")} className={tabClass("doubts")}>
+                    <MessageCircleQuestion className="w-3.5 h-3.5" />
+                    Doubts
+                    {doubtsCount > 0 && (
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                        activeTab === "doubts"
+                          ? "bg-primary-100 text-primary-700 dark:bg-primary-900/40 dark:text-primary-300"
+                          : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300"
+                      }`}>{doubtsCount}</span>
+                    )}
+                  </button>
+                </>
               )}
             </div>
-          )}
+
+            {/* Body — changes with the active inner tab */}
+            <div className="p-4 sm:p-6">
+              {(activeTab === "record" || activeTab === "quiz" || activeTab === "recap") && (
+                <TopicContentPanel
+                  topic={topicDetail}
+                  notes={notes}
+                  activeTab={activeTab}
+                  isWatched={isWatched}
+                  markingWatched={markingWatched}
+                  onMarkWatched={handleMarkWatched}
+                  onQuizCompletedChange={refetchProgress}
+                />
+              )}
+
+              {activeTab === "test" && (
+                allComplete ? (
+                  <>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50 mb-1">Book Test</h2>
+                    {test ? (
+                      <>
+                        {test.instructions && (
+                          <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                            <h3 className="text-sm font-medium text-blue-900 mb-1">Instructions:</h3>
+                            <p className="text-sm text-blue-800 whitespace-pre-wrap">{test.instructions}</p>
+                          </div>
+                        )}
+                        <div className="mb-4">
+                          <a href={test.drive_link} target="_blank" rel="noopener noreferrer">
+                            <Button color="primary">
+                              <ExternalLink className="w-4 h-4" />
+                              Open Test File
+                            </Button>
+                          </a>
+                        </div>
+                        <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
+                          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-200 mb-3">Submit Your Answer</h3>
+                          {testSubmitted ? (
+                            <div className="space-y-3">
+                              <div className="flex items-center gap-1.5 text-green-700 dark:text-green-400 text-sm font-medium">
+                                <CheckCircle2 className="w-4 h-4" />
+                                Submitted
+                              </div>
+                              {testSubmissionLink && (
+                                <a href={testSubmissionLink} target="_blank" rel="noopener noreferrer"
+                                  className="text-sm text-primary-600 hover:underline block truncate"
+                                >{testSubmissionLink}</a>
+                              )}
+                              <Button
+                                color="secondary"
+                                variant="outline"
+                                size="sm"
+                                onClick={async () => {
+                                  try {
+                                    await api.put(`/books/${bookId}/test/submit`, {});
+                                    setTestSubmitted(false);
+                                    setTestSubmissionLink("");
+                                  } catch {}
+                                }}
+                              >
+                                Undo Submission
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="space-y-3">
+                              <input
+                                type="url"
+                                value={testSubmissionLink}
+                                onChange={(e) => setTestSubmissionLink(e.target.value)}
+                                placeholder="Paste your Google Drive answer link..."
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-500"
+                              />
+                              <Button
+                                color="primary"
+                                disabled={!testSubmissionLink.trim()}
+                                onClick={async () => {
+                                  try {
+                                    const res = await api.put(`/books/${bookId}/test/submit`, {
+                                      submission_link: testSubmissionLink.trim() || null,
+                                    });
+                                    setTestSubmitted(res.data.has_submitted);
+                                    setTestSubmissionLink(res.data.submission_link || "");
+                                  } catch {}
+                                }}
+                              >
+                                Submit Test
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-sm text-gray-500 dark:text-gray-400">No test available for this book yet.</p>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex items-center gap-2 px-4 py-3 bg-gray-50 dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
+                    <Lock className="w-4 h-4 text-gray-400 shrink-0" />
+                    <p className="text-sm text-gray-400 dark:text-gray-500">
+                      Complete all topics to unlock the book test
+                    </p>
+                  </div>
+                )
+              )}
+
+              {activeTab === "doubts" && (
+                <>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-50">Doubts ({doubtsCount})</h2>
+                    <Button color="primary" size="sm" onClick={() => navigate(`/doubts/new?book_id=${bookId}`)}>
+                      <Plus className="w-3.5 h-3.5" />
+                      Ask a Doubt
+                    </Button>
+                  </div>
+                  {doubts.length === 0 ? (
+                    <p className="text-sm text-gray-500 dark:text-gray-400">No doubts for this book yet. Be the first to ask!</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {doubts.map((doubt) => (
+                        <div
+                          key={doubt.id}
+                          onClick={() => navigate(`/doubts/${doubt.id}`)}
+                          className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="text-sm font-medium text-gray-900 dark:text-gray-50">{doubt.title}</h3>
+                            <span className={`px-1.5 py-0.5 text-[10px] rounded-full ${
+                              doubt.status === "open" ? "bg-yellow-100 text-yellow-800" :
+                              doubt.status === "resolved" ? "bg-green-100 text-green-800" :
+                              "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300"
+                            }`}>{doubt.status}</span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-gray-300 line-clamp-1">{doubt.description}</p>
+                          <div className="flex items-center gap-2 mt-1 text-xs text-gray-400 dark:text-gray-500">
+                            <span>{doubt.student_name}</span>
+                            <span>{doubt.comment_count} comments</span>
+                          </div>
+                        </div>
+                      ))}
+                      {doubtsCount > doubts.length && (
+                        <Button variant="ghost" color="primary" size="sm" onClick={() => navigate(`/doubts?book_id=${bookId}`)}>
+                          View all {doubtsCount} doubts
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </Card>
         </div>
 
-        <div className="lg:col-span-1">
-          <TopicsSidebar topics={topicsProgress} selectedTopicId={selectedTopicId} onSelect={setSelectedTopicId} />
-        </div>
+        {activeGroup === "study" && (
+          <div className="lg:col-span-1">
+            <TopicsSidebar topics={topicsProgress} selectedTopicId={selectedTopicId} onSelect={setSelectedTopicId} />
+          </div>
+        )}
       </div>
 
-      <StatsRow
-        videosWatched={videosWatched}
-        topicsComplete={{ done: completedCount, total: totalCount }}
-        quizAvgScore={quizAvgScore}
-        testStatus={testStatus}
-      />
-
-      <RecommendedNextCard nextTopic={nextTopic} onSelect={setSelectedTopicId} />
+      {activeGroup === "study" && (
+        <RecommendedNextCard nextTopic={nextTopic} onSelect={setSelectedTopicId} />
+      )}
     </div>
   );
 }

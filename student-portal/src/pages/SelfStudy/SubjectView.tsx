@@ -1,6 +1,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
-import { BookCard, BookThumbnail, DataTable, EmptyState, LoadingSpinner, PageHeader, extractErrorMessage, toDirectImageUrl, isGoogleDriveUrl } from "@shared";
+import { AlertTriangle } from "lucide-react";
+import { BookCard, BookThumbnail, DataTable, EmptyState, LoadingSpinner, PageHeader, extractErrorMessage, toDirectImageUrl, isGoogleDriveUrl, useSetBreadcrumbs } from "@shared";
 import type { Subject, Book, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
 import { assetUrl } from "../../api/config";
@@ -36,6 +37,12 @@ export default function SubjectView() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useSetBreadcrumbs(
+    subject
+      ? [{ label: "Learn Zone", path: "/self-study" }, { label: subject.name }]
+      : []
+  );
 
   const fetchBooks = useCallback(
     async (params: TableQueryParams): Promise<PaginatedResponse<Book>> => {
@@ -93,7 +100,8 @@ export default function SubjectView() {
   if (error) {
     return (
       <EmptyState
-        icon={<span>⚠️</span>}
+        icon={<AlertTriangle className="w-6 h-6" />}
+        variant="error"
         title="Something went wrong"
         description={error}
         action={{ label: "Try Again", onClick: () => { setError(null); setLoading(true); fetchData(); } }}
@@ -104,10 +112,7 @@ export default function SubjectView() {
 
   return (
     <div>
-      <PageHeader
-        title={subject.name}
-        backButton={{ label: "Learn Zone", onClick: () => navigate("/self-study") }}
-      />
+      <PageHeader title={subject.name} />
 
       <DataTable<Book>
         fetchFn={fetchBooks}

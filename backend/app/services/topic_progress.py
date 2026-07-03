@@ -23,6 +23,7 @@ class TopicProgressData:
     position: int
     has_video: bool
     has_image: bool
+    image_url: str | None
     is_unlocked: bool
     is_complete: bool
     video_complete: bool
@@ -105,6 +106,7 @@ async def get_topic_progress(
             position=topic.position,
             has_video=has_video,
             has_image=has_image,
+            image_url=topic.image_url,
             is_unlocked=is_unlocked,
             is_complete=is_complete,
             video_complete=video_complete,

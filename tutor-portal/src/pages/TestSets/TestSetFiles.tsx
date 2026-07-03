@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { AlertTriangle, FileText } from "lucide-react";
 import {
   LoadingSpinner, EmptyState, ConfirmDialog, Toast, useToast, extractErrorMessage, Button,
 } from "@shared";
@@ -123,7 +124,8 @@ export default function TestSetFiles() {
   if (error) {
     return (
       <EmptyState
-        icon={<span>!</span>}
+        icon={<AlertTriangle className="w-6 h-6" />}
+        variant="error"
         title="Something went wrong"
         description={error}
         action={{ label: "Try Again", onClick: () => { setLoading(true); fetchData(); } }}
@@ -213,7 +215,7 @@ export default function TestSetFiles() {
       {/* Files List */}
       {files.length === 0 ? (
         <EmptyState
-          icon={<span>📄</span>}
+          icon={<FileText className="w-6 h-6" />}
           title="No files yet"
           description="Add drive links for students to download."
           action={{ label: "Add File", onClick: openAddForm }}

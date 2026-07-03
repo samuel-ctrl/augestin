@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { ClipboardList } from "lucide-react";
 import { LoadingSpinner, EmptyState, Toast, useToast, PageHeader, BookCard, QuizThumbnail } from "@shared";
 import type { AssignedQuizSet } from "@shared";
 import api from "../../api/client";
@@ -233,7 +234,7 @@ export default function HomeDashboard() {
 
       {!hasContent && tasks.length === 0 ? (
         <EmptyState
-          icon={<span>🎓</span>}
+          icon={<ClipboardList className="w-6 h-6" />}
           title="No assignments yet"
           description="Check back later for books and quizzes assigned by your tutor."
           action={{ label: "Go to Learn Zone", onClick: () => navigate("/self-study") }}

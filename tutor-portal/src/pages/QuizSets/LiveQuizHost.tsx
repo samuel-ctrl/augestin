@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Users } from "lucide-react";
 import {
   LoadingSpinner, EmptyState, PageHeader, Button, Toast, useToast,
   LiveLeaderboard, ConfirmDialog,
@@ -180,7 +181,7 @@ export default function LiveQuizHost() {
           </h2>
           {players.length === 0 ? (
             <EmptyState
-              icon={<span>👥</span>}
+              icon={<Users className="w-6 h-6" />}
               title="Waiting for players"
               description="Players will appear here as they join"
             />

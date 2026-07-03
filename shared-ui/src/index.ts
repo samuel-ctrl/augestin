@@ -63,6 +63,7 @@ export type { WSEvent, WSStatus } from "./hooks/useWebSocket";
 export { AppLayout } from "./components/AppLayout";
 export { Sidebar } from "./components/Sidebar";
 export { Breadcrumb } from "./components/Breadcrumb";
+export { useSetBreadcrumbs, useBreadcrumbs, BreadcrumbProvider } from "./context/BreadcrumbContext";
 export { ProtectedRoute } from "./components/ProtectedRoute";
 
 // DataTable
@@ -74,6 +75,7 @@ export { TablePagination } from "./components/DataTable/TablePagination";
 
 // UI Primitives
 export { PageHeader } from "./components/PageHeader";
+export { Card } from "./components/Card";
 export { Button } from "./components/Button";
 export { LoadingSpinner } from "./components/LoadingSpinner";
 export { ErrorToast } from "./components/ErrorToast";

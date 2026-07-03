@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { LoadingSpinner, EmptyState, Toast, useToast, ConfirmDialog, Breadcrumb, Button } from "@shared";
+import { BookX, ClipboardList } from "lucide-react";
+import { LoadingSpinner, EmptyState, Toast, useToast, ConfirmDialog, Button, useSetBreadcrumbs } from "@shared";
 import api from "../../api/client";
 
 interface Book {
@@ -120,6 +121,16 @@ export default function BookTestPage() {
     }
   }, [test, fetchSubmissions]);
 
+  useSetBreadcrumbs(
+    book
+      ? [
+          { label: "Learn Zone", path: "/self-study" },
+          { label: book.title, path: `/self-study/books/${book.id}/topics` },
+          { label: "Manage Test" },
+        ]
+      : []
+  );
+
   const handleSaveTest = useCallback(async () => {
     if (!bookId || !driveLink.trim()) {
       setUrlError("Drive link is required");
@@ -174,7 +185,7 @@ export default function BookTestPage() {
   if (!book) {
     return (
       <EmptyState
-        icon="📚"
+        icon={<BookX className="w-6 h-6" />}
         title="Book Not Found"
         description="The book you're looking for doesn't exist."
       />
@@ -185,17 +196,8 @@ export default function BookTestPage() {
     <div className="p-6">
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
 
-      {/* Breadcrumb */}
-      <Breadcrumb
-        segments={[
-          { label: "Learn Zone", path: "/self-study" },
-          { label: book.title, path: `/self-study/books/${bookId}/preview` },
-          { label: "Manage Test" },
-        ]}
-      />
-
       {/* Header */}
-      <div className="mt-6 mb-6 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Manage Test</h1>
         {test && (
           <Button color="danger" onClick={() => setShowDeleteConfirm(true)} disabled={deleting}>
@@ -271,7 +273,7 @@ export default function BookTestPage() {
           ) : submissions.length === 0 ? (
             <div className="p-6">
               <EmptyState
-                icon="📋"
+                icon={<ClipboardList className="w-6 h-6" />}
                 title="No submissions yet"
                 description="Students haven't submitted yet."
               />

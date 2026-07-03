@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
+import { AlertTriangle } from "lucide-react";
 import {
   BookCard,
   BookThumbnail,
@@ -14,6 +15,7 @@ import {
   PageHeader,
   toDirectImageUrl,
   isGoogleDriveUrl,
+  useSetBreadcrumbs,
 } from "@shared";
 import type { Subject, Book, ColumnDef, PaginatedResponse, TableQueryParams, DropdownMenuItem } from "@shared";
 import api from "../../api/client";
@@ -53,6 +55,12 @@ export default function SubjectBooks() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useSetBreadcrumbs(
+    subject
+      ? [{ label: "Learn Zone", path: "/self-study" }, { label: subject.name }]
+      : []
+  );
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -119,7 +127,8 @@ export default function SubjectBooks() {
   if (error) {
     return (
       <EmptyState
-        icon={<span>!</span>}
+        icon={<AlertTriangle className="w-6 h-6" />}
+        variant="error"
         title="Something went wrong"
         description={error}
         action={{ label: "Try Again", onClick: () => { setLoading(true); fetchData(); } }}
@@ -131,10 +140,7 @@ export default function SubjectBooks() {
   return (
     <div>
       {toast && <Toast message={toast.message} type={toast.type} onDismiss={dismiss} />}
-      <PageHeader
-        title={subject.name}
-        backButton={{ label: "Learn Zone", onClick: () => navigate("/self-study") }}
-      />
+      <PageHeader title={subject.name} />
 
       <DataTable<Book>
         fetchFn={fetchBooks}

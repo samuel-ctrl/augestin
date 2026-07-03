@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { AlertTriangle, HelpCircle } from "lucide-react";
 import {
   LoadingSpinner,
   EmptyState,
@@ -85,7 +86,8 @@ export default function QuizSetQuestions() {
   if (error) {
     return (
       <EmptyState
-        icon={<span>!</span>}
+        icon={<AlertTriangle className="w-6 h-6" />}
+        variant="error"
         title="Something went wrong"
         description={error}
         action={{ label: "Try Again", onClick: () => { setLoading(true); fetchData(); } }}
@@ -127,7 +129,7 @@ export default function QuizSetQuestions() {
 
       {questions.length === 0 ? (
         <EmptyState
-          icon={<span>?</span>}
+          icon={<HelpCircle className="w-6 h-6" />}
           title="No questions yet"
           description="Add quiz questions for this quiz set."
           action={{

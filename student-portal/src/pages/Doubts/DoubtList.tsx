@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { AlertTriangle, MessageCircleQuestion } from "lucide-react";
 import {
   LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage, Button, PageHeader,
 } from "@shared";
@@ -65,7 +66,8 @@ export default function DoubtList() {
   if (error) {
     return (
       <EmptyState
-        icon={<span>!</span>}
+        icon={<AlertTriangle className="w-6 h-6" />}
+        variant="error"
         title="Something went wrong"
         description={error}
         action={{ label: "Try Again", onClick: () => { setLoading(true); fetchDoubts(); } }}
@@ -147,7 +149,7 @@ export default function DoubtList() {
 
       {doubts.length === 0 ? (
         <EmptyState
-          icon={<span>💬</span>}
+          icon={<MessageCircleQuestion className="w-6 h-6" />}
           title="No doubts yet"
           description={myDoubts ? "You haven't asked any doubts yet." : "No doubts have been raised yet. Be the first!"}
           action={{ label: "Ask a Doubt", onClick: () => navigate("/doubts/new") }}

@@ -1,0 +1,48 @@
+import type { LucideIcon } from "lucide-react";
+import {
+  BookOpen,
+  Atom,
+  Calculator,
+  FlaskConical,
+  Microscope,
+  Globe,
+  Palette,
+  Music,
+  Dumbbell,
+  Laptop,
+  Languages,
+  Landmark,
+  LineChart,
+  Scale,
+  Leaf,
+  Dna,
+  Zap,
+  Compass,
+  Ruler,
+  PenTool,
+} from "lucide-react";
+
+export const iconMap: Record<string, LucideIcon> = {
+  book: BookOpen,
+  atom: Atom,
+  calculator: Calculator,
+  flask: FlaskConical,
+  microscope: Microscope,
+  globe: Globe,
+  palette: Palette,
+  music: Music,
+  dumbbell: Dumbbell,
+  laptop: Laptop,
+  language: Languages,
+  history: Landmark,
+  economics: LineChart,
+  civics: Scale,
+  leaf: Leaf,
+  dna: Dna,
+  lightning: Zap,
+  compass: Compass,
+  ruler: Ruler,
+  pen: PenTool,
+};
+
+export const iconKeys = Object.keys(iconMap);

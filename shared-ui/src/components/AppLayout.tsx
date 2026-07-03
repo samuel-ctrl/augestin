@@ -4,6 +4,7 @@ import type { WSStatus } from "../hooks/useWebSocket";
 import { Sidebar } from "./Sidebar";
 import { Breadcrumb } from "./Breadcrumb";
 import { BrandCredit } from "./BrandCredit";
+import { BreadcrumbProvider, useBreadcrumbs } from "../context/BreadcrumbContext";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -22,10 +23,20 @@ interface AppLayoutProps {
   onThemeToggle?: () => void;
 }
 
-export function AppLayout({
+export function AppLayout(props: AppLayoutProps) {
+  // Provider wraps both the top bar and the routed pages, so any page can
+  // publish its breadcrumb trail and the top bar can read it.
+  return (
+    <BreadcrumbProvider>
+      <AppLayoutInner {...props} />
+    </BreadcrumbProvider>
+  );
+}
+
+function AppLayoutInner({
   children,
   navItems,
-  breadcrumbs,
+  breadcrumbs: breadcrumbsProp,
   userName,
   userRole,
   onLogout,
@@ -41,6 +52,10 @@ export function AppLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [now, setNow] = useState(new Date());
+
+  // Page-published breadcrumbs (context) take precedence; fall back to the prop.
+  const contextBreadcrumbs = useBreadcrumbs();
+  const breadcrumbs = contextBreadcrumbs.length > 0 ? contextBreadcrumbs : (breadcrumbsProp ?? []);
 
   useEffect(() => {
     if (!showDateTime) return;
@@ -82,26 +97,22 @@ export function AppLayout({
 
       {/* Main area */}
       <div className="flex-1 flex flex-col min-w-0 relative border-l-2 border-gray-400/30 dark:border-gray-700/50">
-        {/* Top bar */}
-        {showDateTime ? (
-          <div className="flex items-center justify-between px-4 py-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shrink-0">
-            <div className="flex items-center gap-3">
-              <button
-                className="lg:hidden p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-                onClick={() => setSidebarOpen(true)}
-              >
-                <svg className="h-6 w-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              </button>
-              {breadcrumbs && breadcrumbs.length > 0 && (
-                <div className="lg:hidden">
-                  <Breadcrumb segments={breadcrumbs} />
-                </div>
-              )}
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 tabular-nums select-none">
+        {/* Top bar — persistent on all screens: breadcrumb (left) + date/time & theme (right) */}
+        <div className="flex items-center justify-between gap-3 px-4 py-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              className="lg:hidden p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 shrink-0"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <svg className="h-6 w-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+            {breadcrumbs.length > 0 && <Breadcrumb segments={breadcrumbs} />}
+          </div>
+          <div className="flex items-center gap-3 shrink-0">
+            {showDateTime && (
+              <div className="hidden sm:flex items-center gap-1.5 text-sm font-medium text-gray-600 dark:text-gray-300 tabular-nums select-none">
                 <span>
                   {now.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" })}
                 </span>
@@ -110,40 +121,26 @@ export function AppLayout({
                   {now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: true })}
                 </span>
               </div>
-              {onThemeToggle && (
-                <button
-                  onClick={onThemeToggle}
-                  className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
-                  title={isDark ? "Switch to light mode" : "Switch to dark mode"}
-                >
-                  {isDark ? (
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                  ) : (
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                    </svg>
-                  )}
-                </button>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="lg:hidden flex items-center gap-3 px-4 py-3 shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-            <button
-              className="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <svg className="h-6 w-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-            {breadcrumbs && breadcrumbs.length > 0 && (
-              <Breadcrumb segments={breadcrumbs} />
+            )}
+            {onThemeToggle && (
+              <button
+                onClick={onThemeToggle}
+                className="p-1.5 rounded-md hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 transition-colors"
+                title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+              >
+                {isDark ? (
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ) : (
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                )}
+              </button>
             )}
           </div>
-        )}
+        </div>
 
         {/* Content */}
         <main className="flex-1 overflow-auto p-3 sm:p-4 md:p-6 bg-blue-50 dark:bg-gray-900">{children}</main>

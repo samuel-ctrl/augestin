@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { AlertTriangle, Inbox } from "lucide-react";
 import { SubjectTile, EmptyState, LoadingSpinner, extractErrorMessage, PageHeader } from "@shared";
 import type { Subject } from "@shared";
 import api from "../../api/client";
@@ -32,7 +33,8 @@ export default function Dashboard() {
   if (error) {
     return (
       <EmptyState
-        icon={<span>!</span>}
+        icon={<AlertTriangle className="w-6 h-6" />}
+        variant="error"
         title="Something went wrong"
         description={error}
         action={{ label: "Try Again", onClick: () => { setLoading(true); fetchData(); } }}
@@ -47,7 +49,7 @@ export default function Dashboard() {
       {/* Subject Grid */}
       {subjects.length === 0 ? (
         <EmptyState
-          icon={<span>!</span>}
+          icon={<Inbox className="w-6 h-6" />}
           title="No subjects assigned yet"
           description="Please contact your tutor to get started."
         />

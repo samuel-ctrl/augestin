@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
+import { AlertTriangle, BookOpen } from "lucide-react";
 import {
   LoadingSpinner,
   EmptyState,
@@ -10,6 +11,7 @@ import {
   Button,
   isGoogleDriveUrl,
   toDirectImageUrl,
+  useSetBreadcrumbs,
 } from "@shared";
 import type { Topic } from "@shared";
 import api from "../../api/client";
@@ -35,6 +37,7 @@ export default function BookTopics() {
   const { toast, showApiError, showSuccess, dismiss } = useToast();
 
   const [book, setBook] = useState<BookInfo | null>(null);
+  const [subjectName, setSubjectName] = useState("");
   const [topics, setTopics] = useState<Topic[]>([]);
   const [test, setTest] = useState<BookTest | null>(null);
   const [loading, setLoading] = useState(true);
@@ -56,6 +59,11 @@ export default function BookTopics() {
       );
       setTopics(sorted);
       setTest(testRes.data);
+      if (bookRes.data?.subject_id) {
+        api.get(`/subjects/${bookRes.data.subject_id}`)
+          .then((r) => setSubjectName(r.data?.name || ""))
+          .catch(() => {});
+      }
     } catch (err: unknown) {
       const status = (err as { response?: { status?: number } })?.response?.status;
       if (status === 404) {
@@ -71,6 +79,16 @@ export default function BookTopics() {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useSetBreadcrumbs(
+    book
+      ? [
+          { label: "Learn Zone", path: "/self-study" },
+          { label: subjectName || "Books", path: `/self-study/subjects/${book.subject_id}` },
+          { label: book.title },
+        ]
+      : []
+  );
 
   const handleReorder = async (fromIdx: number, toIdx: number) => {
     const reordered = [...topics];
@@ -107,7 +125,8 @@ export default function BookTopics() {
   if (error) {
     return (
       <EmptyState
-        icon={<span>!</span>}
+        icon={<AlertTriangle className="w-6 h-6" />}
+        variant="error"
         title="Something went wrong"
         description={error}
         action={{ label: "Try Again", onClick: () => { setError(null); setLoading(true); fetchData(); } }}
@@ -122,12 +141,6 @@ export default function BookTopics() {
 
       {/* Header */}
       <div className="mb-6">
-        <button
-          onClick={() => navigate(`/self-study/subjects/${book.subject_id}`)}
-          className="text-sm text-gray-500 hover:text-gray-700 mb-1 inline-flex items-center gap-1"
-        >
-          &larr; Back to Books
-        </button>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-xl font-semibold text-gray-800">{book.title}</h1>
@@ -177,7 +190,7 @@ export default function BookTopics() {
         {topics.length === 0 ? (
           <div className="p-8">
             <EmptyState
-              icon={<span>📚</span>}
+              icon={<BookOpen className="w-6 h-6" />}
               title="No topics yet"
               description="Add topics to this book. Students will work through them in order."
               action={{

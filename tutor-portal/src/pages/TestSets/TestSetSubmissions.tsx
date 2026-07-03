@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { AlertTriangle, ClipboardList } from "lucide-react";
 import { LoadingSpinner, EmptyState, Toast, useToast, extractErrorMessage, Button } from "@shared";
 import api from "../../api/client";
 
@@ -63,7 +64,8 @@ export default function TestSetSubmissions() {
   if (error) {
     return (
       <EmptyState
-        icon={<span>!</span>}
+        icon={<AlertTriangle className="w-6 h-6" />}
+        variant="error"
         title="Something went wrong"
         description={error}
         action={{ label: "Try Again", onClick: () => { setLoading(true); fetchData(); } }}
@@ -94,7 +96,7 @@ export default function TestSetSubmissions() {
 
       {submissions.length === 0 ? (
         <EmptyState
-          icon={<span>📋</span>}
+          icon={<ClipboardList className="w-6 h-6" />}
           title="No submissions yet"
           description="Assign students to this test set first."
         />

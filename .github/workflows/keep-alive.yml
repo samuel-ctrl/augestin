@@ -1,0 +1,14 @@
+name: Keep backend alive
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping backend health check
+        run: |
+          curl -sf -o /dev/null -w "status: %{http_code}\n" https://edutrack-api-55kb.onrender.com/ || echo "ping failed (backend may be cold-starting)"

@@ -303,6 +303,7 @@ async def get_book_topic_progress(
             position=p.position,
             has_video=p.has_video,
             has_image=p.has_image,
+            image_url=p.image_url,
             is_unlocked=p.is_unlocked,
             is_complete=p.is_complete,
             video_complete=p.video_complete,

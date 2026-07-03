@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 
 type ButtonVariant = "solid" | "outline" | "ghost";
-type ButtonColor = "primary" | "success" | "danger" | "warning" | "secondary";
+type ButtonColor = "primary" | "success" | "danger" | "warning" | "secondary" | "white";
 type ButtonSize = "xs" | "sm" | "md" | "lg";
 
 interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "onClick"> {
@@ -46,6 +46,12 @@ const colorStyles: Record<ButtonColor, Record<ButtonVariant, string>> = {
     solid: "bg-gray-500 text-white hover:bg-gray-600 focus:ring-gray-200",
     outline: "border border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-gray-200",
     ghost: "text-gray-400 dark:text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-gray-200",
+  },
+  // Intended for use on the dark blue gradient hero headers (PageHeader/ChapterHeader).
+  white: {
+    solid: "bg-white text-primary-700 hover:bg-blue-50 focus:ring-white/50",
+    outline: "border border-white/60 text-white hover:bg-white/10 focus:ring-white/40",
+    ghost: "text-white hover:bg-white/10 focus:ring-white/40",
   },
 };
 

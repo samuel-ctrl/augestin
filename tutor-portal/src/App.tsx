@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { LookupProvider } from "./context/LookupContext";
 import { WebSocketProvider, useWS } from "./context/WebSocketContext";
 import { AppLayout, ProtectedRoute, NotificationToast, NotificationsPage, AuthStatusPage } from "@shared";
@@ -45,6 +46,7 @@ import DevComponents from "./pages/DevComponents";
 function AppShell() {
   const { user, logout } = useAuth();
   const { on, status: wsStatus } = useWS();
+  const { isDark, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const handleLogout = useCallback(() => {
     logout();
@@ -79,6 +81,9 @@ function AppShell() {
         notificationCount={unreadCount}
         onNotificationClick={() => navigate("/notifications")}
         wsStatus={wsStatus}
+        showDateTime
+        isDark={isDark}
+        onThemeToggle={toggleTheme}
       >
         <Routes>
           <Route path="/dashboard" element={<TutorDashboard />} />
@@ -148,6 +153,7 @@ function AuthenticatedApp() {
 
 export default function App() {
   return (
+    <ThemeProvider>
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
@@ -157,5 +163,6 @@ export default function App() {
         <Route path="/*" element={<AuthenticatedApp />} />
       </Routes>
     </AuthProvider>
+    </ThemeProvider>
   );
 }

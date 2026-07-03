@@ -24,6 +24,7 @@
     "vite": "^5.0.8"
   },
   "dependencies": {
-    "katex": "^0.16.40"
+    "katex": "^0.16.40",
+    "lucide-react": "^1.23.0"
   }
 }

@@ -108,9 +108,12 @@ export function SubjectTile({
 
       {/* Round Icon */}
       <div
-        className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br ${theme.bg} border-2 ${theme.border} flex items-center justify-center text-4xl sm:text-5xl shadow-sm group-hover:shadow-md transition-shadow`}
+        className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br ${theme.bg} border-2 ${theme.border} flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow ${theme.text}`}
       >
-        {iconMap[icon] || iconMap.book}
+        {(() => {
+          const Icon = iconMap[icon] || iconMap.book;
+          return <Icon className="w-8 h-8 sm:w-10 sm:h-10" strokeWidth={1.75} />;
+        })()}
       </div>
 
       {/* Title */}

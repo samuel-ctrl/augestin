@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { FileQuestion } from "lucide-react";
 import { LoadingSpinner, EmptyState, Toast, useToast, ConfirmDialog, RecapViewer, Button } from "@shared";
 import type { TopicNotes as TopicNotesType } from "@shared";
 import api from "../../api/client";
@@ -125,7 +126,7 @@ export default function TopicNotes() {
 
   if (!topic) {
     return (
-      <EmptyState icon="📚" title="Topic Not Found" description="The topic you're looking for doesn't exist." />
+      <EmptyState icon={<FileQuestion className="w-6 h-6" />} title="Topic Not Found" description="The topic you're looking for doesn't exist." />
     );
   }
 

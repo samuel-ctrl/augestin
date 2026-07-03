@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { AlertTriangle, Trophy } from "lucide-react";
 import {
   Button,
   ConfirmDialog,
@@ -192,7 +193,8 @@ export default function TestSetLeaderboard() {
   if (error) {
     return (
       <EmptyState
-        icon={<span>!</span>}
+        icon={<AlertTriangle className="w-6 h-6" />}
+        variant="error"
         title="Something went wrong"
         description={error}
         action={{
@@ -235,7 +237,7 @@ export default function TestSetLeaderboard() {
 
       {entries.length === 0 ? (
         <EmptyState
-          icon={<span>🏆</span>}
+          icon={<Trophy className="w-6 h-6" />}
           title="No leaderboard entries yet"
           description={
             assigned.length === 0

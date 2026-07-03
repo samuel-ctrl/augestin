@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { Users, ClipboardList } from "lucide-react";
 import {
   LoadingSpinner, EmptyState, PageHeader, Button, Toast, useToast,
   LiveLeaderboard, ConfirmDialog,
@@ -273,7 +274,7 @@ export default function LiveQuizRoom() {
             <h2 className="text-lg font-semibold mb-3">In the Room</h2>
             {snapshot.participants.length === 0 ? (
               <EmptyState
-                icon={<span>👥</span>}
+                icon={<Users className="w-6 h-6" />}
                 title="No one here yet"
                 description="Share the room code with your friends"
               />
@@ -371,7 +372,7 @@ export default function LiveQuizRoom() {
                 </Button>
               </>
             ) : (
-              <EmptyState icon={<span>📋</span>} title="No questions" description="This quiz has no questions." />
+              <EmptyState icon={<ClipboardList className="w-6 h-6" />} title="No questions" description="This quiz has no questions." />
             )}
           </div>
           <LiveLeaderboard

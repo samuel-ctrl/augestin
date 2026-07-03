@@ -1,5 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
+import { AlertTriangle } from "lucide-react";
 import { LoadingSpinner, EmptyState, PageHeader, Button, Toast, useToast, extractErrorMessage } from "@shared";
 import type { QuizSet, QuizSetLeaderboardEntry, LiveQuizRoomSnapshot } from "@shared";
 import api from "../../api/client";
@@ -83,7 +84,8 @@ export default function QuizSetView() {
   if (error) {
     return (
       <EmptyState
-        icon={<span>!</span>}
+        icon={<AlertTriangle className="w-6 h-6" />}
+        variant="error"
         title="Something went wrong"
         description={error}
         action={{ label: "Try Again", onClick: () => window.location.reload() }}

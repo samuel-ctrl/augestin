@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Users, BookOpen, Library, Puzzle, BarChart3, CheckCircle2, Trophy, TrendingUp } from "lucide-react";
 import { LoadingSpinner, PageHeader } from "@shared";
 import api from "../api/client";
 
@@ -122,33 +123,25 @@ export default function TutorDashboard() {
         <StatCard
           label="Students"
           value={stats.students}
-          icon={
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0112.714 0l.047.28zm-9.39-9.653a3.375 3.375 0 116.75 0 3.375 3.375 0 01-6.75 0zm8.25-3.375a2.625 2.625 0 115.25 0 2.625 2.625 0 01-5.25 0z" />
-            </svg>
-          }
+          icon={<Users className="w-6 h-6" />}
           onClick={() => navigate("/students")}
         />
         <StatCard
           label="Subjects"
           value={stats.subjects}
-          icon={<span>📚</span>}
+          icon={<BookOpen className="w-6 h-6" />}
           onClick={() => navigate("/self-study")}
         />
         <StatCard
           label="Books"
           value={stats.books}
-          icon={
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-            </svg>
-          }
+          icon={<Library className="w-6 h-6" />}
           onClick={() => navigate("/self-study")}
         />
         <StatCard
           label="Quiz Sets"
           value={stats.quizSets}
-          icon={<span>🧩</span>}
+          icon={<Puzzle className="w-6 h-6" />}
           onClick={() => navigate("/quiz-sets")}
         />
       </div>
@@ -160,24 +153,24 @@ export default function TutorDashboard() {
           label="Avg Quiz Score"
           value={stats.avgQuizScore}
           suffix="%"
-          icon={<span>📊</span>}
+          icon={<BarChart3 className="w-6 h-6" />}
         />
         <StatCard
           label="Assignment Completion"
           value={stats.assignmentCompletionRate}
           suffix="%"
-          icon={<span>✅</span>}
+          icon={<CheckCircle2 className="w-6 h-6" />}
         />
         <StatCard
           label="Top Performers"
           value={stats.topPerformers}
-          icon={<span>🏆</span>}
+          icon={<Trophy className="w-6 h-6" />}
         />
         <StatCard
           label="Quiz Completion Rate"
           value={stats.quizCompletionRate}
           suffix="%"
-          icon={<span>📈</span>}
+          icon={<TrendingUp className="w-6 h-6" />}
         />
       </div>
 

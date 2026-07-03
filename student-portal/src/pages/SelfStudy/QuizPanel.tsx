@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { AlertTriangle } from "lucide-react";
 import { LoadingSpinner, EmptyState, ProgressBar, MathText, Button } from "@shared";
 import type { Question, QuizProgress, ReviewQuestion } from "@shared";
 import api from "../../api/client";
@@ -225,7 +226,8 @@ export default function QuizPanel({ quizSource, quizId, displayTitle, onComplete
   if (error) {
     return (
       <EmptyState
-        icon={<span>!</span>}
+        icon={<AlertTriangle className="w-6 h-6" />}
+        variant="error"
         title="Error"
         description={error}
         action={{ label: "Try Again", onClick: () => { setError(null); fetchSession(); } }}

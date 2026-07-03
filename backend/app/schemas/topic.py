@@ -40,6 +40,7 @@ class TopicProgressOut(BaseModel):
     position: int
     has_video: bool
     has_image: bool
+    image_url: str | None = None
     is_unlocked: bool
     is_complete: bool
     video_complete: bool

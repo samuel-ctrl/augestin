@@ -66,6 +66,7 @@ export interface TopicProgress {
   position: number;
   has_video: boolean;
   has_image: boolean;
+  image_url?: string | null;
   is_unlocked: boolean;
   is_complete: boolean;
   video_complete: boolean;

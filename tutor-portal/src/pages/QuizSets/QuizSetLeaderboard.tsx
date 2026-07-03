@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { AlertTriangle, Trophy } from "lucide-react";
 import {
   LoadingSpinner,
   EmptyState,
@@ -62,7 +63,8 @@ export default function QuizSetLeaderboard() {
   if (error) {
     return (
       <EmptyState
-        icon={<span>!</span>}
+        icon={<AlertTriangle className="w-6 h-6" />}
+        variant="error"
         title="Something went wrong"
         description={error}
         action={{ label: "Try Again", onClick: () => fetchData() }}
@@ -81,7 +83,7 @@ export default function QuizSetLeaderboard() {
 
       {entries.length === 0 ? (
         <EmptyState
-          icon={<span>🏆</span>}
+          icon={<Trophy className="w-6 h-6" />}
           title="No completions yet"
           description="No one has completed this quiz yet. The leaderboard will populate as students finish."
         />

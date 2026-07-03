@@ -1,18 +1,18 @@
-import { isGoogleDriveUrl, toDirectImageUrl, BookThumbnail } from "@shared";
-import type { Book, Subject } from "@shared";
+import { PlayCircle } from "lucide-react";
+import { isGoogleDriveUrl, toDirectImageUrl, BookThumbnail, Button } from "@shared";
+import type { Book } from "@shared";
 import { assetUrl } from "../../api/config";
 import ProgressRing from "./ProgressRing";
 
 interface ChapterHeaderProps {
   book: Book;
-  subject: Subject;
+  topicCount: number;
   percentComplete: number;
   allComplete: boolean;
   onContinueLearning: () => void;
-  onBack: () => void;
 }
 
-export default function ChapterHeader({ book, subject, percentComplete, allComplete, onContinueLearning, onBack }: ChapterHeaderProps) {
+export default function ChapterHeader({ book, topicCount, percentComplete, allComplete, onContinueLearning }: ChapterHeaderProps) {
   return (
     <div
       className="mb-6 rounded-2xl p-5 sm:p-6 relative overflow-hidden"
@@ -21,16 +21,6 @@ export default function ChapterHeader({ book, subject, percentComplete, allCompl
       <div className="absolute -top-4 left-1/2 -translate-x-1/2 w-28 h-28 bg-blue-300/15 rounded-full" />
       <div className="absolute -bottom-4 left-[45%] -translate-x-1/2 w-20 h-20 bg-blue-400/12 rounded-full" />
 
-      <button
-        onClick={onBack}
-        className="relative z-10 text-sm text-blue-200 hover:text-white mb-3 inline-flex items-center gap-1 transition-colors"
-      >
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-        </svg>
-        {subject.name}
-      </button>
-
       <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <BookThumbnail
           src={book.thumbnail_url ? (isGoogleDriveUrl(book.thumbnail_url) ? toDirectImageUrl(book.thumbnail_url) : assetUrl(book.thumbnail_url)) : undefined}
@@ -38,23 +28,23 @@ export default function ChapterHeader({ book, subject, percentComplete, allCompl
         />
 
         <div className="flex-1 min-w-0">
-          <p className="text-xs font-medium text-blue-200 uppercase tracking-wide mb-1">
-            {book.standard} &middot; {subject.name}
-          </p>
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <span className="px-2 py-0.5 bg-white/15 text-blue-50 text-xs font-medium rounded-full">
+              Std {book.standard}
+            </span>
+            <span className="px-2 py-0.5 bg-white/15 text-blue-50 text-xs font-medium rounded-full">
+              {topicCount} {topicCount === 1 ? "Topic" : "Topics"}
+            </span>
+          </div>
           <h1 className="text-xl sm:text-2xl font-bold text-white">{book.title}</h1>
           {book.description && (
             <p className="text-sm text-blue-100 mt-1 line-clamp-2">{book.description}</p>
           )}
           {!allComplete && (
-            <button
-              onClick={onContinueLearning}
-              className="mt-3 inline-flex items-center gap-1.5 px-4 py-2 bg-white text-primary-700 text-sm font-medium rounded-lg hover:bg-blue-50 transition-colors"
-            >
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M8 5v14l11-7z" />
-              </svg>
+            <Button color="white" size="md" onClick={onContinueLearning} className="mt-3">
+              <PlayCircle className="w-4 h-4" />
               Continue Learning
-            </button>
+            </Button>
           )}
         </div>
 

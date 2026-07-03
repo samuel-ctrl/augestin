@@ -29,8 +29,11 @@ export function SubjectCard({
     >
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-primary-400 to-primary-600 rounded-t-xl opacity-0 group-hover:opacity-100 transition-opacity" />
       <div className="flex items-start justify-between">
-        <div className="w-12 h-12 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center text-2xl mb-3">
-          {iconMap[icon] || iconMap.book}
+        <div className="w-12 h-12 rounded-lg bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 flex items-center justify-center mb-3">
+          {(() => {
+            const Icon = iconMap[icon] || iconMap.book;
+            return <Icon className="w-6 h-6" />;
+          })()}
         </div>
         {menuItems && menuItems.length > 0 && (
           <div onClick={(e) => e.stopPropagation()}>
