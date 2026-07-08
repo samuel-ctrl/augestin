@@ -10,6 +10,7 @@ from app.models.book_assignment import BookAssignment
 from app.models.subject import Subject
 from app.models.user import User, UserType
 from app.schemas.book import BookCreateRequest, BookOut, BookUpdateRequest
+from app.schemas.book_recap import BookRecapCreate, BookRecapOut
 from app.schemas.pagination import PaginatedResponse
 from app.services.book import (
     create_book,
@@ -19,9 +20,32 @@ from app.services.book import (
     list_books,
     update_book,
 )
+from app.services.book_recap import create_or_update_book_recap, get_book_recap
 from app.services.subject import get_subject
 
 router = APIRouter(tags=["books"])
+
+
+async def _require_book_assigned(db: AsyncSession, book_id: uuid.UUID, student_id: uuid.UUID) -> None:
+    result = await db.execute(
+        select(BookAssignment).where(
+            BookAssignment.book_id == book_id, BookAssignment.student_id == student_id
+        )
+    )
+    if result.scalar_one_or_none() is None:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Book not assigned to you")
+
+
+def _book_recap_to_out(recap) -> BookRecapOut:
+    return BookRecapOut(
+        id=str(recap.id),
+        book_id=str(recap.book_id),
+        student_id=str(recap.student_id),
+        title=recap.title,
+        content=recap.content,
+        created_at=recap.created_at,
+        updated_at=recap.updated_at,
+    )
 
 
 def _book_to_out(book, topic_count: int = 0) -> BookOut:
@@ -256,3 +280,47 @@ async def list_student_book_quizzes(
         })
 
     return {"items": items}
+
+
+# --- /api/books/{id}/recap — a student's own personal recap notes for the book ---
+
+@router.get("/api/books/{book_id}/recap", response_model=BookRecapOut | None)
+async def get_book_recap_endpoint(
+    book_id: uuid.UUID,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    student = require_student(request)
+    book = await get_book(db, book_id)
+    if book is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+    await _require_book_assigned(db, book_id, student.id)
+
+    recap = await get_book_recap(db, book_id, student.id)
+    if recap is None:
+        return None
+    return _book_recap_to_out(recap)
+
+
+@router.post("/api/books/{book_id}/recap", response_model=BookRecapOut)
+async def create_or_update_book_recap_endpoint(
+    book_id: uuid.UUID,
+    body: BookRecapCreate,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    student = require_student(request)
+    book = await get_book(db, book_id)
+    if book is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
+    await _require_book_assigned(db, book_id, student.id)
+
+    try:
+        recap = await create_or_update_book_recap(
+            db, book_id=book_id, student_id=student.id,
+            title=body.title, content=body.content,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    return _book_recap_to_out(recap)

@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { FileQuestion } from "lucide-react";
-import { LoadingSpinner, EmptyState, Toast, useToast, ConfirmDialog, RecapViewer, Button } from "@shared";
+import { LoadingSpinner, EmptyState, Toast, useToast, ConfirmDialog, RecapViewer, RecapEditor, Button } from "@shared";
 import type { TopicNotes as TopicNotesType } from "@shared";
 import api from "../../api/client";
-import RecapEditor from "../../components/RecapEditor";
 
 interface TopicInfo {
   id: string;

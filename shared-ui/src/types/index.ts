@@ -85,6 +85,16 @@ export interface TopicNotes {
   updated_at?: string;
 }
 
+export interface BookRecap {
+  id: string;
+  book_id: string;
+  student_id: string;
+  title: string;
+  content: any;
+  created_at: string;
+  updated_at?: string;
+}
+
 export interface Assignment {
   id: string;
   book_id: string;

@@ -29,6 +29,7 @@ from app.services.topic import (
     get_topic_notes,
     list_topics,
     reorder_topics,
+    topic_has_notes,
     update_topic,
 )
 from app.services.topic_progress import get_topic_progress, get_watch_status
@@ -140,7 +141,8 @@ async def get_topic_endpoint(
     if current_user.user_type == UserType.student:
         await _require_book_assigned(db, topic.book_id, current_user.id)
 
-    return _topic_to_out(topic)
+    has_notes = await topic_has_notes(db, topic_id)
+    return _topic_to_out(topic, has_notes=has_notes)
 
 
 @router.put("/api/topics/{topic_id}", response_model=TopicOut)
@@ -160,7 +162,8 @@ async def update_topic_endpoint(
     except ValueError as e:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
 
-    return _topic_to_out(topic)
+    has_notes = await topic_has_notes(db, topic_id)
+    return _topic_to_out(topic, has_notes=has_notes)
 
 
 @router.delete("/api/topics/{topic_id}", status_code=status.HTTP_204_NO_CONTENT)

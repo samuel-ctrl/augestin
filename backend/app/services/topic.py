@@ -204,6 +204,13 @@ async def get_topic_notes(db: AsyncSession, topic_id: uuid.UUID) -> TopicNotes |
     return result.scalar_one_or_none()
 
 
+async def topic_has_notes(db: AsyncSession, topic_id: uuid.UUID) -> bool:
+    result = await db.execute(
+        select(TopicNotes.topic_id).where(TopicNotes.topic_id == topic_id)
+    )
+    return result.scalar_one_or_none() is not None
+
+
 async def create_or_update_topic_notes(
     db: AsyncSession,
     topic_id: uuid.UUID,

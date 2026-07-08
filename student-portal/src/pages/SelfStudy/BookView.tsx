@@ -6,6 +6,7 @@ import {
   FileText,
   ClipboardCheck,
   MessageCircleQuestion,
+  NotebookPen,
   Lock,
   ExternalLink,
   CheckCircle2,
@@ -20,17 +21,19 @@ import api from "../../api/client";
 import ChapterHeader from "./ChapterHeader";
 import TopicsSidebar from "./TopicsSidebar";
 import TopicContentPanel, { type ContentTab } from "./TopicContentPanel";
+import BookRecapPanel from "./BookRecapPanel";
 import RecommendedNextCard from "./RecommendedNextCard";
 
-type Tab = ContentTab | "test" | "doubts";
+type Tab = ContentTab | "test" | "doubts" | "recap";
 type TabGroup = "study" | "practice";
 
 const TAB_GROUP: Record<Tab, TabGroup> = {
   record: "study",
   quiz: "study",
-  recap: "study",
+  notes: "study",
   test: "practice",
   doubts: "practice",
+  recap: "practice",
 };
 
 const GROUPS: { key: TabGroup; label: string; icon: typeof BookOpen; firstTab: Tab }[] = [
@@ -280,8 +283,8 @@ export default function BookView() {
                     <HelpCircle className="w-3.5 h-3.5" />
                     Quiz{topicDetail && topicDetail.question_count > 0 ? ` (${topicDetail.question_count})` : ""}
                   </button>
-                  <button onClick={() => setActiveTab("recap")} className={tabClass("recap")}>
-                    <FileText className="w-3.5 h-3.5" /> Recap
+                  <button onClick={() => setActiveTab("notes")} className={tabClass("notes")}>
+                    <FileText className="w-3.5 h-3.5" /> Notes
                   </button>
                 </>
               ) : (
@@ -289,6 +292,9 @@ export default function BookView() {
                   <button onClick={() => setActiveTab("test")} className={tabClass("test")}>
                     {allComplete ? <ClipboardCheck className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
                     Test
+                  </button>
+                  <button onClick={() => setActiveTab("recap")} className={tabClass("recap")}>
+                    <NotebookPen className="w-3.5 h-3.5" /> Recap
                   </button>
                   <button onClick={() => setActiveTab("doubts")} className={tabClass("doubts")}>
                     <MessageCircleQuestion className="w-3.5 h-3.5" />
@@ -307,7 +313,7 @@ export default function BookView() {
 
             {/* Body — changes with the active inner tab */}
             <div className="p-4 sm:p-6">
-              {(activeTab === "record" || activeTab === "quiz" || activeTab === "recap") && (
+              {(activeTab === "record" || activeTab === "quiz" || activeTab === "notes") && (
                 <TopicContentPanel
                   topic={topicDetail}
                   notes={notes}
@@ -407,6 +413,10 @@ export default function BookView() {
                     </p>
                   </div>
                 )
+              )}
+
+              {activeTab === "recap" && bookId && (
+                <BookRecapPanel bookId={bookId} />
               )}
 
               {activeTab === "doubts" && (

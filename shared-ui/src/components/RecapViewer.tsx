@@ -53,7 +53,7 @@ function validateRecapContent(node: any): any {
 }
 
 // Convert Google Drive sharing links to direct viewable/embeddable URLs
-function toDirectImageUrl(url: string | undefined): string | undefined {
+export function toDirectImageUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;
 
   // Google Drive file link: https://drive.google.com/file/d/FILE_ID/view...

@@ -24,3 +24,4 @@ class Book(AuditBase):
     topics = relationship("Topic", back_populates="book", cascade="all, delete-orphan", order_by="Topic.position")
     test = relationship("BookTest", back_populates="book", cascade="all, delete-orphan", uselist=False)
     doubts = relationship("Doubt", back_populates="book")
+    book_recaps = relationship("BookRecap", back_populates="book", cascade="all, delete-orphan")

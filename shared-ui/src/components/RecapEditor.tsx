@@ -6,7 +6,25 @@ import Link from "@tiptap/extension-link";
 import HorizontalRule from "@tiptap/extension-horizontal-rule";
 import Blockquote from "@tiptap/extension-blockquote";
 import CodeBlock from "@tiptap/extension-code-block";
-import { LoadingSpinner, Button } from "@shared";
+import { Button } from "./Button";
+import { LoadingSpinner } from "./LoadingSpinner";
+import { toDirectImageUrl } from "./RecapViewer";
+
+// Renders Google Drive share links as their direct-viewable thumbnail URL
+// (matches RecapViewer) while leaving the stored src attr untouched.
+const DriveAwareImage = Image.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      src: {
+        default: null,
+        renderHTML: (attributes: { src?: string }) => ({
+          src: toDirectImageUrl(attributes.src) || attributes.src,
+        }),
+      },
+    };
+  },
+});
 
 interface RecapEditorProps {
   onSave: (content: any) => Promise<void>;
@@ -14,6 +32,8 @@ interface RecapEditorProps {
   onDirtyChange?: (dirty: boolean) => void;
   initialTitle?: string;
   initialContent?: any;
+  titlePlaceholder?: string;
+  editorPlaceholder?: string;
 }
 
 function InsertModal({
@@ -117,8 +137,10 @@ export default function RecapEditor({
   onDirtyChange,
   initialTitle,
   initialContent,
+  titlePlaceholder = "Chapter Summary",
+  editorPlaceholder = "Start typing your recap notes here...",
 }: RecapEditorProps) {
-  const [title, setTitle] = useState(initialTitle || "Chapter Summary");
+  const [title, setTitle] = useState(initialTitle || titlePlaceholder);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -159,7 +181,7 @@ export default function RecapEditor({
         codeBlock: false,
       }),
       CodeBlock,
-      Image.configure({
+      DriveAwareImage.configure({
         allowBase64: false,
         HTMLAttributes: {
           class: "max-w-full h-auto rounded",
@@ -175,7 +197,7 @@ export default function RecapEditor({
       HorizontalRule,
       Blockquote,
     ],
-    content: initialContent || "<p>Start typing your recap notes here...</p>",
+    content: initialContent || `<p>${editorPlaceholder}</p>`,
     autofocus: "end",
     onUpdate: () => {
       onDirtyChange?.(true);
@@ -257,7 +279,7 @@ export default function RecapEditor({
             onTitleChange?.(e.target.value);
           }}
           className="w-full text-2xl font-bold border-0 outline-none"
-          placeholder="Chapter Summary"
+          placeholder={titlePlaceholder}
         />
       </div>
 

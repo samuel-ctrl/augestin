@@ -5,6 +5,7 @@ from app.models.book import Book
 from app.models.book_assignment import BookAssignment
 from app.models.topic import Topic
 from app.models.topic_notes import TopicNotes
+from app.models.book_recap import BookRecap
 from app.models.watch_progress import WatchProgress
 from app.models.question import Question
 from app.models.quiz_progress import QuizProgress
@@ -22,7 +23,7 @@ from app.models.activity_log import ActivityLog
 
 __all__ = [
     "AuditBase", "User", "Subject", "Book", "BookAssignment",
-    "Topic", "TopicNotes",
+    "Topic", "TopicNotes", "BookRecap",
     "WatchProgress", "Question", "QuizProgress", "QuizAttempt",
     "QuizSet", "QuizSetAssignment",
     "BookTest", "TestSubmission",

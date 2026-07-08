@@ -4,7 +4,7 @@ import type { Topic, TopicNotes } from "@shared";
 import { assetUrl } from "../../api/config";
 import QuizPanel from "./QuizPanel";
 
-export type ContentTab = "record" | "quiz" | "recap";
+export type ContentTab = "record" | "quiz" | "notes";
 
 interface TopicContentPanelProps {
   topic: Topic | null;
@@ -55,7 +55,7 @@ export default function TopicContentPanel({
         )
       )}
 
-      {activeTab === "recap" && (
+      {activeTab === "notes" && (
         notes ? (
           <RecapViewer content={notes.content} title={notes.title} />
         ) : (
