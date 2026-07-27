@@ -10,18 +10,10 @@ import {
   MathText,
   extractErrorMessage,
   Button,
-  isGoogleDriveUrl,
-  extractFileId,
+  MediaImage,
 } from "@shared";
 import type { Question } from "@shared";
 import api from "../../api/client";
-
-function resolveImageUrl(url: string, size: number): string {
-  if (!isGoogleDriveUrl(url)) return url;
-  const fileId = extractFileId(url);
-  if (!fileId) return url;
-  return `https://drive.google.com/thumbnail?id=${fileId}&sz=w${size}`;
-}
 
 interface TopicInfo {
   id: string;
@@ -169,8 +161,9 @@ export default function TopicQuestions() {
               {expandedId === q.id && (
                 <div className="px-4 pb-4 pt-0 border-t border-gray-100">
                   {q.question_image_url && (
-                    <img
-                      src={resolveImageUrl(q.question_image_url, 1200)}
+                    <MediaImage
+                      src={q.question_image_url}
+                      size={1200}
                       alt="Question visual"
                       className="mt-3 max-w-full max-h-64 h-auto rounded border border-gray-200"
                     />
@@ -191,8 +184,9 @@ export default function TopicQuestions() {
                           <span className="font-medium text-gray-500 mr-1">{opt}.</span>
                           <MathText text={String(q[key] ?? "")} />
                           {imgUrl && (
-                            <img
-                              src={resolveImageUrl(imgUrl, 600)}
+                            <MediaImage
+                              src={imgUrl}
+                              size={600}
                               alt={`Option ${opt}`}
                               className="mt-2 max-w-full max-h-40 h-auto rounded"
                             />

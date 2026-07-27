@@ -9,8 +9,7 @@ import {
   useToast,
   extractErrorMessage,
   Button,
-  isGoogleDriveUrl,
-  toDirectImageUrl,
+  MediaImage,
   useSetBreadcrumbs,
 } from "@shared";
 import type { Topic } from "@shared";
@@ -312,15 +311,11 @@ function TopicRow({
 
       {/* Thumbnail or placeholder */}
       {topic.image_url ? (
-        <img
-          src={
-            isGoogleDriveUrl(topic.image_url)
-              ? toDirectImageUrl(topic.image_url)
-              : assetUrl(topic.image_url)
-          }
+        <MediaImage
+          src={topic.image_url}
+          resolvePath={assetUrl}
           alt=""
           className="w-10 h-10 rounded object-cover shrink-0 border border-gray-200"
-          onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
         />
       ) : (
         <div className="w-10 h-10 rounded bg-gray-100 shrink-0 flex items-center justify-center text-gray-300 text-lg border border-gray-200">

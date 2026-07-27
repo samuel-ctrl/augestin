@@ -9,13 +9,7 @@ import type {
   TableQueryParams,
 } from "@shared";
 import api from "../../api/client";
-import { assetUrl } from "../../api/config";
-import { toDirectImageUrl, isGoogleDriveUrl } from "@shared";
-
-function resolveThumbnailUrl(url: string | null | undefined): string | undefined {
-  if (!url) return undefined;
-  return isGoogleDriveUrl(url) ? toDirectImageUrl(url) : assetUrl(url);
-}
+import { resolveThumbnailUrl } from "../../utils/media";
 
 export default function LearningZoneQuizList() {
   const navigate = useNavigate();

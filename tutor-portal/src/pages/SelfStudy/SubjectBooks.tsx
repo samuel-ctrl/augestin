@@ -13,18 +13,11 @@ import {
   useToast,
   extractErrorMessage,
   PageHeader,
-  toDirectImageUrl,
-  isGoogleDriveUrl,
   useSetBreadcrumbs,
 } from "@shared";
 import type { Subject, Book, ColumnDef, PaginatedResponse, TableQueryParams, DropdownMenuItem } from "@shared";
 import api from "../../api/client";
-import { assetUrl } from "../../api/config";
-
-function resolveThumbnailUrl(url: string | null | undefined): string | undefined {
-  if (!url) return undefined;
-  return isGoogleDriveUrl(url) ? toDirectImageUrl(url) : assetUrl(url);
-}
+import { resolveThumbnailUrl } from "../../utils/media";
 
 export default function SubjectBooks() {
   const { id: subjectId } = useParams<{ id: string }>();

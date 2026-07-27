@@ -8,7 +8,7 @@ import Blockquote from "@tiptap/extension-blockquote";
 import CodeBlock from "@tiptap/extension-code-block";
 import { Button } from "./Button";
 import { LoadingSpinner } from "./LoadingSpinner";
-import { toDirectImageUrl } from "./RecapViewer";
+import { toDriveThumbnailUrl } from "../utils/googleDrive";
 
 // Renders Google Drive share links as their direct-viewable thumbnail URL
 // (matches RecapViewer) while leaving the stored src attr untouched.
@@ -19,7 +19,7 @@ const DriveAwareImage = Image.extend({
       src: {
         default: null,
         renderHTML: (attributes: { src?: string }) => ({
-          src: toDirectImageUrl(attributes.src) || attributes.src,
+          src: attributes.src ? toDriveThumbnailUrl(attributes.src, 1000) : attributes.src,
         }),
       },
     };
@@ -92,7 +92,7 @@ function InsertModal({
               placeholder={
                 type === "image"
                   ? "https://drive.google.com/file/d/... or image URL"
-                  : "https://example.com"
+                  : "https://example.com or YouTube link"
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
               required

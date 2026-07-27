@@ -1,15 +1,10 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { DataTable, Toast, useToast, PageHeader, Button, QuizThumbnail, toDirectImageUrl, isGoogleDriveUrl } from "@shared";
+import { DataTable, Toast, useToast, PageHeader, Button, QuizThumbnail } from "@shared";
 import type { AssignedQuizSet, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
-import { assetUrl } from "../../api/config";
+import { resolveThumbnailUrl } from "../../utils/media";
 import LearningZoneQuizList from "./LearningZoneQuizList";
-
-function resolveThumbnailUrl(url: string | null | undefined): string | undefined {
-  if (!url) return undefined;
-  return isGoogleDriveUrl(url) ? toDirectImageUrl(url) : assetUrl(url);
-}
 
 type Tab = "general" | "learning_zone";
 

@@ -4,7 +4,7 @@ import { ClipboardList } from "lucide-react";
 import { LoadingSpinner, EmptyState, Toast, useToast, PageHeader, BookCard, QuizThumbnail } from "@shared";
 import type { AssignedQuizSet } from "@shared";
 import api from "../../api/client";
-import { assetUrl } from "../../api/config";
+import { resolveThumbnailUrl } from "../../utils/media";
 import { getRandomWelcomeQuote } from "./welcomeQuotes";
 
 interface PendingBook {
@@ -252,7 +252,7 @@ export default function HomeDashboard() {
                     onClick={() => navigate(`/quiz-sets/${qs.id}`)}
                     className="bg-[rgb(191_189_207_/_38%)] dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 hover:shadow-lg transition-shadow text-left"
                   >
-                    <QuizThumbnail src={assetUrl(qs.thumbnail_url)} alt={qs.name} className="mb-3 h-24 rounded" />
+                    <QuizThumbnail src={resolveThumbnailUrl(qs.thumbnail_url)} alt={qs.name} className="mb-3 h-24 rounded" />
                     <h3 className="font-semibold text-gray-900 dark:text-gray-50 text-sm line-clamp-2">
                       {qs.name}
                     </h3>
@@ -275,7 +275,7 @@ export default function HomeDashboard() {
                     key={book.id}
                     title={book.title}
                     standard={book.standard}
-                    thumbnailUrl={assetUrl(book.thumbnail_url)}
+                    thumbnailUrl={resolveThumbnailUrl(book.thumbnail_url)}
                     topicCount={book.topic_count}
                     onClick={() => navigate(`/self-study/books/${book.id}`)}
                   />

@@ -8,17 +8,10 @@ import {
   PageHeader,
   DropdownMenu,
   QuizThumbnail,
-  toDirectImageUrl,
-  isGoogleDriveUrl,
 } from "@shared";
 import type { QuizSet, ColumnDef, PaginatedResponse, TableQueryParams, DropdownMenuItem, LiveQuizRoomSnapshot } from "@shared";
 import api from "../../api/client";
-import { assetUrl } from "../../api/config";
-
-function resolveThumbnailUrl(url: string | null | undefined): string | undefined {
-  if (!url) return undefined;
-  return isGoogleDriveUrl(url) ? toDirectImageUrl(url) : assetUrl(url);
-}
+import { resolveThumbnailUrl } from "../../utils/media";
 
 export default function QuizSetList() {
   const navigate = useNavigate();

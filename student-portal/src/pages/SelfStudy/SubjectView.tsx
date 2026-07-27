@@ -1,15 +1,10 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect, useCallback } from "react";
 import { AlertTriangle } from "lucide-react";
-import { BookCard, BookThumbnail, DataTable, EmptyState, LoadingSpinner, PageHeader, extractErrorMessage, toDirectImageUrl, isGoogleDriveUrl, useSetBreadcrumbs } from "@shared";
+import { BookCard, BookThumbnail, DataTable, EmptyState, LoadingSpinner, PageHeader, extractErrorMessage, useSetBreadcrumbs } from "@shared";
 import type { Subject, Book, ColumnDef, PaginatedResponse, TableQueryParams } from "@shared";
 import api from "../../api/client";
-import { assetUrl } from "../../api/config";
-
-function resolveThumbnailUrl(url: string | null | undefined): string | undefined {
-  if (!url) return undefined;
-  return isGoogleDriveUrl(url) ? toDirectImageUrl(url) : assetUrl(url);
-}
+import { resolveThumbnailUrl } from "../../utils/media";
 
 export default function SubjectView() {
   const { id: subjectId } = useParams<{ id: string }>();

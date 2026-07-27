@@ -1,17 +1,12 @@
 import { ListChecks, Lock, CheckCircle2, PlayCircle, Video, HelpCircle, BookOpen } from "lucide-react";
-import { Card, isGoogleDriveUrl, toDirectImageUrl } from "@shared";
+import { Card } from "@shared";
 import type { TopicProgress } from "@shared";
-import { assetUrl } from "../../api/config";
+import { resolveThumbnailUrl } from "../../utils/media";
 
 interface TopicsSidebarProps {
   topics: TopicProgress[];
   selectedTopicId: string | null;
   onSelect: (topicId: string) => void;
-}
-
-function resolveThumbnailUrl(url: string | null | undefined): string | undefined {
-  if (!url) return undefined;
-  return isGoogleDriveUrl(url) ? toDirectImageUrl(url) : assetUrl(url);
 }
 
 export default function TopicsSidebar({ topics, selectedTopicId, onSelect }: TopicsSidebarProps) {

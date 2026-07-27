@@ -1,7 +1,7 @@
 import { PlayCircle } from "lucide-react";
-import { isGoogleDriveUrl, toDirectImageUrl, BookThumbnail, Button } from "@shared";
+import { BookThumbnail, Button } from "@shared";
 import type { Book } from "@shared";
-import { assetUrl } from "../../api/config";
+import { resolveThumbnailUrl } from "../../utils/media";
 import ProgressRing from "./ProgressRing";
 
 interface ChapterHeaderProps {
@@ -23,7 +23,7 @@ export default function ChapterHeader({ book, topicCount, percentComplete, allCo
 
       <div className="relative z-10 flex items-center gap-3 sm:gap-4">
         <BookThumbnail
-          src={book.thumbnail_url ? (isGoogleDriveUrl(book.thumbnail_url) ? toDirectImageUrl(book.thumbnail_url) : assetUrl(book.thumbnail_url)) : undefined}
+          src={resolveThumbnailUrl(book.thumbnail_url)}
           className="w-12 h-14 sm:w-14 sm:h-16 rounded-lg shrink-0"
         />
 

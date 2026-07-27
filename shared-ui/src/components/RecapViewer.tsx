@@ -1,4 +1,6 @@
 import { useMemo } from "react";
+import { toDriveThumbnailUrl } from "../utils/googleDrive";
+import { isYouTubeUrl, toYouTubeEmbedUrl } from "../utils/youtube";
 
 interface RecapViewerProps {
   content: any;
@@ -53,28 +55,9 @@ function validateRecapContent(node: any): any {
 }
 
 // Convert Google Drive sharing links to direct viewable/embeddable URLs
-export function toDirectImageUrl(url: string | undefined): string | undefined {
+function resolveRecapImageUrl(url: string | undefined): string | undefined {
   if (!url) return undefined;
-
-  // Google Drive file link: https://drive.google.com/file/d/FILE_ID/view...
-  const driveFileMatch = url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
-  if (driveFileMatch) {
-    return `https://drive.google.com/thumbnail?id=${driveFileMatch[1]}&sz=w1000`;
-  }
-
-  // Google Drive open link: https://drive.google.com/open?id=FILE_ID
-  const driveOpenMatch = url.match(/drive\.google\.com\/open\?id=([^&]+)/);
-  if (driveOpenMatch) {
-    return `https://drive.google.com/thumbnail?id=${driveOpenMatch[1]}&sz=w1000`;
-  }
-
-  // Google Drive uc link: https://drive.google.com/uc?id=FILE_ID
-  const driveUcMatch = url.match(/drive\.google\.com\/uc\?.*id=([^&]+)/);
-  if (driveUcMatch) {
-    return `https://drive.google.com/thumbnail?id=${driveUcMatch[1]}&sz=w1000`;
-  }
-
-  return url;
+  return toDriveThumbnailUrl(url, 1000);
 }
 
 // Check if a URL points to an image (by extension or known image host)
@@ -167,7 +150,7 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
             }
 
             case "image": {
-              const src = toDirectImageUrl(node.attrs?.src);
+              const src = resolveRecapImageUrl(node.attrs?.src);
               const alt = node.attrs?.alt || "Image";
               return src ? (
                 <img
@@ -239,12 +222,26 @@ export default function RecapViewer({ content, title }: RecapViewerProps) {
                   break;
                 case "link": {
                   const href = mark.attrs?.href || "";
-                  // If the link points to an image, render it as an inline image
-                  if (isImageUrl(href)) {
+                  // YouTube links render as an embedded player
+                  if (isYouTubeUrl(href)) {
+                    element = (
+                      <iframe
+                        key={key}
+                        src={toYouTubeEmbedUrl(href)}
+                        title={text || "YouTube video"}
+                        className="w-full aspect-video rounded-lg my-2"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowFullScreen
+                        referrerPolicy="strict-origin-when-cross-origin"
+                        loading="lazy"
+                      />
+                    );
+                  } else if (isImageUrl(href)) {
+                    // If the link points to an image, render it as an inline image
                     element = (
                       <img
                         key={key}
-                        src={toDirectImageUrl(href)}
+                        src={resolveRecapImageUrl(href)}
                         alt={text || "Image"}
                         className="max-w-full h-auto rounded-lg my-2 inline-block"
                         loading="lazy"

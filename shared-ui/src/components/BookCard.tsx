@@ -1,5 +1,5 @@
 import React from "react";
-import { isGoogleDriveUrl, toDirectImageUrl } from "../utils/googleDrive";
+import { toDriveThumbnailUrl } from "../utils/googleDrive";
 import { BookThumbnail } from "./BookThumbnail";
 
 interface BookCardProps {
@@ -19,7 +19,7 @@ export function BookCard({
   onClick,
   actions,
 }: BookCardProps) {
-  const resolvedSrc = thumbnailUrl && isGoogleDriveUrl(thumbnailUrl) ? toDirectImageUrl(thumbnailUrl) : thumbnailUrl;
+  const resolvedSrc = thumbnailUrl ? toDriveThumbnailUrl(thumbnailUrl) : thumbnailUrl;
 
   return (
     <div

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { isGoogleDriveUrl, toDirectImageUrl, extractFileId } from "../utils/googleDrive";
+import { isGoogleDriveUrl, toDriveThumbnailUrl } from "../utils/googleDrive";
 
 interface AttachmentGalleryProps {
   links: string[];
@@ -7,7 +7,7 @@ interface AttachmentGalleryProps {
 
 function getPreviewUrl(url: string): string | null {
   if (isGoogleDriveUrl(url)) {
-    return toDirectImageUrl(url);
+    return toDriveThumbnailUrl(url, 400);
   }
   // For non-Drive URLs, try showing directly if it looks like an image
   if (/\.(jpg|jpeg|png|gif|webp|bmp|svg)(\?|$)/i.test(url)) {
@@ -17,11 +17,7 @@ function getPreviewUrl(url: string): string | null {
 }
 
 function getFullImageUrl(url: string): string {
-  if (isGoogleDriveUrl(url)) {
-    const fileId = extractFileId(url);
-    return `https://drive.google.com/thumbnail?id=${fileId}&sz=w1600`;
-  }
-  return url;
+  return toDriveThumbnailUrl(url, 1600);
 }
 
 export function AttachmentGallery({ links }: AttachmentGalleryProps) {
