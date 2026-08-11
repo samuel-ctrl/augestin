@@ -100,11 +100,11 @@ export default function TopicForm() {
             type="url"
             value={videoUrl}
             onChange={(e) => setVideoUrl(e.target.value)}
-            placeholder="https://drive.google.com/file/d/.../view"
+            placeholder="Google Drive or YouTube link"
             className={inputClass}
           />
           <p className="mt-1 text-xs text-gray-400">
-            Google Drive link or any direct video URL. Students must watch to complete this topic.
+            Google Drive, YouTube, or any direct video URL. Students must watch to complete this topic.
           </p>
         </div>
 

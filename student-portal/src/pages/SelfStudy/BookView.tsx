@@ -316,6 +316,7 @@ export default function BookView() {
               {(activeTab === "record" || activeTab === "quiz" || activeTab === "notes") && (
                 <TopicContentPanel
                   topic={topicDetail}
+                  hasTopics={topicsProgress.length > 0}
                   notes={notes}
                   activeTab={activeTab}
                   isWatched={isWatched}

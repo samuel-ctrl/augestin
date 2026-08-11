@@ -8,6 +8,7 @@ export type ContentTab = "record" | "quiz" | "notes";
 
 interface TopicContentPanelProps {
   topic: Topic | null;
+  hasTopics: boolean;
   notes: TopicNotes | null;
   activeTab: ContentTab;
   isWatched: boolean;
@@ -18,6 +19,7 @@ interface TopicContentPanelProps {
 
 export default function TopicContentPanel({
   topic,
+  hasTopics,
   notes,
   activeTab,
   isWatched,
@@ -26,6 +28,16 @@ export default function TopicContentPanel({
   onQuizCompletedChange,
 }: TopicContentPanelProps) {
   if (!topic) {
+    // No topics at all means nothing will ever load — don't sit on a spinner.
+    if (!hasTopics) {
+      return (
+        <EmptyState
+          icon={<Video className="w-6 h-6" />}
+          title="No topics yet"
+          description="Your tutor hasn't added topics to this book yet."
+        />
+      );
+    }
     return <LoadingSpinner />;
   }
 
