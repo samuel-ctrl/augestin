@@ -218,29 +218,36 @@ export default function StudentDetail() {
         </div>
       )}
 
-      {/* Performance Overview */}
-      {perfStats && (
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <p className="text-xs text-gray-500">Avg Progress</p>
-            <p className="text-2xl font-bold text-gray-900 mt-1">{perfStats.avg_score}<span className="text-sm font-normal text-gray-400">%</span></p>
-          </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <p className="text-xs text-gray-500">Completed Chapters</p>
-            <p className="text-2xl font-bold text-green-600 mt-1">{perfStats.completed_chapters}</p>
-          </div>
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <p className="text-xs text-gray-500">Pending Tasks</p>
-            <p className="text-2xl font-bold text-amber-600 mt-1">{perfStats.pending_tasks}</p>
-          </div>
-          {/* Already on the student payload fetched above — no new endpoint,
-              no extra request. */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4">
-            <p className="text-xs text-gray-500">Day Streaks</p>
-            <p className="text-2xl font-bold text-orange-500 mt-1">{student.total_streaks_earned ?? 0}</p>
-          </div>
+      {/* Performance Overview. The first three tiles depend on perfStats
+          (derived from the progress fetch above) and are hidden together if
+          that call fails. Day Streaks is intentionally NOT gated on
+          perfStats — it comes straight off the student payload already
+          fetched above, so it must render even when the progress fetch
+          fails and perfStats is null; nesting it in that same conditional
+          would silently hide a working, independent number behind an
+          unrelated fetch's success. */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
+        {perfStats && (
+          <>
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <p className="text-xs text-gray-500">Avg Progress</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{perfStats.avg_score}<span className="text-sm font-normal text-gray-400">%</span></p>
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <p className="text-xs text-gray-500">Completed Chapters</p>
+              <p className="text-2xl font-bold text-green-600 mt-1">{perfStats.completed_chapters}</p>
+            </div>
+            <div className="bg-white rounded-lg border border-gray-200 p-4">
+              <p className="text-xs text-gray-500">Pending Tasks</p>
+              <p className="text-2xl font-bold text-amber-600 mt-1">{perfStats.pending_tasks}</p>
+            </div>
+          </>
+        )}
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <p className="text-xs text-gray-500">Day Streaks</p>
+          <p className="text-2xl font-bold text-orange-500 mt-1">{student.total_streaks_earned ?? 0}</p>
         </div>
-      )}
+      </div>
 
       {/* Progress Table */}
       <h2 className="text-lg font-medium text-gray-800 mb-3">
