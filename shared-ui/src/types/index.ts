@@ -20,6 +20,7 @@ export interface Student {
   section?: string;
   must_change_password: boolean;
   assignment_count: number;
+  total_streaks_earned?: number;
   created_at: string;
   updated_at: string;
 }

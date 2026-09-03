@@ -8,7 +8,7 @@ from app.config import settings
 from app.database import async_session
 from app.middleware.activity_log import ActivityLogMiddleware
 from app.middleware.auth import AuthMiddleware
-from app.routers import activity_logs, admin, assignments, auth, books, dashboard, doubts, live_quiz, lookups, notifications, progress, quiz, quiz_sets, settings as settings_router, students, subjects, test, test_sets, topics, ws
+from app.routers import activity_logs, admin, assignments, auth, books, dashboard, doubts, live_quiz, lookups, notifications, progress, quiz, quiz_sets, settings as settings_router, streak, students, subjects, test, test_sets, topics, ws
 
 logger = logging.getLogger(__name__)
 
@@ -86,6 +86,7 @@ app.include_router(students.router)
 app.include_router(subjects.router)
 app.include_router(assignments.router)
 app.include_router(progress.router)
+app.include_router(streak.router)
 app.include_router(quiz.router)
 app.include_router(topics.router)
 app.include_router(test.router)

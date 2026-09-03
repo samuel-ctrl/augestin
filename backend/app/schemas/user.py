@@ -28,6 +28,7 @@ class StudentOut(BaseModel):
     section: str | None = None
     must_change_password: bool
     assignment_count: int = 0
+    total_streaks_earned: int = 0
     created_at: datetime
     updated_at: datetime | None = None
 

@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { WebSocketProvider, useWS } from "./context/WebSocketContext";
+import { StreakProvider } from "./context/StreakContext";
 import { AppLayout, ProtectedRoute, NotificationToast, NotificationsPage, AuthStatusPage } from "@shared";
 import { sidebarItems } from "./config/sidebar";
 import api from "./api/client";
@@ -105,7 +106,12 @@ function AuthenticatedApp() {
       mustChangePassword={user?.must_change_password}
       changePasswordPath="/change-password"
     >
-      <AppShell />
+      {/* Inside ProtectedRoute: the streak sync and heartbeat must only run
+          for an authenticated student who is past the forced-password-change
+          gate, which is exactly what this position guarantees. */}
+      <StreakProvider>
+        <AppShell />
+      </StreakProvider>
     </ProtectedRoute>
     </WebSocketProvider>
   );

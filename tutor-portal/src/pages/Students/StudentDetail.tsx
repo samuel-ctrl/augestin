@@ -220,7 +220,7 @@ export default function StudentDetail() {
 
       {/* Performance Overview */}
       {perfStats && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <p className="text-xs text-gray-500">Avg Progress</p>
             <p className="text-2xl font-bold text-gray-900 mt-1">{perfStats.avg_score}<span className="text-sm font-normal text-gray-400">%</span></p>
@@ -232,6 +232,12 @@ export default function StudentDetail() {
           <div className="bg-white rounded-lg border border-gray-200 p-4">
             <p className="text-xs text-gray-500">Pending Tasks</p>
             <p className="text-2xl font-bold text-amber-600 mt-1">{perfStats.pending_tasks}</p>
+          </div>
+          {/* Already on the student payload fetched above — no new endpoint,
+              no extra request. */}
+          <div className="bg-white rounded-lg border border-gray-200 p-4">
+            <p className="text-xs text-gray-500">Day Streaks</p>
+            <p className="text-2xl font-bold text-orange-500 mt-1">{student.total_streaks_earned ?? 0}</p>
           </div>
         </div>
       )}

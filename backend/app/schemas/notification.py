@@ -12,7 +12,9 @@ class NotificationCreate(BaseModel):
 class NotificationOut(BaseModel):
     id: str
     recipient_id: str
-    sender_id: str
+    # None for system-generated notifications (e.g. streak warnings), which
+    # have no human sender.
+    sender_id: Optional[str] = None
     sender_name: Optional[str] = None
     message: str
     is_read: bool

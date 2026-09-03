@@ -6,6 +6,7 @@ import type { AssignedQuizSet } from "@shared";
 import api from "../../api/client";
 import { resolveThumbnailUrl } from "../../utils/media";
 import { getRandomWelcomeQuote } from "./welcomeQuotes";
+import StreakCard from "./StreakCard";
 
 interface PendingBook {
   id: string;
@@ -139,6 +140,8 @@ export default function HomeDashboard() {
         title="Welcome Back"
         subtitle={welcomeSubtitle}
       />
+
+      <StreakCard />
 
       {/* My Tasks Widget */}
       {tasks.length > 0 && (

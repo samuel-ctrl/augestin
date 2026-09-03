@@ -2,9 +2,15 @@ import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { extractErrorMessage, Toast, useToast, PageHeader } from "@shared";
 import api from "../api/client";
+import { useStreak } from "../context/StreakContext";
 
 export default function Profile() {
   const { user, refreshUser } = useAuth();
+  // Deliberately from StreakContext, never from useAuth().user: AuthContext's
+  // user is a snapshot read once from localStorage at load and refreshed only
+  // on login or an explicit refreshUser(), so reading the total from there
+  // would freeze it until the student's next login.
+  const { streak } = useStreak();
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -76,6 +82,14 @@ export default function Profile() {
             <div className="flex justify-between">
               <span className="text-gray-500 dark:text-gray-400">Phone</span>
               <span className="text-gray-800 dark:text-gray-100">{user.phone}</span>
+            </div>
+          )}
+          {streak && (
+            <div className="flex justify-between">
+              <span className="text-gray-500 dark:text-gray-400">Day Streaks Earned</span>
+              <span className="text-gray-800 dark:text-gray-100 font-medium">
+                {streak.total_streaks_earned}
+              </span>
             </div>
           )}
         </div>

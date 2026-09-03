@@ -44,9 +44,13 @@ async def list_notifications(
 
     # Paginated query
     offset = (page - 1) * page_size
+    # OUTER join, not inner: system-generated notifications have a NULL
+    # sender_id, and an inner join drops them from this list while
+    # /unread-count (which does not join) still counts them — the bell shows
+    # 3, the page shows 1, and "mark all read" can never clear the rest.
     query = (
         select(Notification, User.name)
-        .join(User, Notification.sender_id == User.id)
+        .outerjoin(User, Notification.sender_id == User.id)
         .where(*base_where)
         .order_by(Notification.created_at.desc())
         .offset(offset)
@@ -62,7 +66,7 @@ async def list_notifications(
             NotificationOut(
                 id=str(n.id),
                 recipient_id=str(n.recipient_id),
-                sender_id=str(n.sender_id),
+                sender_id=str(n.sender_id) if n.sender_id else None,
                 sender_name=sender_name,
                 message=n.message,
                 is_read=n.is_read,

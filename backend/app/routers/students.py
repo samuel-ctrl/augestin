@@ -45,6 +45,7 @@ async def _student_to_out(db: AsyncSession, student: User) -> StudentOut:
         section=student.section,
         must_change_password=student.must_change_password,
         assignment_count=assignment_count,
+        total_streaks_earned=student.total_streaks_earned or 0,
         created_at=student.created_at,
         updated_at=student.updated_at,
     )

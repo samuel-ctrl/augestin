@@ -8,7 +8,10 @@ import type { PaginatedResponse } from "../types";
 interface Notification {
   id: string;
   recipient_id: string;
-  sender_id: string;
+  // null for system-generated notifications (e.g. streak), which have no
+  // human sender. Both the name and its separator are already guarded below,
+  // so such a row simply renders no sender label.
+  sender_id: string | null;
   sender_name: string | null;
   message: string;
   is_read: boolean;
@@ -199,6 +202,8 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
       navigate("/quiz-sets");
     } else if (n.notification_type === "test_set_assigned" || n.notification_type === "test_set_unassigned") {
       navigate("/test-sets");
+    } else if (n.notification_type === "streak_earned" || n.notification_type === "streak_at_risk") {
+      navigate("/profile");
     }
   };
 
@@ -302,7 +307,7 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
                     n.is_read
                       ? "bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700"
                       : "bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50"
-                  } ${n.reference_id || n.notification_type?.includes("assigned") ? "cursor-pointer" : "cursor-default"}`}
+                  } ${n.reference_id || n.notification_type?.includes("assigned") || n.notification_type?.startsWith("streak_") ? "cursor-pointer" : "cursor-default"}`}
                 >
                   <div className="flex items-start gap-3">
                     <span className={`mt-0.5 ${n.is_read ? "text-gray-400" : "text-blue-500"}`}>
@@ -347,6 +352,10 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
                               ? "Delete Request"
                               : n.notification_type === "manual"
                               ? "Reminder"
+                              : n.notification_type === "streak_at_risk"
+                              ? "Streak at Risk"
+                              : n.notification_type === "streak_earned"
+                              ? "Streak"
                               : n.notification_type?.endsWith("_assigned")
                               ? "Assigned"
                               : n.notification_type?.endsWith("_unassigned")

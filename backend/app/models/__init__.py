@@ -20,6 +20,7 @@ from app.models.lookup import Standard, Section
 from app.models.app_setting import AppSetting
 from app.models.test_set_leaderboard import TestSetLeaderboardEntry
 from app.models.activity_log import ActivityLog
+from app.models.student_daily_activity import StudentDailyActivity
 
 __all__ = [
     "AuditBase", "User", "Subject", "Book", "BookAssignment",
@@ -30,4 +31,5 @@ __all__ = [
     "TestSet", "TestSetFile", "TestSetAssignment", "TestSetSubmission",
     "Doubt", "DoubtComment", "Notification", "Standard", "Section",
     "AppSetting", "TestSetLeaderboardEntry", "ActivityLog",
+    "StudentDailyActivity",
 ]
