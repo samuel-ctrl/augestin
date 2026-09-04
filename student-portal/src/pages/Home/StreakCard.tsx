@@ -62,6 +62,20 @@ export default function StreakCard() {
     recent,
   } = streak;
 
+  // Explain only what is actually on screen, in strip order. "today" and
+  // "untracked" are deliberately omitted: the dashed box reads as today
+  // without help, and naming "before tracking started" would draw attention
+  // to days the student is explicitly not being judged on.
+  const LEGEND_ORDER: { status: DayStatus; label: string }[] = [
+    { status: "qualifying", label: "Goal met" },
+    { status: "grace", label: "Rest day — streak kept" },
+    { status: "freeze", label: "Freeze used — streak kept" },
+    { status: "missed", label: "No study" },
+    { status: "break", label: "Streak ended" },
+  ];
+  const present = new Set(recent.map((d) => d.status));
+  const legend = LEGEND_ORDER.filter((l) => present.has(l.status));
+
   const todayMin = minutes(active_seconds_today);
   const goalMin = minutes(goal_seconds);
   const pct = Math.min(100, Math.round((active_seconds_today / goal_seconds) * 100));
@@ -156,6 +170,23 @@ export default function StreakCard() {
           />
         ))}
       </div>
+
+      {/* Legend. The strip encodes five states in colour alone, and `title`
+          tooltips do not exist on a touch screen — which is what most of
+          these students are on. Without this, the teal and blue days (the
+          ones that say "your streak SURVIVED this") read as unexplained
+          gaps, which is the opposite of the intended message. Only the
+          states actually present are listed, so a clean run stays clean. */}
+      {legend.length > 0 && (
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-gray-500 dark:text-gray-400">
+          {legend.map(({ status, label }) => (
+            <span key={status} className="inline-flex items-center gap-1.5">
+              <span className={`h-2.5 w-2.5 rounded-sm border ${DOT_CLASS[status]}`} />
+              {label}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-gray-500 dark:text-gray-400">
         {typical_seconds != null && <span>Your usual: ~{minutes(typical_seconds)} min/day</span>}

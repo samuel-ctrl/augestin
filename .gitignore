@@ -19,3 +19,4 @@ deploy-be.sh
 deploy-fe.sh
 # Plan documents
 docs/
+docker-compose.override.yml
