@@ -44,7 +44,11 @@ export function toYouTubeEmbedUrl(url: string): string {
   const id = getYouTubeId(url);
   if (!id) return "";
 
-  let embedUrl = `https://www.youtube-nocookie.com/embed/${id}?rel=0`;
+  // enablejsapi=1 lets the parent page send player commands over postMessage.
+  // The student portal's eye-break overlay uses it to pause a lesson before
+  // blocking the screen — without it the video plays on behind the overlay
+  // and the student loses twenty seconds of the explanation.
+  let embedUrl = `https://www.youtube-nocookie.com/embed/${id}?rel=0&enablejsapi=1`;
 
   // Carry over a start timestamp (?t=90 / ?t=90s / ?start=90) if present.
   try {

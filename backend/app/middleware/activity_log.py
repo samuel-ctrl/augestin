@@ -35,7 +35,12 @@ STATE_CHANGING_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 # Explicit opt-outs: handled by the endpoint itself (login) or pure
 # infra paths we don't want to flood the log with.
 # NOTE: matched by exact string, so any path added here must be static.
-SKIP_PATHS: set[str] = {"/api/auth/login", "/api/streak/heartbeat"}
+SKIP_PATHS: set[str] = {
+    "/api/auth/login",
+    "/api/streak/usage",
+    # Deprecated alias for /usage, kept one release for in-flight bundles.
+    "/api/streak/heartbeat",
+}
 
 
 class ActivityLogMiddleware(BaseHTTPMiddleware):

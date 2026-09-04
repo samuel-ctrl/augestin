@@ -202,7 +202,11 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
       navigate("/quiz-sets");
     } else if (n.notification_type === "test_set_assigned" || n.notification_type === "test_set_unassigned") {
       navigate("/test-sets");
-    } else if (n.notification_type === "streak_earned" || n.notification_type === "streak_at_risk") {
+    } else if (n.notification_type?.startsWith("streak_")) {
+      // Covers streak_at_risk, streak_milestone, and the retired
+      // streak_earned rows still in the table. Matches the startsWith test
+      // used for the cursor-pointer class below, so a clickable row always
+      // actually goes somewhere.
       navigate("/profile");
     }
   };
@@ -354,6 +358,11 @@ export function NotificationsPage({ api, navigate, onCountChange, on }: Notifica
                               ? "Reminder"
                               : n.notification_type === "streak_at_risk"
                               ? "Streak at Risk"
+                              : n.notification_type === "streak_milestone"
+                              ? "Milestone"
+                              // Retired with the weekly streak model. Kept so
+                              // rows already in the table still get a label
+                              // instead of falling through to "Message".
                               : n.notification_type === "streak_earned"
                               ? "Streak"
                               : n.notification_type?.endsWith("_assigned")

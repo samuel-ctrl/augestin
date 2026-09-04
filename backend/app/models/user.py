@@ -28,13 +28,38 @@ class User(AuditBase):
     # --- Day Streak (students only) ---
     # On users rather than a 1:1 table because AuthMiddleware already loads
     # the whole User row per request, so reading these costs nothing extra.
-    total_streaks_earned: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
-    # Monday of the last week evaluated for this student. Doubles as the
-    # "tracking started here" marker: the marker's own week reports
-    # week_status "not_tracked" rather than a computed status, so a signup
-    # week (or, via migration 029's backfill, the feature's launch week)
-    # is never scored against days that predate the account or the feature.
-    last_finalized_week_start: Mapped[date | None] = mapped_column(Date, nullable=True)
+    #
+    # Everything here is a *cache* of a pure walk over student_daily_activity
+    # (services/streak.py). It can always be rebuilt from those raw rows with
+    # `python -m app.commands.recompute_streaks`, which is the sanctioned
+    # repair whenever activity is corrected or the rules change.
+
+    # The day tracking begins for this student: max(STREAK_TRACKING_EPOCH,
+    # signup date). Days before it are neither scored nor rendered as missed —
+    # they predate the account or the feature. This replaces the weekly
+    # model's "not_tracked" sentinel week.
+    streak_tracking_since: Mapped[date | None] = mapped_column(Date, nullable=True)
+    # Last day the evaluator has finalized. Never today — today is in progress.
+    last_activity_finalized_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+
+    current_streak_days: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    longest_streak_days: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    last_qualifying_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+
+    # The one free bridged gap since the last qualifying day (§3.3 grace day).
+    streak_grace_used_on: Mapped[date | None] = mapped_column(Date, nullable=True)
+    # Banked freezes, 0..MAX_FREEZES. Earned every FREEZE_EVERY_N_QUALIFYING
+    # qualifying days; auto-consumed to bridge a gap grace can't cover.
+    streak_freezes: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+    streak_freezes_progress: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+
+    # Repair window: a streak that broke within REPAIR_WINDOW_DAYS is restored
+    # to streak_pre_break_days + 1 by the next qualifying day.
+    streak_break_at: Mapped[date | None] = mapped_column(Date, nullable=True)
+    streak_pre_break_days: Mapped[int] = mapped_column(Integer, nullable=False, default=0, server_default="0")
+
+    # Highest tier longest_streak_days has ever reached. Never revoked.
+    streak_tier: Mapped[str | None] = mapped_column(String(20), nullable=True)
     last_streak_warning_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 
     # Relationships

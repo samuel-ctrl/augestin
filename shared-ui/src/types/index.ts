@@ -20,7 +20,14 @@ export interface Student {
   section?: string;
   must_change_password: boolean;
   assignment_count: number;
-  total_streaks_earned?: number;
+  // --- Streak / engagement ---
+  current_streak_days?: number;
+  longest_streak_days?: number;
+  streak_tier?: string | null;
+  /** null until there is enough history — render "—", never "0 min". */
+  typical_seconds?: number | null;
+  band?: "light" | "on_track" | "heavy";
+  active_seconds_today?: number;
   created_at: string;
   updated_at: string;
 }

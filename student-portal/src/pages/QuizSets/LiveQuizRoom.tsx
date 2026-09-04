@@ -12,6 +12,7 @@ import type {
 import api from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
 import { useWS } from "../../context/WebSocketContext";
+import { useNoInterruptions } from "../../context/EngagementContext";
 import QuestionCard from "../SelfStudy/QuestionCard";
 
 type RoomEventPayload = {
@@ -51,6 +52,13 @@ export default function LiveQuizRoom() {
   const [confirmEndOpen, setConfirmEndOpen] = useState(false);
   const [confirmFinishOpen, setConfirmFinishOpen] = useState(false);
   const snapshotRef = useRef<LiveQuizRoomSnapshot | null>(null);
+
+  // No wellbeing overlay while the room is live. The countdown above is
+  // driven by a server-side start time that keeps running regardless, so a
+  // forced 20-second eye break here would silently cost the student real
+  // answering time. Usage is still tracked; only the interruption is held
+  // back, and it fires as soon as the room is left.
+  useNoInterruptions("live-quiz", snapshot?.status === "active");
 
   const refreshSnapshot = useCallback(async () => {
     try {

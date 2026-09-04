@@ -244,8 +244,43 @@ export default function StudentDetail() {
           </>
         )}
         <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <p className="text-xs text-gray-500">Day Streaks</p>
-          <p className="text-2xl font-bold text-orange-500 mt-1">{student.total_streaks_earned ?? 0}</p>
+          <p className="text-xs text-gray-500">Day Streak</p>
+          <p className="text-2xl font-bold text-orange-500 mt-1">
+            {student.current_streak_days ?? 0}
+            <span className="text-sm font-normal text-gray-400"> day{(student.current_streak_days ?? 0) === 1 ? "" : "s"}</span>
+          </p>
+          <p className="text-[11px] text-gray-400 mt-1">
+            Best {student.longest_streak_days ?? 0}
+            {student.streak_tier ? ` · ${student.streak_tier}` : ""}
+          </p>
+        </div>
+      </div>
+
+      {/* Engagement. Separate from Performance because it answers a different
+          question: not "how is this student doing" but "is this student
+          studying too little — or too much". The heavy flag is the wellbeing
+          signal a tutor can actually act on, and it must never be buried
+          behind the perfStats conditional above. */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <p className="text-xs text-gray-500">Typical Study Time</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">
+            {/* "—", never "0 min": null means not enough history yet, which
+                is not the same claim as "this student does nothing". */}
+            {student.typical_seconds == null
+              ? "—"
+              : <>~{Math.floor(student.typical_seconds / 60)}<span className="text-sm font-normal text-gray-400"> min/day</span></>}
+          </p>
+        </div>
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <p className="text-xs text-gray-500">Today</p>
+          <p className={`text-2xl font-bold mt-1 ${student.band === "heavy" ? "text-amber-600" : "text-gray-900"}`}>
+            {Math.floor((student.active_seconds_today ?? 0) / 60)}
+            <span className="text-sm font-normal text-gray-400"> min</span>
+          </p>
+          {student.band === "heavy" && (
+            <p className="text-[11px] text-amber-600 mt-1">Heavy usage — worth a word about breaks</p>
+          )}
         </div>
       </div>
 

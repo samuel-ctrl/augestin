@@ -1,5 +1,6 @@
 import math
 import uuid
+from datetime import date, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy import func, select
@@ -8,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.dependencies import get_db, require_tutor
 from app.models.book import Book
 from app.models.book_assignment import BookAssignment
+from app.models.student_daily_activity import StudentDailyActivity
 from app.models.topic import Topic
 from app.models.user import User
 from app.models.watch_progress import WatchProgress
@@ -20,6 +22,7 @@ from app.schemas.user import (
     StudentOut,
     StudentUpdate,
 )
+from app.services.streak import TYPICAL_WINDOW_DAYS, typical_seconds, usage_band
 from app.services.student import (
     create_student,
     delete_student,
@@ -28,13 +31,64 @@ from app.services.student import (
     reset_password,
     update_student,
 )
+from app.utils.ist import ist_today
 
 router = APIRouter(prefix="/api/students", tags=["students"])
 
 
-async def _student_to_out(db: AsyncSession, student: User) -> StudentOut:
-    count_q = select(func.count()).where(BookAssignment.student_id == student.id)
-    assignment_count = (await db.execute(count_q)).scalar() or 0
+async def _assignment_counts(db: AsyncSession, ids: list[uuid.UUID]) -> dict[uuid.UUID, int]:
+    """Assignment count per student, in ONE grouped query."""
+    if not ids:
+        return {}
+    rows = (
+        await db.execute(
+            select(BookAssignment.student_id, func.count())
+            .where(BookAssignment.student_id.in_(ids))
+            .group_by(BookAssignment.student_id)
+        )
+    ).all()
+    return {sid: n for sid, n in rows}
+
+
+async def _usage_index(
+    db: AsyncSession, ids: list[uuid.UUID]
+) -> dict[uuid.UUID, dict[date, int]]:
+    """Recent daily activity per student, in ONE indexed range scan."""
+    if not ids:
+        return {}
+    today = ist_today()
+    rows = (
+        await db.execute(
+            select(
+                StudentDailyActivity.student_id,
+                StudentDailyActivity.activity_date,
+                StudentDailyActivity.active_seconds,
+            ).where(
+                StudentDailyActivity.student_id.in_(ids),
+                StudentDailyActivity.activity_date >= today - timedelta(days=TYPICAL_WINDOW_DAYS),
+            )
+        )
+    ).all()
+    index: dict[uuid.UUID, dict[date, int]] = {}
+    for sid, d, s in rows:
+        index.setdefault(sid, {})[d] = s
+    return index
+
+
+def _build_student_out(
+    student: User, assignment_count: int, day_seconds: dict[date, int]
+) -> StudentOut:
+    """Pure assembly — every read the payload needs is already in hand.
+
+    Deliberately takes its data rather than fetching it: this runs once per
+    student in a page of up to 100, and a query in here is an N+1 on the
+    tutor's busiest screen. The streak counters are free (already on the User
+    row AuthMiddleware loaded); the usage stats come from _usage_index.
+    """
+    today = ist_today()
+    active_today = day_seconds.get(today, 0)
+    typical = typical_seconds(day_seconds, today)
+
     return StudentOut(
         id=str(student.id),
         login_id=student.login_id,
@@ -45,10 +99,23 @@ async def _student_to_out(db: AsyncSession, student: User) -> StudentOut:
         section=student.section,
         must_change_password=student.must_change_password,
         assignment_count=assignment_count,
-        total_streaks_earned=student.total_streaks_earned or 0,
+        current_streak_days=student.current_streak_days or 0,
+        longest_streak_days=student.longest_streak_days or 0,
+        streak_tier=student.streak_tier,
+        typical_seconds=typical,
+        band=usage_band(active_today, typical),
+        active_seconds_today=active_today,
         created_at=student.created_at,
         updated_at=student.updated_at,
     )
+
+
+async def _student_to_out(db: AsyncSession, student: User) -> StudentOut:
+    """Single-student convenience wrapper. Never use this in a loop."""
+    ids = [student.id]
+    counts = await _assignment_counts(db, ids)
+    usage = await _usage_index(db, ids)
+    return _build_student_out(student, counts.get(student.id, 0), usage.get(student.id, {}))
 
 
 @router.get("", response_model=PaginatedResponse[StudentOut])
@@ -69,9 +136,13 @@ async def list_students_endpoint(
         sort_by=sort_by, sort_order=sort_order, standard=standard,
         section=section,
     )
-    items = []
-    for s in students:
-        items.append(await _student_to_out(db, s))
+    # Two batched queries for the whole page, not two per student. At
+    # page_size=100 the naive loop cost 200 round trips on the tutor's main
+    # screen; the assignment-count half of that predates the streak work.
+    ids = [s.id for s in students]
+    counts = await _assignment_counts(db, ids)
+    usage = await _usage_index(db, ids)
+    items = [_build_student_out(s, counts.get(s.id, 0), usage.get(s.id, {})) for s in students]
     return PaginatedResponse(
         items=items, total=total, page=pg, page_size=ps, total_pages=total_pages,
     )

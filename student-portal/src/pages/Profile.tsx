@@ -85,12 +85,38 @@ export default function Profile() {
             </div>
           )}
           {streak && (
-            <div className="flex justify-between">
-              <span className="text-gray-500 dark:text-gray-400">Day Streaks Earned</span>
-              <span className="text-gray-800 dark:text-gray-100 font-medium">
-                {streak.total_streaks_earned}
-              </span>
-            </div>
+            <>
+              <div className="flex justify-between">
+                <span className="text-gray-500 dark:text-gray-400">Current Streak</span>
+                <span className="text-gray-800 dark:text-gray-100 font-medium">
+                  {streak.current_streak_days} day{streak.current_streak_days === 1 ? "" : "s"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-500 dark:text-gray-400">Best Streak</span>
+                <span className="text-gray-800 dark:text-gray-100 font-medium">
+                  {streak.longest_streak_days} day{streak.longest_streak_days === 1 ? "" : "s"}
+                </span>
+              </div>
+              {streak.streak_tier && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500 dark:text-gray-400">Tier</span>
+                  <span className="text-gray-800 dark:text-gray-100 font-medium">
+                    {streak.streak_tier}
+                  </span>
+                </div>
+              )}
+              <div className="flex justify-between">
+                <span className="text-gray-500 dark:text-gray-400">Typical Study Time</span>
+                <span className="text-gray-800 dark:text-gray-100 font-medium">
+                  {/* Never "0 min" — null means not enough history yet, which
+                      is a different thing and must not read as a failure. */}
+                  {streak.typical_seconds == null
+                    ? "—"
+                    : `~${Math.floor(streak.typical_seconds / 60)} min/day`}
+                </span>
+              </div>
+            </>
           )}
         </div>
       </div>

@@ -4,6 +4,8 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ThemeProvider, useTheme } from "./context/ThemeContext";
 import { WebSocketProvider, useWS } from "./context/WebSocketContext";
 import { StreakProvider } from "./context/StreakContext";
+import { EngagementProvider } from "./context/EngagementContext";
+import { EngagementGuardProvider } from "./context/EngagementGuardProvider";
 import { AppLayout, ProtectedRoute, NotificationToast, NotificationsPage, AuthStatusPage } from "@shared";
 import { sidebarItems } from "./config/sidebar";
 import api from "./api/client";
@@ -106,12 +108,22 @@ function AuthenticatedApp() {
       mustChangePassword={user?.must_change_password}
       changePasswordPath="/change-password"
     >
-      {/* Inside ProtectedRoute: the streak sync and heartbeat must only run
-          for an authenticated student who is past the forced-password-change
-          gate, which is exactly what this position guarantees. */}
-      <StreakProvider>
-        <AppShell />
-      </StreakProvider>
+      {/* Inside ProtectedRoute: usage tracking and the wellbeing prompts must
+          only run for an authenticated student who is past the forced-
+          password-change gate, which is exactly what this position
+          guarantees.
+
+          Order is load-bearing. EngagementProvider owns the one engaged-time
+          clock; StreakProvider drains it to poll usage; the guard reads both
+          the clock (for the sitting timer) and the streak (for today's
+          total), so it must be innermost. */}
+      <EngagementProvider>
+        <StreakProvider>
+          <EngagementGuardProvider>
+            <AppShell />
+          </EngagementGuardProvider>
+        </StreakProvider>
+      </EngagementProvider>
     </ProtectedRoute>
     </WebSocketProvider>
   );

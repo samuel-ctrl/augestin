@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -28,7 +29,19 @@ class StudentOut(BaseModel):
     section: str | None = None
     must_change_password: bool
     assignment_count: int = 0
-    total_streaks_earned: int = 0
+
+    # --- Streak / engagement, for the tutor's student view ---
+    current_streak_days: int = 0
+    longest_streak_days: int = 0
+    streak_tier: str | None = None
+    # Mean active seconds over recent study days. None until there is enough
+    # data — the tutor UI must show "—", never "0 min".
+    typical_seconds: int | None = None
+    # Today's usage band: a tutor spotting "heavy" repeatedly is the wellbeing
+    # signal this feature exists to surface.
+    band: Literal["light", "on_track", "heavy"] = "light"
+    active_seconds_today: int = 0
+
     created_at: datetime
     updated_at: datetime | None = None
 
